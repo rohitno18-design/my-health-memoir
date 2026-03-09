@@ -1,0 +1,233 @@
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import {
+    Heart, Mail, Lock, Eye, EyeOff, Loader2,
+    AlertTriangle, ArrowLeft
+} from "lucide-react";
+import PhoneInput from "react-phone-input-2";
+import "react-phone-input-2/lib/style.css";
+import { type ConfirmationResult } from "firebase/auth";
+
+export function LoginPage() {
+    const { login, sendPhoneOtp } = useAuth();
+    const navigate = useNavigate();
+
+    // Login method tabs
+    const [method, setMethod] = useState<"email" | "phone" | "otp">("email");
+    const [confirmResult, setConfirmResult] = useState<ConfirmationResult | null>(null);
+
+    // Form states
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [phone, setPhone] = useState("");
+    const [otp, setOtp] = useState("");
+    const [showPw, setShowPw] = useState(false);
+    const [error, setError] = useState("");
+    const [loading, setLoading] = useState(false);
+
+    const handleEmailSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setError(""); setLoading(true);
+        try {
+            await login(email, password);
+            navigate("/dashboard");
+        } catch (err: unknown) {
+            const code = (err as { code?: string })?.code;
+            if (
+                code === "auth/wrong-password" ||
+                code === "auth/user-not-found" ||
+                code === "auth/invalid-credential"
+            ) {
+                setError("Incorrect email or password. Please try again.");
+            } else if (code === "auth/too-many-requests") {
+                setError("Too many failed attempts. Please try again later.");
+            } else {
+                setError((err instanceof Error ? err.message : null) ?? "Sign in failed.");
+            }
+        } finally { setLoading(false); }
+    };
+
+    const handlePhoneSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!phone || phone.length < 10) { setError("Please enter a valid phone number."); return; }
+        setError(""); setLoading(true);
+        try {
+            const result = await sendPhoneOtp("+" + phone, "recaptcha-container");
+            setConfirmResult(result);
+            setMethod("otp");
+        } catch (err: unknown) {
+            console.error("Phone Auth Error:", err);
+            const code = (err as { code?: string })?.code;
+            if (code === "auth/invalid-phone-number") {
+                setError("Invalid phone number format.");
+            } else {
+                setError("Error: " + (err instanceof Error ? err.message : "Failed to send code"));
+            }
+        } finally { setLoading(false); }
+    };
+
+    const handleOtpSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!confirmResult) return;
+        setError(""); setLoading(true);
+        try {
+            await confirmResult.confirm(otp);
+            navigate("/dashboard");
+        } catch (err: unknown) {
+            const code = (err as { code?: string })?.code;
+            if (code === "auth/invalid-verification-code") {
+                setError("Invalid OTP code. Please check and try again.");
+            } else {
+                setError("Verification failed. Please try again.");
+            }
+        } finally { setLoading(false); }
+    };
+
+    return (
+        <div className="min-h-screen soft-gradient-bg flex flex-col items-center justify-center px-6">
+            <div className="w-full max-w-sm">
+                {/* Logo */}
+                <div className="flex flex-col items-center mb-8">
+                    <div className="w-16 h-16 rounded-2xl bg-primary flex items-center justify-center shadow-lg mb-4">
+                        <Heart size={28} className="text-primary-foreground fill-primary-foreground" />
+                    </div>
+                    <h1 className="text-2xl font-bold">My Health Memoir</h1>
+                    <p className="text-muted-foreground text-sm mt-1">Your Universal Health OS</p>
+                </div>
+
+                <div className="glass-card rounded-[2rem] shadow-2xl border border-white/50 p-6 sm:p-8 relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 size-32 bg-primary/10 rounded-full blur-3xl pointer-events-none -z-10 group-hover:bg-primary/20 transition-colors"></div>
+                    <div className="absolute bottom-0 left-0 size-32 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none -z-10 group-hover:bg-emerald-500/20 transition-colors"></div>
+                    <h2 className="text-xl font-bold mb-6 text-slate-800 relative z-10">Sign in</h2>
+
+                    {/* Error */}
+                    {error && (
+                        <div className="bg-destructive/10 text-destructive text-sm rounded-lg p-3 mb-4 flex items-center gap-2">
+                            <AlertTriangle size={14} className="flex-shrink-0" />
+                            {error}
+                        </div>
+                    )}
+
+                    {/* Method Tabs */}
+                    {method !== "otp" && (
+                        <div className="flex bg-muted/50 p-1 rounded-lg mb-6">
+                            <button
+                                type="button"
+                                onClick={() => { setMethod("email"); setError(""); }}
+                                className={`flex-1 text-sm font-bold py-2 rounded-md transition-colors ${method === "email" ? "bg-white shadow-sm text-primary" : "text-slate-500 hover:text-slate-800"}`}
+                            >
+                                Email
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => { setMethod("phone"); setError(""); }}
+                                className={`flex-1 text-sm font-bold py-2 rounded-md transition-colors ${method === "phone" ? "bg-white shadow-sm text-primary" : "text-slate-500 hover:text-slate-800"}`}
+                            >
+                                Phone
+                            </button>
+                        </div>
+                    )}
+
+                    <div id="recaptcha-container"></div>
+
+                    {/* Email form */}
+                    {method === "email" && (
+                        <form onSubmit={handleEmailSubmit} className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium mb-1.5">Email</label>
+                                <div className="relative">
+                                    <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                                    <input
+                                        type="email" value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                        required placeholder="you@example.com"
+                                        className="w-full pl-10 pr-4 py-3 rounded-xl border border-white/40 bg-white/50 backdrop-blur-md text-sm text-slate-800 font-semibold focus:outline-none focus:bg-white/80 focus:ring-2 focus:ring-primary/30 transition-all shadow-inner placeholder:font-medium"
+                                    />
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium mb-1.5">Password</label>
+                                <div className="relative">
+                                    <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                                    <input
+                                        type={showPw ? "text" : "password"} value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        required placeholder="••••••••"
+                                        className="w-full pl-10 pr-10 py-3 rounded-xl border border-white/40 bg-white/50 backdrop-blur-md text-sm text-slate-800 font-semibold focus:outline-none focus:bg-white/80 focus:ring-2 focus:ring-primary/30 transition-all shadow-inner placeholder:font-medium"
+                                    />
+                                    <button type="button" onClick={() => setShowPw(!showPw)}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                                        {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
+                                    </button>
+                                </div>
+                            </div>
+                            <button type="submit" disabled={loading}
+                                className="w-full py-3 bg-primary text-primary-foreground rounded-xl font-bold text-sm hover:bg-primary/90 transition-all shadow-md disabled:opacity-60 flex items-center justify-center gap-2 active:scale-95">
+                                {loading && <Loader2 size={16} className="animate-spin" />}
+                                {loading ? "Signing in..." : "Sign in"}
+                            </button>
+                        </form>
+                    )}
+
+                    {/* Phone form */}
+                    {method === "phone" && (
+                        <form onSubmit={handlePhoneSubmit} className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium mb-1.5">Phone Number</label>
+                                <PhoneInput
+                                    country={'in'} value={phone}
+                                    onChange={p => setPhone(p)}
+                                    inputClass="!w-full !py-2.5 !h-auto !text-sm !rounded-lg !border-input !bg-background focus:!border-primary focus:!ring-2 focus:!ring-ring"
+                                    containerClass="!w-full"
+                                    buttonClass="!rounded-l-lg !border-input !bg-muted/30"
+                                />
+                            </div>
+                            <button type="submit" disabled={loading}
+                                className="w-full py-2.5 bg-primary text-primary-foreground rounded-lg font-medium text-sm hover:bg-primary/90 transition-colors disabled:opacity-60 flex items-center justify-center gap-2">
+                                {loading && <Loader2 size={16} className="animate-spin" />}
+                                {loading ? "Sending code..." : "Send Verification Code"}
+                            </button>
+                        </form>
+                    )}
+
+                    {/* OTP form */}
+                    {method === "otp" && (
+                        <form onSubmit={handleOtpSubmit} className="space-y-4">
+                            <div className="bg-muted/50 p-4 rounded-xl border border-border">
+                                <p className="text-sm font-medium mb-1">Verify Phone Number</p>
+                                <p className="text-xs text-muted-foreground">
+                                    We sent an SMS code to <strong>+{phone}</strong>.
+                                </p>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium mb-1.5">6-digit Code</label>
+                                <input
+                                    type="text" value={otp}
+                                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
+                                    required placeholder="000000" maxLength={6}
+                                    className="w-full px-4 py-2.5 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring text-center tracking-widest text-lg font-semibold placeholder:font-normal placeholder:tracking-normal"
+                                />
+                            </div>
+                            <button type="submit" disabled={loading || otp.length < 6}
+                                className="w-full py-3 bg-primary text-primary-foreground rounded-xl font-bold text-sm hover:bg-primary/90 transition-all shadow-md disabled:opacity-60 flex items-center justify-center gap-2 active:scale-95">
+                                {loading ? <Loader2 size={16} className="animate-spin" /> : "Verify & Sign In"}
+                            </button>
+                            <button type="button" onClick={() => { setMethod("phone"); setOtp(""); setError(""); }}
+                                className="w-full text-center text-sm flex items-center justify-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors mt-2">
+                                <ArrowLeft size={14} /> Back
+                            </button>
+                        </form>
+                    )}
+
+                    <p className="text-sm text-center mt-4 text-muted-foreground">
+                        Don't have an account?{" "}
+                        <Link to="/register" className="text-primary font-medium hover:underline">
+                            Register
+                        </Link>
+                    </p>
+                </div>
+            </div>
+        </div>
+    );
+}
