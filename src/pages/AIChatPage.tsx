@@ -1,5 +1,9 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { jsPDF } from "jspdf";
+import autoTable from "jspdf-autotable";
+// @ts-ignore
+import "jspdf-autotable";
 import {
     collection,
     doc,
@@ -13,8 +17,8 @@ import {
     orderBy,
     arrayUnion,
     increment,
-    limit as firestoreLimit,
     Timestamp,
+    limit as firestoreLimit,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/contexts/AuthContext";
@@ -41,9 +45,9 @@ import type { ChatMessage, DocumentResultCard, PendingAction } from "@/types/cha
 // ─── Constants ───────────────────────────────────────────────────────────────
 
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY ?? "";
-const MODEL = import.meta.env.VITE_GEMINI_MODEL ?? "gemini-1.5-flash";
+const MODEL = import.meta.env.VITE_GEMINI_MODEL ?? "gemini-2.0-flash";
 const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${API_KEY}`;
-const MAX_TOOL_ROUNDS = 6;
+const MAX_TOOL_ROUNDS = 8;
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -71,6 +75,9 @@ const READ_TOOLS = new Set([
     "get_recent_documents",
     "list_patients",
     "list_life_events",
+    "summarize_documents",
+    "prepare_doctor_visit",
+    "compile_to_pdf",
 ]);
 
 const TOOL_DECLARATIONS = [
@@ -208,6 +215,50 @@ const TOOL_DECLARATIONS = [
             required: ["documentId", "documentName", "updates"],
         },
     },
+    {
+        name: "summarize_documents",
+        description: "Summarize a list of documents. Returns a single cohesive summary of all provided document IDs.",
+        parameters: {
+            type: "OBJECT",
+            properties: {
+                documentIds: {
+                    type: "ARRAY",
+                    items: { type: "STRING" },
+                    description: "List of Firestore document IDs to summarize together"
+                }
+            },
+            required: ["documentIds"],
+        },
+    },
+    {
+        name: "prepare_doctor_visit",
+        description: "Prepare a package of relevant health documents for a doctor visit based on the reason for the visit (e.g., 'leg pain', 'broken arm'). Searches history and compiles a summary and list of files.",
+        parameters: {
+            type: "OBJECT",
+            properties: {
+                reason: { type: "STRING", description: "The reason or symptom for the visit" },
+                patientId: { type: "STRING", description: "The ID of the patient going to the visit" }
+            },
+            required: ["reason", "patientId"],
+        },
+    },
+    {
+        name: "compile_to_pdf",
+        description: "Compile a cohesive health summary and list of related documents into a PDF file for the user to download. Use this when the user says 'give me a file' or 'create a PDF'.",
+        parameters: {
+            type: "OBJECT",
+            properties: {
+                title: { type: "STRING", description: "Title of the report (e.g., 'Leg Pain History')" },
+                summary: { type: "STRING", description: "A cohesive narrative summary to include in the PDF" },
+                documentIds: { 
+                    type: "ARRAY", 
+                    items: { type: "STRING" },
+                    description: "List of document IDs to list in the document table of the PDF"
+                }
+            },
+            required: ["title", "summary", "documentIds"],
+        },
+    },
 ];
 
 // ─── System prompt ────────────────────────────────────────────────────────────
@@ -223,15 +274,18 @@ CAPABILITIES:
 - Link documents to timeline events (use link_document_to_event — requires confirmation)
 - Create new timeline events (use create_life_event — requires confirmation)
 - Update event or document details (use update_life_event, update_document_metadata — requires confirmation)
+- Summarize multiple reports into one (use summarize_documents)
+- Prepare a package for a doctor visit by gathering relevant context (use prepare_doctor_visit)
 
 RULES:
-1. You can NEVER delete any document, event, or patient — even if asked. Politely refuse.
+1. DELETION: You NEVER have the authority to delete any document, event, or patient. If a user asks to delete something, you MUST say: "I don't have the authority to delete documents. You can do this yourself by following these steps: 1. Go to Documents page 2. Find the file 3. Click the Edit icon 4. Click Delete."
 2. Write operations (link, create, update) always go through a confirmation dialog. Always use the appropriate tool — do not ask the user "shall I proceed?" before calling the tool.
-3. When linking documents to events by date: first call list_patients and list_life_events to see existing events, then call get_recent_documents or search_documents to get the docs, then propose linkings using link_document_to_event or create_life_event.
-4. Always call list_patients first when you need patient IDs.
-5. Be concise. Avoid long preambles. Get to the answer quickly.
-6. For medical questions, always add: ⚠️ *Please consult a qualified doctor — this is not medical advice.*
-7. You are NOT a substitute for professional medical advice.
+3. Automatically organize: If a user tells you they have documents and want them saved/organized, identify the patient, date, and event, then use create_life_event and update_document_metadata to organize them.
+4. When linking documents to events by date: first call list_patients and list_life_events to see existing events, then call get_recent_documents or search_documents to get the docs, then propose linkings using link_document_to_event or create_life_event.
+5. Always call list_patients first when you need patient IDs.
+6. Be concise. Avoid long preambles. Get to the answer quickly.
+7. For medical questions, always add: ⚠️ *Please consult a qualified doctor — this is not medical advice.*
+8. You are NOT a substitute for professional medical advice.
 
 DOCUMENT CATEGORIES: Lab Report, Prescription, Scan/Imaging, Doctor's Note, Discharge Summary, Insurance, Other
 EVENT CATEGORIES: visit, diagnosis, procedure, milestone, note`;
@@ -482,31 +536,52 @@ export function AIChatPage() {
 
             switch (toolName) {
                 case "search_documents": {
-                    const { query: q, patientId, category, dateFrom, dateTo } = args as Record<string, string>;
+                    const { query: q, patientId, category } = args as Record<string, string>;
+                    const snap = await getDocs(
+                        query(collection(db, "documents"), where("userId", "==", user.uid))
+                    );
+                    const lq = (q || "").toLowerCase();
+                    const results: DocumentResultCard[] = [];
+                    snap.forEach((d) => {
+                        const data = d.data();
+                        if (patientId && data.patientId !== patientId) return;
+                        if (category && data.category !== category) return;
+                        
+                        const text = (data.name + " " + (data.aiSummary || "") + " " + (data.doctorName || "") + " " + (data.hospital || "")).toLowerCase();
+                        if (text.includes(lq) || lq.split(" ").some(word => word.length > 3 && text.includes(word))) {
+                            results.push({
+                                id: d.id,
+                                name: data.name || "Untitled",
+                                docDate: data.docDate || "",
+                                category: data.category || "Other",
+                                summarySnippet: data.aiSummary ? String(data.aiSummary).slice(0, 400) : "",
+                                doctorName: data.doctorName,
+                                hospital: data.hospital,
+                                url: data.url,
+                            });
+                        }
+                    });
+                    return results;
+                }
+
+                case "get_recent_documents": {
+                    const { limit: lim = 5, patientId } = args as { limit?: number; patientId?: string };
                     const snap = await getDocs(
                         query(
                             collection(db, "documents"),
                             where("userId", "==", user.uid)
                         )
                     );
-                    const lq = (q ?? "").toLowerCase();
-                    const results: DocumentResultCard[] = [];
-                    snap.forEach((d) => {
-                        const data = d.data();
-                        const matches =
-                            data.name?.toLowerCase().includes(lq) ||
-                            data.aiSummary?.toLowerCase().includes(lq) ||
-                            data.doctorName?.toLowerCase().includes(lq) ||
-                            data.hospital?.toLowerCase().includes(lq) ||
-                            data.category?.toLowerCase().includes(lq) ||
-                            data.lab?.toLowerCase().includes(lq);
-                        if (!matches) return;
-                        if (patientId && data.patientId !== patientId) return;
-                        if (category && data.category !== category) return;
-                        if (dateFrom && data.docDate && data.docDate < dateFrom) return;
-                        if (dateTo && data.docDate && data.docDate > dateTo) return;
-                        results.push({
-                            id: d.id,
+                    let docs = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+                    if (patientId) {
+                        docs = docs.filter((d: any) => d.patientId === patientId);
+                    }
+                    // Client-side sort & limit
+                    return docs
+                        .sort((a: any, b: any) => (b.createdAt || "").toString().localeCompare((a.createdAt || "").toString()))
+                        .slice(0, Math.min(Number(lim), 50))
+                        .map((data: any) => ({
+                            id: data.id,
                             name: data.name || "Untitled",
                             docDate: data.docDate || "",
                             category: data.category || "Other",
@@ -514,33 +589,7 @@ export function AIChatPage() {
                             doctorName: data.doctorName,
                             hospital: data.hospital,
                             url: data.url,
-                        });
-                    });
-                    return results.slice(0, 20);
-                }
-
-                case "get_recent_documents": {
-                    const { limit: lim = 10, patientId } = args as { limit?: number; patientId?: string };
-                    const constraints = [
-                        where("userId", "==", user.uid),
-                        orderBy("createdAt", "desc"),
-                        firestoreLimit(Math.min(Number(lim), 50)),
-                    ];
-                    if (patientId) constraints.splice(1, 0, where("patientId", "==", patientId));
-                    const snap = await getDocs(query(collection(db, "documents"), ...constraints));
-                    return snap.docs.map((d) => {
-                        const data = d.data();
-                        return {
-                            id: d.id,
-                            name: data.name || "Untitled",
-                            docDate: data.docDate || "",
-                            category: data.category || "Other",
-                            summarySnippet: data.aiSummary ? String(data.aiSummary).slice(0, 400) : "",
-                            doctorName: data.doctorName,
-                            hospital: data.hospital,
-                            url: data.url,
-                        } as DocumentResultCard;
-                    });
+                        } as DocumentResultCard));
                 }
 
                 case "list_patients": {
@@ -604,10 +653,85 @@ export function AIChatPage() {
                     return { success: true };
                 }
 
+                case "update_life_event": {
+                    const { eventId, updates } = args as { eventId: string; updates: Record<string, string> };
+                    await updateDoc(doc(db, "life_events", eventId), updates);
+                    return { success: true };
+                }
+
                 case "update_document_metadata": {
                     const { documentId, updates } = args as { documentId: string; updates: Record<string, string> };
                     await updateDoc(doc(db, "documents", documentId), updates);
                     return { success: true };
+                }
+
+                case "summarize_documents": {
+                    const { documentIds } = args as { documentIds: string[] };
+                    const results: any[] = [];
+                    for (const id of documentIds) {
+                        const dSnap = await getDocs(query(collection(db, "documents"), where("__name__", "==", id)));
+                        if (!dSnap.empty) {
+                            const data = dSnap.docs[0].data();
+                            results.push({
+                                id,
+                                name: data.name,
+                                docDate: data.docDate,
+                                summary: data.aiSummary || "No summary available."
+                            });
+                        }
+                    }
+                    return results;
+                }
+
+                case "prepare_doctor_visit": {
+                    const { reason, patientId } = args as { reason: string; patientId: string };
+                    const lq = reason.toLowerCase();
+                    const snap = await getDocs(
+                        query(
+                            collection(db, "documents"),
+                            where("userId", "==", user.uid)
+                        )
+                    );
+                    
+                    const matches: any[] = [];
+                    snap.forEach((d) => {
+                        const data = d.data();
+                        if (data.patientId !== patientId) return; // Client-side filter to avoid index requirement
+                        
+                        const text = (data.name + " " + (data.aiSummary || "") + " " + (data.category || "")).toLowerCase();
+                        if (text.includes(lq) || lq.split(" ").some(word => word.length > 3 && text.includes(word))) {
+                            matches.push({
+                                id: d.id,
+                                name: data.name,
+                                date: data.docDate || "Unknown",
+                                summary: data.aiSummary || "N/A",
+                                url: data.url
+                            });
+                        }
+                    });
+                    return {
+                        reason,
+                        relevantDocuments: matches,
+                        recommendation: "I have gathered these documents that seem relevant to your visit. You can ask me to compile them into a PDF for your doctor."
+                    };
+                }
+
+                case "compile_to_pdf": {
+                    const { title, summary, documentIds } = args as { title: string; summary: string; documentIds: string[] };
+                    const docs: any[] = [];
+                    for (const id of documentIds) {
+                        const dSnap = await getDocs(query(collection(db, "documents"), where("__name__", "==", id)));
+                        if (!dSnap.empty) {
+                            const data = dSnap.docs[0].data();
+                            docs.push({
+                                date: data.docDate || "N/A",
+                                name: data.name || "Untitled",
+                                summary: data.aiSummary || "N/A"
+                            });
+                        }
+                    }
+                    generateHealthReportPDF(title, summary, docs);
+                    return { success: true, message: `PDF "${title}" has been generated and downloaded.` };
                 }
 
                 default:
@@ -616,6 +740,56 @@ export function AIChatPage() {
         },
         [user]
     );
+
+    // ── PDF Generation Logic ──────────────────────────────────────────────────
+
+    const generateHealthReportPDF = useCallback((title: string, content: string, documents: any[]) => {
+        const doc = new jsPDF();
+        const pageWidth = doc.internal.pageSize.getWidth();
+
+        // Title
+        doc.setFontSize(22);
+        doc.setTextColor(41, 128, 185); // Blue
+        doc.text("My Health Memoir - Health Record Package", 14, 22);
+        
+        doc.setFontSize(16);
+        doc.setTextColor(50);
+        doc.text(title, 14, 32);
+
+        doc.setFontSize(10);
+        doc.setTextColor(100);
+        doc.text(`Generated on: ${new Date().toLocaleDateString("en-IN")}`, 14, 38);
+
+        // Horizontal Line
+        doc.setDrawColor(200);
+        doc.line(14, 42, pageWidth - 14, 42);
+
+        // Content / Summary
+        doc.setFontSize(12);
+        doc.setTextColor(0);
+        const splitContent = doc.splitTextToSize(content, pageWidth - 28);
+        doc.text(splitContent, 14, 52);
+
+        let currentY = 52 + (splitContent.length * 7) + 10;
+
+        // Documents Table
+        if (documents.length > 0) {
+            doc.setFontSize(14);
+            doc.text("Included Documents", 14, currentY);
+            currentY += 8;
+
+            const tableData = documents.map(d => [d.date || "N/A", d.name || "Untitled", d.summary ? d.summary.substring(0, 100) + "..." : "N/A"]);
+            autoTable(doc, {
+                startY: currentY,
+                head: [['Date', 'Document Name', 'Summary Snapshot']],
+                body: tableData,
+                theme: 'striped',
+                headStyles: { fillColor: [41, 128, 185] }, // Fixed headStyles property
+            });
+        }
+
+        doc.save(`${title.replace(/\s+/g, '_')}_health_record.pdf`);
+    }, []);
 
     // ── Save a model message to Firestore + state ─────────────────────────────
 

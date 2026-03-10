@@ -16,6 +16,8 @@
     "clsx": "^2.1.1",
     "firebase": "^12.10.0",
     "firebase-admin": "^13.7.0",
+    "jspdf": "^4.2.0",
+    "jspdf-autotable": "^5.0.7",
     "libphonenumber-js": "^1.12.38",
     "lucide-react": "^0.576.0",
     "react": "^19.2.0",

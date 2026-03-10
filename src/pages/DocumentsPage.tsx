@@ -678,7 +678,7 @@ export function DocumentsPage() {
                             {filteredDocs.map(doc => {
                                 const patient = patients.find(p => p.id === doc.patientId);
                                 return (
-                                    <div key={doc.id} className="glass-card rounded-[1.25rem] p-3 flex gap-3 items-center shadow-sm border border-white/40 hover:shadow-md hover:border-primary/30 transition-all group">
+                                    <div key={doc.id} className="glass-card rounded-2xl p-2.5 flex gap-2.5 items-center shadow-sm border border-white/40 hover:shadow-md hover:border-primary/30 transition-all group overflow-hidden">
                                         <a href={doc.url} target="_blank" rel="noopener noreferrer" className="w-12 h-12 rounded-[0.75rem] bg-white flex items-center justify-center flex-shrink-0 overflow-hidden relative border-2 border-slate-200 shadow-sm hover:border-primary/50 transition-colors">
                                             {doc.type.startsWith('image/') ? (
                                                 <img src={doc.url} alt={doc.name} className="w-full h-full object-cover" />
@@ -687,7 +687,7 @@ export function DocumentsPage() {
                                             )}
                                         </a>
                                         <div className="flex-1 min-w-0">
-                                            <a href={doc.url} target="_blank" rel="noopener noreferrer" className="font-bold text-sm hover:text-primary hover:underline transition-colors block truncate" title={doc.name}>
+                                            <a href={doc.url} target="_blank" rel="noopener noreferrer" className="font-bold text-[13px] hover:text-primary hover:underline transition-colors block truncate" title={doc.name}>
                                                 {doc.name}
                                             </a>
                                             <div className="flex items-center gap-2 mt-0.5">
@@ -721,17 +721,17 @@ export function DocumentsPage() {
                                                         <button
                                                             key={l}
                                                             onClick={() => setViewSummary({ text, lang: l })}
-                                                            className="text-xs font-bold text-violet-700 bg-violet-100 hover:bg-violet-200 px-2.5 py-1.5 flex items-center gap-1.5 rounded-lg transition-colors"
+                                                            className="text-[11px] font-bold text-violet-700 bg-violet-100 hover:bg-violet-200 px-2.5 py-1.5 flex items-center gap-1.5 rounded-lg transition-colors"
                                                         >
-                                                            <Bot size={14} /> Read AI {l} Summary
+                                                            <Bot size={13} /> {l} Summary
                                                         </button>
                                                     ))
                                                 ) : doc.aiSummary && typeof doc.aiSummary === 'string' && doc.aiSummary.length > 0 && !doc.aiSummary.includes("failed") ? (
                                                     <button
                                                         onClick={() => setViewSummary({ text: doc.aiSummary || "", lang: "English" })}
-                                                        className="text-xs font-bold text-violet-700 bg-violet-100 hover:bg-violet-200 px-2.5 py-1.5 flex items-center gap-1.5 rounded-lg transition-colors"
+                                                        className="text-[11px] font-bold text-violet-700 bg-violet-100 hover:bg-violet-200 px-2.5 py-1.5 flex items-center gap-1.5 rounded-lg transition-colors"
                                                     >
-                                                        <Bot size={14} /> Read AI English Summary
+                                                        <Bot size={13} /> AI Summary (En)
                                                     </button>
                                                 ) : doc.aiSummary && doc.aiSummary.includes("failed") ? (
                                                     <span className="text-xs font-bold text-destructive bg-destructive/10 px-2 py-1 rounded-md flex items-center gap-1">Analysis Failed</span>
@@ -746,7 +746,7 @@ export function DocumentsPage() {
                                                         {summarizingDocId === doc.id ? (
                                                             <><Loader2 size={14} className="animate-spin" /> {generationProgress || "Working..."}</>
                                                         ) : (
-                                                            <><Globe size={14} /> Add Translation</>
+                                                            <><Globe size={13} /> Translate</>
                                                         )}
                                                     </button>
                                                 )}
