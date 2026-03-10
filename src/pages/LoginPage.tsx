@@ -88,7 +88,7 @@ export function LoginPage() {
         <div className="min-h-screen soft-gradient-bg flex flex-col items-center justify-center px-6">
             <div className="w-full max-w-sm">
                 {/* Logo */}
-                <div className="flex flex-col items-center mb-8">
+                <div className="flex flex-col items-center mb-6">
                     <div className="w-16 h-16 rounded-2xl bg-primary flex items-center justify-center shadow-lg mb-4">
                         <Heart size={28} className="text-primary-foreground fill-primary-foreground" />
                     </div>

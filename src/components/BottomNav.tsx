@@ -23,7 +23,7 @@ export function BottomNav() {
     const items = isAdmin ? [...navItems, ...adminNavItems] : navItems;
 
     return (
-        <nav className="fixed bottom-6 left-6 right-6 z-50 max-w-lg mx-auto">
+        <nav className="fixed bottom-6 left-4 right-4 sm:left-6 sm:right-6 z-50 max-w-lg mx-auto">
             <div className="glass-card rounded-[2rem] p-2 px-3 flex items-center justify-between shadow-2xl shadow-primary/10 border border-white/60">
                 {items.map(({ path, mIcon, label }) => {
                     const active =
@@ -36,7 +36,7 @@ export function BottomNav() {
                             key={path}
                             onClick={() => navigate(path)}
                             className={cn(
-                                "flex flex-col items-center justify-center w-[4.5rem] h-14 rounded-[1.25rem] transition-all duration-300 active:scale-95",
+                                "flex flex-col items-center justify-center flex-1 sm:w-[4.5rem] h-14 rounded-[1.25rem] transition-all duration-300 active:scale-95",
                                 active ? "bg-primary text-white shadow-md shadow-primary/20" : "text-slate-500 hover:text-primary hover:bg-primary/5"
                             )}
                         >

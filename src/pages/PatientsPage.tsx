@@ -270,11 +270,11 @@ export function PatientsPage() {
     );
 
     return (
-        <div className="pb-6 w-full max-w-2xl mx-auto overflow-x-hidden space-y-6">
+        <div className="pb-6 w-full max-w-lg mx-auto overflow-x-hidden space-y-6">
             <div className="fixed top-0 left-0 right-0 h-[50vh] soft-gradient-bg -z-10 pointer-events-none"></div>
             {toastMessage && <Toast message={toastMessage} />}
 
-            <div className="flex items-center justify-between px-5 pt-6">
+            <div className="flex items-center justify-between pt-6">
                 <div>
                     <h1 className="text-xl font-bold">Patient Profiles</h1>
                     <p className="text-xs text-muted-foreground mt-0.5">Manage comprehensive health records</p>
@@ -303,7 +303,7 @@ export function PatientsPage() {
                     </button>
                 </div>
             ) : (
-                <div className="flex flex-col gap-3 px-5">
+                <div className="flex flex-col gap-3">
                     {patients.map(p => (
                         <div key={p.id}
                             onClick={() => navigate(`/documents?patientId=${p.id}`)}
@@ -472,7 +472,7 @@ export function PatientsPage() {
 
                                 {/* MEDICAL INFO */}
                                 <div className={cn("space-y-6", activeTab !== "Medical" && "hidden")}>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         {renderSelect("Blood Group", "bloodGroup", ["", "A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"])}
                                         {renderInput("Allergies", "allergies", "e.g. Penicillin, Peanuts")}
                                         {renderTextarea("Chronic Conditions", "conditions", "e.g. Diabetes, Hypertension")}

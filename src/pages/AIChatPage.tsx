@@ -863,11 +863,11 @@ export function AIChatPage() {
     const isInputDisabled = isLoading || !!confirmation;
 
     return (
-        <div className="flex flex-col h-[calc(100vh-8.5rem)] w-full max-w-2xl mx-auto relative">
+        <div className="flex flex-col h-[calc(100vh-8.5rem)] w-full max-w-lg mx-auto relative">
             <div className="absolute inset-0 soft-gradient-bg -z-10 pointer-events-none" />
 
             {/* Header */}
-            <div className="px-5 pt-6 pb-2">
+            <div className="pt-6 pb-2">
                 <div className="flex items-center gap-3 mb-2">
                     <button
                         onClick={() => navigate("/ai-chat")}
@@ -886,7 +886,7 @@ export function AIChatPage() {
             </div>
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto space-y-4 pb-4 px-5 custom-scrollbar">
+            <div className="flex-1 overflow-y-auto space-y-4 pb-4 custom-scrollbar">
                 {loadingHistory && (
                     <div className="flex items-center justify-center py-10">
                         <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
@@ -997,7 +997,7 @@ export function AIChatPage() {
             </div>
 
             {/* Input */}
-            <div className="glass-card rounded-[1.75rem] p-2 sm:p-3 shadow-xl shadow-primary/5 mx-5 mb-4 border border-white/50 backdrop-blur-xl relative overflow-hidden">
+            <div className="glass-card rounded-[1.75rem] p-2 sm:p-3 shadow-xl shadow-primary/5 mb-4 border border-white/50 backdrop-blur-xl relative overflow-hidden">
                 <div className="absolute top-0 right-0 size-32 bg-primary/10 rounded-full blur-3xl pointer-events-none -z-10" />
                 <div className="flex gap-2 relative z-10 w-full">
                     <input

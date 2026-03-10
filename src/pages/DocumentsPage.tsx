@@ -451,7 +451,7 @@ export function DocumentsPage() {
     };
 
     return (
-        <div className="pb-6 px-5 w-full max-w-2xl mx-auto space-y-6 relative">
+        <div className="pb-6 w-full max-w-lg mx-auto space-y-6 relative">
             <div className="fixed top-0 left-0 right-0 h-[50vh] soft-gradient-bg -z-10 pointer-events-none"></div>
             <div className="flex items-center justify-between pt-6">
                 <h1 className="text-xl font-bold">Documents</h1>
@@ -678,8 +678,8 @@ export function DocumentsPage() {
                             {filteredDocs.map(doc => {
                                 const patient = patients.find(p => p.id === doc.patientId);
                                 return (
-                                    <div key={doc.id} className="glass-card rounded-[1.5rem] p-4 flex gap-4 items-center shadow-sm border border-white/40 hover:shadow-md hover:border-primary/30 transition-all group">
-                                        <a href={doc.url} target="_blank" rel="noopener noreferrer" className="w-16 h-16 rounded-[1rem] bg-white flex items-center justify-center flex-shrink-0 overflow-hidden relative border-2 border-slate-200 shadow-sm hover:border-primary/50 transition-colors">
+                                    <div key={doc.id} className="glass-card rounded-[1.25rem] p-3 flex gap-3 items-center shadow-sm border border-white/40 hover:shadow-md hover:border-primary/30 transition-all group">
+                                        <a href={doc.url} target="_blank" rel="noopener noreferrer" className="w-12 h-12 rounded-[0.75rem] bg-white flex items-center justify-center flex-shrink-0 overflow-hidden relative border-2 border-slate-200 shadow-sm hover:border-primary/50 transition-colors">
                                             {doc.type.startsWith('image/') ? (
                                                 <img src={doc.url} alt={doc.name} className="w-full h-full object-cover" />
                                             ) : (

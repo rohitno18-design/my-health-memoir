@@ -111,7 +111,7 @@ export function GlobalTimelinePage() {
     if (filterPatient) filteredEvents = filteredEvents.filter(e => e.patientId === filterPatient);
 
     return (
-        <div className="pb-32 w-full max-w-3xl mx-auto px-4 overflow-x-hidden min-h-screen">
+        <div className="pb-32 w-full max-w-lg mx-auto overflow-x-hidden min-h-screen">
             <div className="absolute top-0 right-0 h-[60vh] w-full bg-emerald-500/10 blur-3xl pointer-events-none -z-10 rounded-full"></div>
 
             {/* Header */}

@@ -950,7 +950,7 @@ export function AccountPage() {
             {toast && <Toast message={toast.message} type={toast.type} onDismiss={() => setToast(null)} />}
 
             {/* Profile Header */}
-            <div className="glass-card rounded-[2rem] p-6 shadow-xl shadow-primary/10 mx-5 mt-6 border border-white/40 relative overflow-hidden">
+            <div className="glass-card rounded-[2rem] p-6 shadow-xl shadow-primary/10 mt-6 border border-white/40 relative overflow-hidden">
                 <div className="absolute -top-12 -right-12 size-32 bg-primary/10 rounded-full blur-3xl pointer-events-none"></div>
                 <div className="flex flex-col items-center text-center gap-3">
                     <div className="relative">
@@ -988,7 +988,7 @@ export function AccountPage() {
             </div>
 
             {/* Tabs */}
-            <div className="flex bg-white/40 backdrop-blur-md rounded-2xl p-1.5 gap-1 mx-5 shadow-sm border border-white/50">
+            <div className="flex bg-white/40 backdrop-blur-md rounded-2xl p-1.5 gap-1 shadow-sm border border-white/50">
                 {tabs.map(t => (
                     <button key={t.id} onClick={() => setSection(t.id)}
                         className={cn("flex-1 py-2.5 text-[13px] font-bold rounded-xl transition-all",
@@ -1000,7 +1000,7 @@ export function AccountPage() {
 
             {/* PERSONAL INFO */}
             {section === "info" && (
-                <div className="glass-card rounded-[1.5rem] p-5 space-y-1 mx-5 shadow-sm border border-white/50">
+                <div className="glass-card rounded-[1.5rem] p-5 space-y-1 shadow-sm border border-white/50">
                     <EditableField
                         label="Full Name"
                         icon={User}
@@ -1057,7 +1057,7 @@ export function AccountPage() {
 
             {/* SECURITY */}
             {section === "security" && (
-                <div className="space-y-4 px-5">
+                <div className="space-y-4">
                     <div className="glass-card rounded-[1.5rem] shadow-sm border border-white/50 overflow-hidden divide-y divide-white/40">
                         <button onClick={() => setShowEmailModal(true)}
                             className="w-full flex items-center gap-3 p-4 hover:bg-accent/50 transition-colors">

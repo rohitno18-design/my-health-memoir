@@ -419,7 +419,7 @@ export function DashboardPage() {
 
             {/* AI Upload Progress Indicators */}
             {(uploadStep === "uploading" || uploadStep === "analyzing") && (
-                <section className="px-5 mb-4 animate-in fade-in slide-in-from-top-4 duration-500">
+                <section className="mb-4 animate-in fade-in slide-in-from-top-4 duration-500">
                     <div className="glass-card rounded-[2rem] p-6 shadow-sm border border-primary/10 flex flex-col items-center justify-center gap-5">
                         {uploadStep === "uploading" ? (
                             <>
@@ -460,7 +460,7 @@ export function DashboardPage() {
             )}
 
             {/* Quick Search */}
-            <section className="px-5 mb-4 mt-2">
+            <section className="mb-4 mt-2">
                 <form onSubmit={(e) => {
                     e.preventDefault();
                     const val = new FormData(e.currentTarget).get("search") as string;
@@ -478,7 +478,7 @@ export function DashboardPage() {
             </section>
 
             {/* Quick Access Grid */}
-            <section className="px-5 pb-8 space-y-3 mt-2">
+            <section className="pb-8 space-y-3 mt-2">
                 <h3 className="text-[17px] font-extrabold text-slate-900 mb-3 px-1">Quick Access</h3>
                 <div className="grid grid-cols-2 gap-3">
                     {quickLinks.map(({ label, icon, path, color }) => (
@@ -526,39 +526,38 @@ export function DashboardPage() {
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1.5 ml-1">Document Category *</label>
                                         <select required value={form.category} onChange={e => setForm({ ...form, category: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-input bg-background/50 font-medium">
                                             {CATEGORIES.map(t => <option key={t} value={t}>{t}</option>)}
                                         </select>
                                     </div>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div className="flex flex-col">
-                                            <div className="flex items-center justify-between mb-1.5 ml-1">
-                                                <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Episode of Care</label>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setIsCreatingEpisode(!isCreatingEpisode)}
-                                                    className="text-[10px] font-bold text-primary hover:underline uppercase tracking-wider"
-                                                >
-                                                    {isCreatingEpisode ? "Cancel" : "+ New"}
-                                                </button>
-                                            </div>
-                                            {isCreatingEpisode ? (
-                                                <input type="text" value={newEpisodeName} onChange={e => setNewEpisodeName(e.target.value)} placeholder="e.g. Knee Surgery 2023" className="w-full px-4 py-3 rounded-xl border border-input bg-background/50 font-medium" />
-                                            ) : (
-                                                <select value={form.episodeId} onChange={e => setForm({ ...form, episodeId: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-input bg-background/50 font-medium">
-                                                    <option value="">None (General)</option>
-                                                    {episodes.map(ep => <option key={ep.id} value={ep.id}>{ep.name}</option>)}
-                                                </select>
-                                            )}
+                                    <div className="flex flex-col">
+                                        <div className="flex items-center justify-between mb-1.5 ml-1">
+                                            <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Episode of Care</label>
+                                            <button
+                                                type="button"
+                                                onClick={() => setIsCreatingEpisode(!isCreatingEpisode)}
+                                                className="text-[10px] font-bold text-primary hover:underline uppercase tracking-wider whitespace-nowrap"
+                                            >
+                                                {isCreatingEpisode ? "Cancel" : "+ New"}
+                                            </button>
                                         </div>
-                                        <div>
-                                            <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1.5 ml-1">Document Date *</label>
-                                            <input type="date" required value={form.docDate} onChange={e => setForm({ ...form, docDate: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-input bg-background/50 font-medium" />
-                                        </div>
+                                        {isCreatingEpisode ? (
+                                            <input type="text" value={newEpisodeName} onChange={e => setNewEpisodeName(e.target.value)} placeholder="e.g. Knee Surgery 2023" className="w-full px-4 py-3 rounded-xl border border-input bg-background/50 font-medium" />
+                                        ) : (
+                                            <select value={form.episodeId} onChange={e => setForm({ ...form, episodeId: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-input bg-background/50 font-medium">
+                                                <option value="">None (General)</option>
+                                                {episodes.map(ep => <option key={ep.id} value={ep.id}>{ep.name}</option>)}
+                                            </select>
+                                        )}
                                     </div>
+                                    <div>
+                                        <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1.5 ml-1">Document Date *</label>
+                                        <input type="date" required value={form.docDate} onChange={e => setForm({ ...form, docDate: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-input bg-background/50 font-medium" />
+                                    </div>
+                                </div>
                                     <div className="col-span-2 grid grid-cols-1 md:grid-cols-3 gap-4">
                                         <div>
                                             <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1.5 ml-1">Doctor Name</label>
@@ -573,9 +572,10 @@ export function DashboardPage() {
                                             <input type="text" value={form.lab} onChange={e => setForm({ ...form, lab: e.target.value })} placeholder="Optional" className="w-full px-4 py-3 rounded-xl border border-input bg-background/50 font-medium" />
                                         </div>
                                     </div>
-                                </div>                        <div className="p-4 bg-blue-50/50 rounded-2xl border border-blue-100/50 space-y-3">
+
+                                <div className="p-4 bg-blue-50/50 rounded-2xl border border-blue-100/50 space-y-3">
                                     <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1.5 ml-1 flex items-center gap-1.5 text-blue-800"><Activity size={14} /> Timeline Linking</label>
-                                    <div className="grid grid-cols-3 gap-2">
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                                         <button type="button" onClick={() => setForm({ ...form, timelineAction: "none" })} className={`px-2 sm:px-3 py-2 rounded-xl text-xs font-bold transition-all border ${form.timelineAction === "none" ? "bg-slate-800 text-white shadow-sm border-slate-800" : "bg-white text-slate-500 border-slate-200 hover:bg-slate-50"}`}>
                                             Skip Timeline
                                         </button>
@@ -627,7 +627,6 @@ export function DashboardPage() {
                                 </div>
 
                                 {form.generateSummary && (
-
                                     <div>
                                         <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1.5 ml-1 flex items-center gap-1.5 text-violet-600"><Bot size={14} /> Summary Language</label>
                                         <select required={form.generateSummary} value={form.language} onChange={e => setForm({ ...form, language: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-violet-100 bg-violet-50/50 text-violet-900 font-bold focus:ring-violet-500">
@@ -642,9 +641,8 @@ export function DashboardPage() {
                             </form>
                         </div>
                     </div>
-                </div >
-            )
-            }
+                </div>
+            )}
 
             {/* AI Summary Modal */}
             {
