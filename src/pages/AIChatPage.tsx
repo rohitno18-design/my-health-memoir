@@ -19,7 +19,8 @@ import {
     increment,
     Timestamp,
 } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { db, storage } from "@/lib/firebase";
+import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { useAuth } from "@/contexts/AuthContext";
 import ReactMarkdown from "react-markdown";
 import {
@@ -37,9 +38,24 @@ import {
     ChevronUp,
     Sparkles,
     Zap,
+    Plus,
+    Paperclip,
+    Search,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ChatMessage, DocumentResultCard, PendingAction } from "@/types/chat";
+
+interface Document {
+    id: string;
+    patientId: string;
+    name: string;
+    type: string;
+    url: string;
+    aiSummary?: string;
+    category?: string;
+    docDate?: string;
+    createdAt: { seconds: number } | null;
+}
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -459,15 +475,41 @@ export function AIChatPage() {
     const [confirmation, setConfirmation] = useState<ConfirmationState | null>(null);
     const [loadingHistory, setLoadingHistory] = useState(!isNewChat);
 
+    // Document Selection & Upload State
+    const [showAttachMenu, setShowAttachMenu] = useState(false);
+    const [showDocSelector, setShowDocSelector] = useState(false);
+    const [availableDocs, setAvailableDocs] = useState<Document[]>([]);
+    const [selectedDocIds, setSelectedDocIds] = useState<Set<string>>(new Set());
+    const [selectorLoading, setSelectorLoading] = useState(false);
+    const [selectorSearch, setSelectorSearch] = useState("");
+    const [patientFilter, setPatientFilter] = useState("all");
+    const [patients, setPatients] = useState<{id: string, name: string}[]>([]);
+
     const geminiHistoryRef = useRef<GeminiContent[]>([]);
     const pendingDocResultsRef = useRef<DocumentResultCard[]>([]);
     const bottomRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Auto-scroll to bottom
     useEffect(() => {
         bottomRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages, confirmation, isLoading]);
+
+    // Fetch patients and documents for selector
+    useEffect(() => {
+        if (!user || !showDocSelector) return;
+        setSelectorLoading(true);
+        const fetchMeta = async () => {
+            const pSnap = await getDocs(query(collection(db, "patients"), where("userId", "==", user.uid)));
+            setPatients(pSnap.docs.map(d => ({ id: d.id, name: d.data().name })));
+            
+            const dSnap = await getDocs(query(collection(db, "documents"), where("userId", "==", user.uid)));
+            setAvailableDocs(dSnap.docs.map(d => ({ id: d.id, ...d.data() } as Document)));
+            setSelectorLoading(false);
+        };
+        fetchMeta();
+    }, [user, showDocSelector]);
 
     // Pre-fill input from navigation state (from ChatListPage suggestions)
     useEffect(() => {
@@ -924,19 +966,81 @@ export function AIChatPage() {
         [callGemini, executeTool, saveModelMessage]
     );
 
+    // ── Document Upload Logic ───────────────────────────────────────────
+
+    const handleUploadNew = async (file: File) => {
+        if (!user) return;
+        setIsLoading(true);
+        try {
+            // 1. Upload to Storage
+            const fileName = `${Date.now()}_${file.name}`;
+            const storageRef = ref(storage, `documents/${user.uid}/${fileName}`);
+            const uploadTask = uploadBytesResumable(storageRef, file);
+
+            const uploadedUrl = await new Promise<string>((resolve, reject) => {
+                uploadTask.on("state_changed", 
+                    (snap) => {
+                        const prog = Math.round((snap.bytesTransferred / snap.totalBytes) * 100);
+                        // Optional: could add an upload progress state here
+                    },
+                    reject,
+                    async () => {
+                        const url = await getDownloadURL(uploadTask.snapshot.ref);
+                        resolve(url);
+                    }
+                );
+            });
+
+            // 2. Save to Firestore
+            // We'll assign to "Other"/Unknown by default since we're in a quick chat flow
+            // The AI or user can refine this later
+            const docRef = await addDoc(collection(db, "documents"), {
+                userId: user.uid,
+                name: file.name,
+                type: file.type,
+                url: uploadedUrl,
+                category: "Other",
+                status: "completed",
+                createdAt: serverTimestamp(),
+            });
+
+            // 3. Add to selected IDs
+            const next = new Set(selectedDocIds);
+            next.add(docRef.id);
+            setSelectedDocIds(next);
+            
+            // Refresh available docs so our selection preview finds it
+            const dSnap = await getDocs(query(collection(db, "documents"), where("userId", "==", user.uid)));
+            setAvailableDocs(dSnap.docs.map(d => ({ id: d.id, ...d.data() } as Document)));
+
+        } catch (err) {
+            console.error("Upload error:", err);
+            alert("Failed to upload document.");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     // ── Send message ──────────────────────────────────────────────────────────
 
     const sendMessage = useCallback(async () => {
         const text = input.trim();
-        if (!text || isLoading || confirmation || !user) return;
+        const attachedIds = Array.from(selectedDocIds);
+        
+        if ((!text && attachedIds.length === 0) || isLoading || confirmation || !user) return;
 
         setInput("");
+        setSelectedDocIds(new Set());
         setIsLoading(true);
 
         // Create chat if new
         let activeChatId = currentChatId;
         if (!activeChatId) {
-            const chatTitle = text.slice(0, 60) + (text.length > 60 ? "..." : "");
+            const chatTitle = text 
+                ? text.slice(0, 60) + (text.length > 60 ? "..." : "")
+                : attachedIds.length > 0 
+                    ? `Chat about ${attachedIds.length} documents`
+                    : "New Chat";
             const chatRef = doc(collection(db, "users", user.uid, "chats"));
             await setDoc(chatRef, {
                 title: chatTitle,
@@ -950,9 +1054,18 @@ export function AIChatPage() {
         }
 
         // Save user message to Firestore
+        const msgData: any = { 
+            role: "user", 
+            content: text || "Check these documents", 
+            timestamp: serverTimestamp() 
+        };
+        if (attachedIds.length > 0) {
+            msgData.attachedDocIds = attachedIds;
+        }
+
         const userMsgRef = await addDoc(
             collection(db, "users", user.uid, "chats", activeChatId, "messages"),
-            { role: "user", content: text, timestamp: serverTimestamp() }
+            msgData
         );
         await updateDoc(doc(db, "users", user.uid, "chats", activeChatId), {
             updatedAt: serverTimestamp(),
@@ -962,18 +1075,29 @@ export function AIChatPage() {
         const userMsg: ChatMessage = {
             id: userMsgRef.id,
             role: "user",
-            content: text,
+            content: text || "Check these documents",
             timestamp: Timestamp.now(),
+            attachedDocIds: attachedIds.length > 0 ? attachedIds : undefined
         };
         setMessages((prev) => [...prev, userMsg]);
 
+        // Build prompt with context if docs are attached
+        let promptText = text;
+        if (attachedIds.length > 0) {
+            const attachedContext = attachedIds.map(id => {
+                const d = availableDocs.find(doc => doc.id === id);
+                return `[Attached Document: ${d?.name || id}, ID: ${id}]`;
+            }).join("\n");
+            promptText = `${text}\n\nCONTEXT FROM USER ATTACHMENTS:\n${attachedContext}\nPlease acknowledge these documents and use them if relevant to the request.`;
+        }
+
         // Add to Gemini history
-        geminiHistoryRef.current.push({ role: "user", parts: [{ text }] });
+        geminiHistoryRef.current.push({ role: "user", parts: [{ text: promptText }] });
 
         // Run agent
         await runAgentLoop(activeChatId);
         setIsLoading(false);
-    }, [input, isLoading, confirmation, user, currentChatId, navigate, runAgentLoop]);
+    }, [input, isLoading, confirmation, user, currentChatId, navigate, runAgentLoop, selectedDocIds, availableDocs]);
 
     // ── Confirm write actions ─────────────────────────────────────────────────
 
@@ -1169,36 +1293,232 @@ export function AIChatPage() {
                 <div ref={bottomRef} />
             </div>
 
-            {/* Input */}
-            <div className="glass-card rounded-[1.75rem] p-2 sm:p-3 shadow-xl shadow-primary/5 mb-4 border border-white/50 backdrop-blur-xl relative overflow-hidden">
-                <div className="absolute top-0 right-0 size-32 bg-primary/10 rounded-full blur-3xl pointer-events-none -z-10" />
-                <div className="flex gap-2 relative z-10 w-full">
-                    <input
-                        ref={inputRef}
-                        value={input}
-                        onChange={(e) => setInput(e.target.value)}
-                        onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && sendMessage()}
-                        placeholder={
-                            confirmation
-                                ? "Review the proposed changes above..."
-                                : "Ask about your health records..."
-                        }
-                        disabled={isInputDisabled}
-                        className="flex-1 px-5 py-3 rounded-[1.25rem] border border-white/40 bg-white/40 backdrop-blur-md text-slate-800 placeholder:text-slate-500 focus:outline-none focus:bg-white/80 focus:ring-2 focus:ring-primary/20 transition-all font-semibold shadow-inner disabled:opacity-50 disabled:cursor-not-allowed"
-                    />
-                    <button
-                        onClick={sendMessage}
-                        disabled={isInputDisabled || !input.trim()}
-                        className="w-12 h-12 rounded-[1.25rem] bg-primary text-primary-foreground flex items-center justify-center disabled:opacity-50 transition-all hover:bg-primary/90 shadow-md flex-shrink-0"
-                    >
-                        {isLoading ? (
-                            <Loader2 size={18} className="animate-spin" />
-                        ) : (
-                            <Send size={18} />
-                        )}
-                    </button>
+            {/* Input and Attachment UI */}
+            <div className="space-y-3 pb-6">
+                {/* Selected documents preview */}
+                {selectedDocIds.size > 0 && (
+                    <div className="flex flex-wrap gap-2 px-2 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                        {Array.from(selectedDocIds).map(id => {
+                            const doc = availableDocs.find(d => d.id === id);
+                            return (
+                                <div key={id} className="flex items-center gap-1.5 bg-primary/10 text-primary px-3 py-1.5 rounded-xl text-xs font-bold border border-primary/20">
+                                    <FileText size={12} />
+                                    <span className="max-w-[120px] truncate">{doc?.name || "Selected Doc"}</span>
+                                    <button onClick={() => {
+                                        const next = new Set(selectedDocIds);
+                                        next.delete(id);
+                                        setSelectedDocIds(next);
+                                    }} className="hover:text-red-500">
+                                        <X size={12} />
+                                    </button>
+                                </div>
+                            );
+                        })}
+                        <button 
+                            onClick={() => setSelectedDocIds(new Set())}
+                            className="text-[10px] text-slate-400 font-bold hover:text-slate-600 uppercase tracking-wider px-1"
+                        >
+                            Clear All
+                        </button>
+                    </div>
+                )}
+
+                <div className="glass-card rounded-[1.75rem] p-2 sm:p-3 shadow-xl shadow-primary/5 border border-white/50 backdrop-blur-xl relative">
+                    <div className="absolute top-0 right-0 size-32 bg-primary/10 rounded-full blur-3xl pointer-events-none -z-10" />
+                    
+                    {/* Attachment Menu Popup */}
+                    {showAttachMenu && (
+                        <div className="absolute bottom-full left-0 mb-3 w-48 glass-card border border-white/60 shadow-2xl rounded-2xl p-2 animate-in fade-in zoom-in-95 duration-200 z-50">
+                            <button 
+                                onClick={() => { setShowDocSelector(true); setShowAttachMenu(false); }}
+                                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 transition-colors text-sm font-semibold text-slate-700"
+                            >
+                                <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+                                    <Search size={16} />
+                                </div>
+                                Select Existing
+                            </button>
+                            <button 
+                                onClick={() => { fileInputRef.current?.click(); setShowAttachMenu(false); }}
+                                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 transition-colors text-sm font-semibold text-slate-700 mt-1"
+                            >
+                                <div className="w-8 h-8 rounded-lg bg-violet-50 text-violet-600 flex items-center justify-center">
+                                    <Plus size={16} />
+                                </div>
+                                Upload New
+                            </button>
+                        </div>
+                    )}
+
+                    <div className="flex gap-2 relative z-10 w-full">
+                        <button
+                            onClick={() => setShowAttachMenu(!showAttachMenu)}
+                            disabled={isInputDisabled}
+                            className={cn(
+                                "w-12 h-12 rounded-[1.25rem] flex items-center justify-center transition-all shadow-sm flex-shrink-0",
+                                showAttachMenu ? "bg-slate-800 text-white" : "bg-white/60 text-slate-500 hover:bg-white hover:text-primary border border-white/40"
+                            )}
+                        >
+                            <Paperclip size={18} className={showAttachMenu ? "rotate-45 transition-transform" : "transition-transform"} />
+                        </button>
+
+                        <input
+                            ref={inputRef}
+                            value={input}
+                            onChange={(e) => setInput(e.target.value)}
+                            onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && sendMessage()}
+                            placeholder={
+                                confirmation
+                                    ? "Review the proposed changes above..."
+                                    : "Ask or attach documents..."
+                            }
+                            disabled={isInputDisabled}
+                            className="flex-1 px-5 py-3 rounded-[1.25rem] border border-white/40 bg-white/40 backdrop-blur-md text-slate-800 placeholder:text-slate-500 focus:outline-none focus:bg-white/80 focus:ring-2 focus:ring-primary/20 transition-all font-semibold shadow-inner disabled:opacity-50 disabled:cursor-not-allowed"
+                        />
+                        <button
+                            onClick={sendMessage}
+                            disabled={isInputDisabled || (!input.trim() && selectedDocIds.size === 0)}
+                            className="w-12 h-12 rounded-[1.25rem] bg-primary text-primary-foreground flex items-center justify-center disabled:opacity-50 transition-all hover:bg-primary/90 shadow-md flex-shrink-0"
+                        >
+                            {isLoading ? (
+                                <Loader2 size={18} className="animate-spin" />
+                            ) : (
+                                <Send size={18} />
+                            )}
+                        </button>
+                    </div>
                 </div>
             </div>
+
+            {/* Hidden File Input */}
+            <input 
+                type="file" 
+                ref={fileInputRef} 
+                className="hidden" 
+                accept="image/*,.pdf"
+                onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) handleUploadNew(file);
+                    e.target.value = "";
+                }}
+            />
+
+            {/* Document Selector Modal */}
+            {showDocSelector && (
+                <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4 animate-in fade-in duration-300">
+                    <div className="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl border border-white/20 overflow-hidden flex flex-col max-h-[85vh] animate-in zoom-in-95 duration-300">
+                        <div className="px-6 pt-6 pb-4 border-b border-slate-100">
+                            <div className="flex items-center justify-between mb-4">
+                                <h2 className="text-xl font-bold flex items-center gap-2">
+                                    <FileText className="text-primary" />
+                                    Select Documents
+                                </h2>
+                                <button onClick={() => setShowDocSelector(false)} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
+                                    <X size={20} className="text-slate-400" />
+                                </button>
+                            </div>
+                            
+                            <div className="flex gap-2">
+                                <div className="flex-1 relative">
+                                    <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                                    <input 
+                                        type="text"
+                                        placeholder="Search documents..."
+                                        value={selectorSearch}
+                                        onChange={(e) => setSelectorSearch(e.target.value)}
+                                        className="w-full bg-slate-50 border-none rounded-xl pl-9 pr-3 py-2 text-sm focus:ring-2 focus:ring-primary/20 outline-none"
+                                    />
+                                </div>
+                                <select 
+                                    value={patientFilter}
+                                    onChange={(e) => setPatientFilter(e.target.value)}
+                                    className="bg-slate-50 border-none rounded-xl px-3 py-2 text-xs font-semibold focus:ring-2 focus:ring-primary/20 outline-none"
+                                >
+                                    <option value="all">All Patients</option>
+                                    {patients.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div className="flex-1 overflow-y-auto p-4 space-y-2 custom-scrollbar">
+                            {selectorLoading ? (
+                                <div className="flex flex-col items-center justify-center py-20 gap-3">
+                                    <Loader2 size={24} className="animate-spin text-primary" />
+                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Loading records...</p>
+                                </div>
+                            ) : availableDocs.length === 0 ? (
+                                <div className="text-center py-20 px-10">
+                                    <Bot size={32} className="mx-auto text-slate-200 mb-3" />
+                                    <p className="text-sm font-semibold text-slate-600">No documents found</p>
+                                    <p className="text-xs text-slate-400 mt-1">Try uploading your medical reports first.</p>
+                                </div>
+                            ) : (
+                                availableDocs
+                                    .filter(d => {
+                                        const matchesPatient = patientFilter === "all" || d.patientId === patientFilter;
+                                        const matchesSearch = d.name.toLowerCase().includes(selectorSearch.toLowerCase());
+                                        return matchesPatient && matchesSearch;
+                                    })
+                                    .map(doc => (
+                                        <button
+                                            key={doc.id}
+                                            onClick={() => {
+                                                const next = new Set(selectedDocIds);
+                                                if (next.has(doc.id)) next.delete(doc.id);
+                                                else next.add(doc.id);
+                                                setSelectedDocIds(next);
+                                            }}
+                                            className={cn(
+                                                "w-full flex items-center gap-3 p-3 rounded-2xl transition-all border text-left",
+                                                selectedDocIds.has(doc.id) 
+                                                    ? "bg-primary/5 border-primary shadow-sm ring-1 ring-primary/20" 
+                                                    : "bg-white border-slate-100 hover:border-slate-300"
+                                            )}
+                                        >
+                                            <div className={cn(
+                                                "w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all flex-shrink-0",
+                                                selectedDocIds.has(doc.id) ? "bg-primary border-primary" : "border-slate-200 bg-white"
+                                            )}>
+                                                {selectedDocIds.has(doc.id) && <Check size={12} className="text-white" />}
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-sm font-bold truncate">{doc.name}</p>
+                                                <div className="flex items-center gap-2 mt-0.5">
+                                                    <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-slate-100 text-slate-600 font-bold uppercase tracking-tighter">
+                                                        {doc.category || "Other"}
+                                                    </span>
+                                                    <span className="text-[10px] text-slate-400 font-medium">
+                                                        {doc.docDate || "No date"}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </button>
+                                    ))
+                            )}
+                        </div>
+
+                        <div className="p-6 border-t border-slate-100 flex items-center justify-between">
+                            <p className="text-xs font-bold text-slate-400">
+                                {selectedDocIds.size} selected
+                            </p>
+                            <div className="flex gap-2">
+                                <button 
+                                    onClick={() => setShowDocSelector(false)}
+                                    className="px-5 py-2.5 rounded-xl text-sm font-bold text-slate-500 hover:bg-slate-100 transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button 
+                                    onClick={() => setShowDocSelector(false)}
+                                    className="px-6 py-2.5 bg-primary text-white rounded-xl text-sm font-bold shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all active:scale-95"
+                                >
+                                    Add Documents
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

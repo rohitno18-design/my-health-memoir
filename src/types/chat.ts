@@ -32,4 +32,5 @@ export interface ChatMessage {
     timestamp: Timestamp;
     documentResults?: DocumentResultCard[];
     pendingActions?: PendingAction[];
+    attachedDocIds?: string[]; // New: IDs of documents user attached to this message
 }
