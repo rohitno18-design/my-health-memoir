@@ -979,8 +979,7 @@ export function AIChatPage() {
 
             const uploadedUrl = await new Promise<string>((resolve, reject) => {
                 uploadTask.on("state_changed", 
-                    (snap) => {
-                        const prog = Math.round((snap.bytesTransferred / snap.totalBytes) * 100);
+                    (_snap) => {
                         // Optional: could add an upload progress state here
                     },
                     reject,
