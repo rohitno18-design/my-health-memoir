@@ -18,7 +18,6 @@ import {
     arrayUnion,
     increment,
     Timestamp,
-    limit as firestoreLimit,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/contexts/AuthContext";
