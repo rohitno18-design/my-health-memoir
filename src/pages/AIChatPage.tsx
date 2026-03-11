@@ -4,6 +4,7 @@ import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 // @ts-ignore
 import "jspdf-autotable";
+import { DocumentViewerModal } from "@/components/DocumentViewerModal";
 import {
     collection,
     doc,
@@ -41,6 +42,7 @@ import {
     Plus,
     Paperclip,
     Search,
+    Download,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ChatMessage, DocumentResultCard, PendingAction } from "@/types/chat";
@@ -334,7 +336,7 @@ function describeAction(toolName: string, args: Record<string, unknown>): string
 
 // ─── Document Card component ──────────────────────────────────────────────────
 
-function DocumentCard({ card }: { card: DocumentResultCard }) {
+function DocumentCard({ card, onView }: { card: DocumentResultCard; onView: (url: string, name: string, type?: string) => void }) {
     const [expanded, setExpanded] = useState(false);
     const snippet = card.summarySnippet || "";
     const truncated = snippet.length > 150;
@@ -381,14 +383,12 @@ function DocumentCard({ card }: { card: DocumentResultCard }) {
                     </div>
                 )}
                 <div className="mt-3">
-                    <a
-                        href={card.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                    <button
+                        onClick={() => onView(card.url, card.name, card.category)}
                         className="inline-flex items-center gap-1 text-[11px] font-semibold text-primary bg-primary/10 px-3 py-1.5 rounded-full hover:bg-primary/20 transition-colors"
                     >
                         <ExternalLink size={11} /> Open
-                    </a>
+                    </button>
                 </div>
             </div>
         </div>
@@ -484,6 +484,9 @@ export function AIChatPage() {
     const [selectorSearch, setSelectorSearch] = useState("");
     const [patientFilter, setPatientFilter] = useState("all");
     const [patients, setPatients] = useState<{id: string, name: string}[]>([]);
+
+    const [viewerOpen, setViewerOpen] = useState(false);
+    const [viewerData, setViewerData] = useState({ url: "", title: "", type: "" });
 
     const geminiHistoryRef = useRef<GeminiContent[]>([]);
     const pendingDocResultsRef = useRef<DocumentResultCard[]>([]);
@@ -835,7 +838,7 @@ export function AIChatPage() {
     // ── Save a model message to Firestore + state ─────────────────────────────
 
     const saveModelMessage = useCallback(
-        async (chatId: string, content: string, docResults?: DocumentResultCard[]) => {
+        async (chatId: string, content: string, docResults?: DocumentResultCard[], generatedPdf?: any) => {
             const msgData: Record<string, unknown> = {
                 role: "model",
                 content,
@@ -843,6 +846,9 @@ export function AIChatPage() {
             };
             if (docResults && docResults.length > 0) {
                 msgData.documentResults = docResults;
+            }
+            if (generatedPdf) {
+                msgData.generatedPdf = generatedPdf;
             }
             const msgRef = await addDoc(
                 collection(db, "users", user!.uid, "chats", chatId, "messages"),
@@ -854,6 +860,7 @@ export function AIChatPage() {
                 content,
                 timestamp: Timestamp.now(),
                 documentResults: docResults?.length ? docResults : undefined,
+                generatedPdf: generatedPdf || undefined,
             };
             setMessages((prev) => [...prev, newMsg]);
             await updateDoc(doc(db, "users", user!.uid, "chats", chatId), {
@@ -904,7 +911,22 @@ export function AIChatPage() {
             // No tool calls — pure text response
             if (functionCallParts.length === 0) {
                 const docResults = [...pendingDocResultsRef.current];
-                await saveModelMessage(chatId, textContent || "Done.", docResults.length ? docResults : undefined);
+                // Check if the history has a compile_to_pdf response that we should attach
+                let pdfData = undefined;
+                const lastUserContent = geminiHistoryRef.current[geminiHistoryRef.current.length - 1];
+                if (lastUserContent && lastUserContent.role === "user") {
+                    const pdfResponse = lastUserContent.parts.find(p => p.functionResponse?.name === "compile_to_pdf");
+                    if (pdfResponse) {
+                        // Find the original call for args
+                        const modelCall = geminiHistoryRef.current[geminiHistoryRef.current.length - 2];
+                        const toolCall = modelCall?.parts.find(p => p.functionCall?.name === "compile_to_pdf");
+                        if (toolCall) {
+                            pdfData = toolCall.functionCall!.args;
+                        }
+                    }
+                }
+
+                await saveModelMessage(chatId, textContent || "Done.", docResults.length ? docResults : undefined, pdfData);
                 return;
             }
 
@@ -1256,8 +1278,42 @@ export function AIChatPage() {
                                         {msg.documentResults.length} document{msg.documentResults.length !== 1 ? "s" : ""} found
                                     </p>
                                     {msg.documentResults.map((card) => (
-                                        <DocumentCard key={card.id} card={card} />
+                                        <DocumentCard 
+                                            key={card.id} 
+                                            card={card} 
+                                            onView={(url, title, type) => {
+                                                setViewerData({ url, title, type: type || "" });
+                                                setViewerOpen(true);
+                                            }}
+                                        />
                                     ))}
+                                </div>
+                            )}
+
+                            {/* PDF Report button */}
+                            {msg.generatedPdf && (
+                                <div className="mt-3 px-1">
+                                    <button 
+                                        onClick={async () => {
+                                            const { title, summary, documentIds } = msg.generatedPdf!;
+                                            const docs: any[] = [];
+                                            for (const id of documentIds) {
+                                                const dSnap = await getDocs(query(collection(db, "documents"), where("__name__", "==", id)));
+                                                if (!dSnap.empty) {
+                                                    const data = dSnap.docs[0].data();
+                                                    docs.push({
+                                                        date: data.docDate || "N/A",
+                                                        name: data.name || "Untitled",
+                                                        summary: data.aiSummary || "N/A"
+                                                    });
+                                                }
+                                            }
+                                            generateHealthReportPDF(title as string, summary as string, docs);
+                                        }}
+                                        className="flex items-center gap-2 bg-emerald-600 text-white px-4 py-2.5 rounded-xl text-xs font-bold shadow-lg shadow-emerald-600/20 hover:bg-emerald-700 transition-all active:scale-95"
+                                    >
+                                        <Download size={14} /> Download Health Report PDF
+                                    </button>
                                 </div>
                             )}
                         </div>
@@ -1518,6 +1574,14 @@ export function AIChatPage() {
                     </div>
                 </div>
             )}
+
+            <DocumentViewerModal 
+                isOpen={viewerOpen}
+                onClose={() => setViewerOpen(false)}
+                url={viewerData.url}
+                title={viewerData.title}
+                type={viewerData.type}
+            />
         </div>
     );
 }

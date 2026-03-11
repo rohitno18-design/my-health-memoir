@@ -6,6 +6,7 @@ import { ref, deleteObject } from "firebase/storage";
 import { db, storage } from "@/lib/firebase";
 import { FileText, Upload, Loader2, Download, Bot, Eye, X, Search, Globe, Activity, Edit2, Trash2, Save } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { DocumentViewerModal } from "@/components/DocumentViewerModal";
 
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY ?? "";
 const MODEL_ID = import.meta.env.VITE_GEMINI_MODEL ?? "gemini-2.0-flash";
@@ -86,6 +87,10 @@ export function DocumentsPage() {
     const [selectedEventId, setSelectedEventId] = useState("");
     const [addingToTimeline, setAddingToTimeline] = useState(false);
     const [addToTimelineDone, setAddToTimelineDone] = useState<string | null>(null);
+
+    // Viewer State
+    const [viewerOpen, setViewerOpen] = useState(false);
+    const [viewerData, setViewerData] = useState({ url: "", title: "", type: "" });
 
     // Initial setup from URL params
     useEffect(() => {
@@ -601,7 +606,13 @@ export function DocumentsPage() {
                                         <div className="absolute -left-[30px] sm:-left-[38px] top-1/2 -translate-y-1/2 size-4 rounded-full bg-white border-4 border-primary shadow-sm group-hover:scale-125 transition-transform z-10"></div>
 
                                         <div className="bg-white/60 backdrop-blur-md border border-white/60 rounded-[1.5rem] p-5 shadow-sm hover:shadow-md hover:border-primary/30 transition-all flex flex-col sm:flex-row gap-5 relative overflow-hidden">
-                                            <div className="w-20 h-24 sm:w-28 sm:h-auto rounded-[1rem] bg-slate-50 flex items-center justify-center flex-shrink-0 relative overflow-hidden border border-slate-200">
+                                            <button 
+                                                onClick={() => {
+                                                    setViewerData({ url: doc.url, title: doc.name, type: doc.category || doc.type });
+                                                    setViewerOpen(true);
+                                                }}
+                                                className="w-20 h-24 sm:w-28 sm:h-auto rounded-[1rem] bg-slate-50 flex items-center justify-center flex-shrink-0 relative overflow-hidden border border-slate-200 cursor-pointer hover:border-primary/50 transition-colors"
+                                            >
                                                 {doc.type.startsWith('image/') ? (
                                                     <img src={doc.url} alt={doc.name} className="w-full h-full object-cover" />
                                                 ) : (
@@ -610,7 +621,7 @@ export function DocumentsPage() {
                                                 <div className="absolute bottom-0 left-0 right-0 bg-black/60 backdrop-blur-md px-2 py-1 text-[10px] text-white font-bold text-center truncate">
                                                     {doc.category || doc.docType || "Document"}
                                                 </div>
-                                            </div>
+                                            </button>
 
                                             <div className="flex-1 min-w-0 space-y-2">
                                                 <div className="flex items-start justify-between gap-4">
@@ -679,17 +690,30 @@ export function DocumentsPage() {
                                 const patient = patients.find(p => p.id === doc.patientId);
                                 return (
                                     <div key={doc.id} className="glass-card rounded-2xl p-2.5 flex gap-2.5 items-center shadow-sm border border-white/40 hover:shadow-md hover:border-primary/30 transition-all group overflow-hidden">
-                                        <a href={doc.url} target="_blank" rel="noopener noreferrer" className="w-12 h-12 rounded-[0.75rem] bg-white flex items-center justify-center flex-shrink-0 overflow-hidden relative border-2 border-slate-200 shadow-sm hover:border-primary/50 transition-colors">
+                                        <button 
+                                            onClick={() => {
+                                                setViewerData({ url: doc.url, title: doc.name, type: doc.category || doc.type });
+                                                setViewerOpen(true);
+                                            }}
+                                            className="w-12 h-12 rounded-[0.75rem] bg-white flex items-center justify-center flex-shrink-0 overflow-hidden relative border-2 border-slate-200 shadow-sm hover:border-primary/50 transition-colors cursor-pointer"
+                                        >
                                             {doc.type.startsWith('image/') ? (
                                                 <img src={doc.url} alt={doc.name} className="w-full h-full object-cover" />
                                             ) : (
                                                 <FileText size={24} className="text-primary/70" />
                                             )}
-                                        </a>
-                                        <div className="flex-1 min-w-0">
-                                            <a href={doc.url} target="_blank" rel="noopener noreferrer" className="font-bold text-[13px] hover:text-primary hover:underline transition-colors block truncate" title={doc.name}>
+                                        </button>
+                                        <div className="flex-1 min-w-0 text-left">
+                                            <button 
+                                                onClick={() => {
+                                                    setViewerData({ url: doc.url, title: doc.name, type: doc.category || doc.type });
+                                                    setViewerOpen(true);
+                                                }}
+                                                className="font-bold text-[13px] hover:text-primary hover:underline transition-colors block truncate w-full text-left" 
+                                                title={doc.name}
+                                            >
                                                 {doc.name}
-                                            </a>
+                                            </button>
                                             <div className="flex items-center gap-2 mt-0.5">
                                                 <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider px-2 py-0.5 bg-secondary rounded-md capitalize">
                                                     {doc.type.split("/")[1] ?? doc.type}
@@ -1040,6 +1064,14 @@ export function DocumentsPage() {
                     </div>
                 </div>
             )}
+
+            <DocumentViewerModal 
+                isOpen={viewerOpen}
+                onClose={() => setViewerOpen(false)}
+                url={viewerData.url}
+                title={viewerData.title}
+                type={viewerData.type}
+            />
         </div>
     );
 }

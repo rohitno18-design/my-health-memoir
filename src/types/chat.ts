@@ -25,6 +25,12 @@ export interface PendingAction {
     args: Record<string, unknown>;
 }
 
+export interface GeneratedPdf {
+    title: string;
+    summary: string;
+    documentIds: string[];
+}
+
 export interface ChatMessage {
     id: string;
     role: "user" | "model";
@@ -33,4 +39,5 @@ export interface ChatMessage {
     documentResults?: DocumentResultCard[];
     pendingActions?: PendingAction[];
     attachedDocIds?: string[]; // New: IDs of documents user attached to this message
+    generatedPdf?: GeneratedPdf; // New: Data for re-generating/downloading PDF
 }
