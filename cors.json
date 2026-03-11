@@ -1,0 +1,7 @@
+[
+  {
+    "origin": ["http://localhost:5173", "https://ai-health-assistant-cb498.web.app", "https://ai-health-assistant-cb498.firebaseapp.app"],
+    "method": ["GET"],
+    "maxAgeSeconds": 3600
+  }
+]

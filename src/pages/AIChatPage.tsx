@@ -44,7 +44,7 @@ import {
     Search,
     Download,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, downloadFile } from "@/lib/utils";
 import type { ChatMessage, DocumentResultCard, PendingAction } from "@/types/chat";
 
 interface Document {
@@ -336,7 +336,15 @@ function describeAction(toolName: string, args: Record<string, unknown>): string
 
 // ─── Document Card component ──────────────────────────────────────────────────
 
-function DocumentCard({ card, onView }: { card: DocumentResultCard; onView: (url: string, name: string, mimeType?: string) => void }) {
+function DocumentCard({ 
+    card, 
+    onView,
+    onDownload 
+}: { 
+    card: DocumentResultCard; 
+    onView: (url: string, name: string, mimeType?: string) => void;
+    onDownload: (url: string, title: string) => void;
+}) {
     const [expanded, setExpanded] = useState(false);
     const snippet = card.summarySnippet || "";
     const truncated = snippet.length > 150;
@@ -382,12 +390,18 @@ function DocumentCard({ card, onView }: { card: DocumentResultCard; onView: (url
                         )}
                     </div>
                 )}
-                <div className="mt-3">
+                <div className="mt-3 flex gap-2">
                     <button
-                        onClick={() => onView(card.url, card.name, card.mimeType)}
-                        className="inline-flex items-center gap-1 text-[11px] font-semibold text-primary bg-primary/10 px-3 py-1.5 rounded-full hover:bg-primary/20 transition-colors"
+                        onClick={() => onView(card.url, card.name, card.mimeType || "")}
+                        className="flex-1 inline-flex items-center justify-center gap-1.5 text-[11px] font-bold text-primary bg-primary/10 px-3 py-2 rounded-xl hover:bg-primary/20 transition-colors"
                     >
-                        <Eye size={11} /> View
+                        <Eye size={13} /> View
+                    </button>
+                    <button
+                        onClick={() => onDownload(card.url, card.name)}
+                        className="flex-1 inline-flex items-center justify-center gap-1.5 text-[11px] font-bold text-slate-600 bg-slate-100 px-3 py-2 rounded-xl hover:bg-slate-200 transition-colors"
+                    >
+                        <Download size={13} /> Download
                     </button>
                 </div>
             </div>
@@ -1283,6 +1297,7 @@ export function AIChatPage() {
                                                 setViewerData({ url, title, type: type || "" });
                                                 setViewerOpen(true);
                                             }}
+                                            onDownload={(url, title) => downloadFile(url, title)}
                                         />
                                     ))}
                                 </div>
