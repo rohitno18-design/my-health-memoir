@@ -48,18 +48,35 @@ export async function downloadFile(url: string, filename: string): Promise<boole
                 
                 console.log(`[Download V3] Step 2: Aggressive Triggering`);
                 
-                // Method A: Try hidden iframe first (cleanest, no tab flash)
-                const iframe = document.createElement('iframe');
-                iframe.style.display = 'none';
-                iframe.src = freshUrl;
-                document.body.appendChild(iframe);
+                // Detection for mobile
+                const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
                 
-                // Periodically check if we should fall back to window.open
-                setTimeout(() => {
-                    if (document.body.contains(iframe)) {
-                        document.body.removeChild(iframe);
-                    }
-                }, 3000);
+                if (isMobile) {
+                    console.log(`[Download V3] Mobile detected - using direct link`);
+                    const link = document.createElement('a');
+                    link.href = freshUrl;
+                    link.download = filename;
+                    // Mobile browsers often require direct navigation to trigger the download prompt
+                    link.target = "_blank"; 
+                    document.body.appendChild(link);
+                    link.click();
+                    // Clean up after a delay
+                    setTimeout(() => document.body.removeChild(link), 100);
+                } else {
+                    console.log(`[Download V3] Desktop detected - using hidden iframe`);
+                    // Method A: Try hidden iframe first (cleanest on PC, no tab flash)
+                    const iframe = document.createElement('iframe');
+                    iframe.style.display = 'none';
+                    iframe.src = freshUrl;
+                    document.body.appendChild(iframe);
+                    
+                    // Periodically check if we should fall back to window.open
+                    setTimeout(() => {
+                        if (document.body.contains(iframe)) {
+                            document.body.removeChild(iframe);
+                        }
+                    }, 3000);
+                }
 
                 return true;
             }
