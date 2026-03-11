@@ -659,9 +659,9 @@ export function DocumentsPage() {
                                                         <Bot size={18} />
                                                     </button>
                                                 )}
-                                                <a href={doc.url} target="_blank" rel="noopener noreferrer" className="p-2.5 rounded-xl bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors shadow-sm text-center" title="Download Source File">
+                                                <button onClick={() => downloadFile(doc.url, doc.name)} className="p-2.5 rounded-xl bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors shadow-sm text-center" title="Download Source File">
                                                     <Download size={18} />
-                                                </a>
+                                                </button>
                                             </div>
                                         </div>
                                     </div>

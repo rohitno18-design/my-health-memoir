@@ -145,13 +145,12 @@ export function DocumentViewerModal({
                                     </div>
                                     <h3 className="text-lg font-bold text-slate-800 mb-2">Unknown File Type</h3>
                                     <p className="text-sm text-slate-500 mb-6">This file type might not be viewable directly. You can try downloading it instead.</p>
-                                    <a 
-                                        href={url} 
-                                        download 
+                                    <button
+                                        onClick={() => downloadFile(url, title || 'document')}
                                         className="px-6 py-2 bg-primary text-white rounded-xl font-bold shadow-lg shadow-primary/20"
                                     >
                                         Download File
-                                    </a>
+                                    </button>
                                 </div>
                             )}
                         </div>
