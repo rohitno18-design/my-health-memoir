@@ -87,6 +87,7 @@ export function DocumentsPage() {
     const [lifeEvents, setLifeEvents] = useState<{ id: string, title: string, date: string, patientId: string }[]>([]);
     const [selectedEventId, setSelectedEventId] = useState("");
     const [addingToTimeline, setAddingToTimeline] = useState(false);
+    const [downloadingDocId, setDownloadingDocId] = useState<string | null>(null);
     const [addToTimelineDone, setAddToTimelineDone] = useState<string | null>(null);
 
     // Viewer State
@@ -152,6 +153,17 @@ export function DocumentsPage() {
         };
         fetchDocsAndEvents();
     }, [user, selectedPatientId]);
+
+    const handleDocDownload = async (doc: Document) => {
+        if (downloadingDocId) return;
+        setDownloadingDocId(doc.id);
+        try {
+            await downloadFile(doc.url, doc.name);
+        } catch {
+            // downloadFile already shows alert on failure
+        }
+        setDownloadingDocId(null);
+    };
 
     const openEditDocModal = (doc: Document) => {
         setEditingDoc(doc);
@@ -659,8 +671,8 @@ export function DocumentsPage() {
                                                         <Bot size={18} />
                                                     </button>
                                                 )}
-                                                <button onClick={() => downloadFile(doc.url, doc.name)} className="p-2.5 rounded-xl bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors shadow-sm text-center" title="Download Source File">
-                                                    <Download size={18} />
+                                                <button onClick={() => handleDocDownload(doc)} disabled={downloadingDocId === doc.id} className="p-2.5 rounded-xl bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors shadow-sm text-center disabled:opacity-60" title="Download Source File">
+                                                    {downloadingDocId === doc.id ? <Loader2 size={18} className="animate-spin" /> : <Download size={18} />}
                                                 </button>
                                             </div>
                                         </div>
@@ -781,12 +793,13 @@ export function DocumentsPage() {
                                             <button onClick={() => openEditDocModal(doc)} className="w-9 h-9 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center hover:bg-slate-200 hover:text-slate-900 transition-colors shadow-sm" title="Edit Document">
                                                 <Edit2 size={16} />
                                             </button>
-                                            <button 
-                                                onClick={() => downloadFile(doc.url, doc.name)}
-                                                className="w-9 h-9 rounded-full bg-secondary text-secondary-foreground flex items-center justify-center hover:bg-secondary/80 transition-colors shadow-sm" 
+                                            <button
+                                                onClick={() => handleDocDownload(doc)}
+                                                disabled={downloadingDocId === doc.id}
+                                                className="w-9 h-9 rounded-full bg-secondary text-secondary-foreground flex items-center justify-center hover:bg-secondary/80 transition-colors shadow-sm disabled:opacity-60"
                                                 title="Download Document"
                                             >
-                                                <Download size={18} />
+                                                {downloadingDocId === doc.id ? <Loader2 size={16} className="animate-spin" /> : <Download size={18} />}
                                             </button>
                                             <button onClick={() => openAddToTimeline(doc)} className="w-9 h-9 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center hover:bg-emerald-100 transition-colors shadow-sm" title="Add to Timeline">
                                                 <Activity size={18} />
@@ -958,10 +971,11 @@ export function DocumentsPage() {
                             </div>
                             <div className="pt-4 border-t border-slate-100 flex items-center gap-3">
                                 <button 
-                                    onClick={() => downloadFile(editingDoc.url, editingDoc.name)}
-                                    className="flex-1 flex justify-center items-center gap-2 px-4 py-2.5 bg-blue-50 text-blue-700 font-bold rounded-xl text-sm hover:bg-blue-100 transition-colors"
+                                    onClick={() => handleDocDownload(editingDoc)}
+                                    disabled={downloadingDocId === editingDoc.id}
+                                    className="flex-1 flex justify-center items-center gap-2 px-4 py-2.5 bg-blue-50 text-blue-700 font-bold rounded-xl text-sm hover:bg-blue-100 transition-colors disabled:opacity-60"
                                 >
-                                    <Download size={16} /> Secure Download Original
+                                    {downloadingDocId === editingDoc.id ? <><Loader2 size={16} className="animate-spin" /> Downloading...</> : <><Download size={16} /> Secure Download Original</>}
                                 </button>
                             </div>
 

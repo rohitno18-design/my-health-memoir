@@ -7,15 +7,17 @@ export function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs))
 }
 
-async function triggerBlobDownload(blob: Blob, filename: string) {
+function triggerBlobDownload(blob: Blob, filename: string) {
     const blobUrl = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = blobUrl;
     link.download = filename;
+    link.style.display = 'none';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    window.URL.revokeObjectURL(blobUrl);
+    // Delay revoke so browser has time to read the blob before it's released
+    setTimeout(() => window.URL.revokeObjectURL(blobUrl), 60000);
 }
 
 export async function downloadFile(url: string, filename: string): Promise<boolean> {
@@ -28,7 +30,7 @@ export async function downloadFile(url: string, filename: string): Promise<boole
                 const storagePath = decodeURIComponent(pathMatch[1]);
                 const storageRef = ref(storage, storagePath);
                 const blob = await getBlob(storageRef);
-                await triggerBlobDownload(blob, filename);
+                triggerBlobDownload(blob, filename);
                 return true;
             } catch {
                 // Fall through to fetch fallback
@@ -41,7 +43,7 @@ export async function downloadFile(url: string, filename: string): Promise<boole
         const response = await fetch(url);
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const blob = await response.blob();
-        await triggerBlobDownload(blob, filename);
+        triggerBlobDownload(blob, filename);
         return true;
     } catch (err) {
         console.error("Download failed:", err);
