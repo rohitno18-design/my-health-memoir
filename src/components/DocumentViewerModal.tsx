@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { X, Download, Loader2, AlertCircle } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, downloadFile } from "@/lib/utils";
 
 interface DocumentViewerModalProps {
     isOpen: boolean;
@@ -26,18 +26,27 @@ export function DocumentViewerModal({
             setError(null);
             // Lock body scroll
             document.body.style.overflow = "hidden";
+
+            // Fail-safe: if it's still loading after 10 seconds, stop loading
+            const timer = setTimeout(() => {
+                setLoading(false);
+            }, 10000);
+            return () => clearTimeout(timer);
         } else {
             document.body.style.overflow = "unset";
         }
-        return () => {
-            document.body.style.overflow = "unset";
-        };
     }, [isOpen]);
 
     if (!isOpen) return null;
 
-    const isImage = type?.startsWith("image/") || url.match(/\.(jpeg|jpg|gif|png|webp)$/i);
-    const isPDF = type === "application/pdf" || url.includes(".pdf");
+    // Improved type detection: Check mime type first, then fallback to URL extension
+    const isImage = type?.startsWith("image/") || url.split('?')[0].match(/\.(jpeg|jpg|gif|png|webp|svg)$/i);
+    const isPDF = type === "application/pdf" || type?.includes("pdf") || url.split('?')[0].includes(".pdf");
+
+    // Clear loading if we know we are in the "Unknown" branch
+    if (isOpen && !isImage && !isPDF && loading) {
+        setLoading(false);
+    }
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
@@ -61,16 +70,13 @@ export function DocumentViewerModal({
                     </div>
                     
                     <div className="flex items-center gap-2">
-                        <a 
-                            href={url} 
-                            download 
-                            target="_blank" 
-                            rel="noopener noreferrer"
+                        <button 
+                            onClick={() => downloadFile(url, title || 'document')}
                             className="p-2.5 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors"
                             title="Download"
                         >
                             <Download size={18} />
-                        </a>
+                        </button>
                         <button 
                             onClick={onClose}
                             className="p-2.5 rounded-xl bg-slate-800 text-white hover:bg-slate-700 transition-colors shadow-lg"

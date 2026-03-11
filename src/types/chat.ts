@@ -17,6 +17,7 @@ export interface DocumentResultCard {
     doctorName?: string;
     hospital?: string;
     url: string;
+    mimeType?: string;
 }
 
 export interface PendingAction {

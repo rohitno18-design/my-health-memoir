@@ -34,7 +34,7 @@ import {
     FileText,
     Check,
     X,
-    ExternalLink,
+    Eye,
     ChevronDown,
     ChevronUp,
     Sparkles,
@@ -336,7 +336,7 @@ function describeAction(toolName: string, args: Record<string, unknown>): string
 
 // ─── Document Card component ──────────────────────────────────────────────────
 
-function DocumentCard({ card, onView }: { card: DocumentResultCard; onView: (url: string, name: string, type?: string) => void }) {
+function DocumentCard({ card, onView }: { card: DocumentResultCard; onView: (url: string, name: string, mimeType?: string) => void }) {
     const [expanded, setExpanded] = useState(false);
     const snippet = card.summarySnippet || "";
     const truncated = snippet.length > 150;
@@ -384,10 +384,10 @@ function DocumentCard({ card, onView }: { card: DocumentResultCard; onView: (url
                 )}
                 <div className="mt-3">
                     <button
-                        onClick={() => onView(card.url, card.name, card.category)}
+                        onClick={() => onView(card.url, card.name, card.mimeType)}
                         className="inline-flex items-center gap-1 text-[11px] font-semibold text-primary bg-primary/10 px-3 py-1.5 rounded-full hover:bg-primary/20 transition-colors"
                     >
-                        <ExternalLink size={11} /> Open
+                        <Eye size={11} /> View
                     </button>
                 </div>
             </div>
@@ -602,6 +602,7 @@ export function AIChatPage() {
                                 doctorName: data.doctorName,
                                 hospital: data.hospital,
                                 url: data.url,
+                                mimeType: data.type || "",
                             });
                         }
                     });
@@ -633,6 +634,7 @@ export function AIChatPage() {
                             doctorName: data.doctorName,
                             hospital: data.hospital,
                             url: data.url,
+                            mimeType: data.type || "",
                         } as DocumentResultCard));
                 }
 
@@ -697,12 +699,6 @@ export function AIChatPage() {
                     return { success: true };
                 }
 
-                case "update_life_event": {
-                    const { eventId, updates } = args as { eventId: string; updates: Record<string, string> };
-                    await updateDoc(doc(db, "life_events", eventId), updates);
-                    return { success: true };
-                }
-
                 case "update_document_metadata": {
                     const { documentId, updates } = args as { documentId: string; updates: Record<string, string> };
                     await updateDoc(doc(db, "documents", documentId), updates);
@@ -720,7 +716,8 @@ export function AIChatPage() {
                                 id,
                                 name: data.name,
                                 docDate: data.docDate,
-                                summary: data.aiSummary || "No summary available."
+                                summary: data.aiSummary || "No summary available.",
+                                mimeType: data.type || ""
                             });
                         }
                     }
@@ -749,7 +746,8 @@ export function AIChatPage() {
                                 name: data.name,
                                 date: data.docDate || "Unknown",
                                 summary: data.aiSummary || "N/A",
-                                url: data.url
+                                url: data.url,
+                                mimeType: data.type || ""
                             });
                         }
                     });

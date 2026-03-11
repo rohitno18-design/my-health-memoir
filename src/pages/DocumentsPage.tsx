@@ -4,7 +4,8 @@ import ReactMarkdown from "react-markdown";
 import { collection, query, where, getDocs, updateDoc, doc as fsDoc, addDoc, serverTimestamp, deleteDoc } from "firebase/firestore";
 import { ref, deleteObject } from "firebase/storage";
 import { db, storage } from "@/lib/firebase";
-import { FileText, Upload, Loader2, Download, Bot, Eye, X, Search, Globe, Activity, Edit2, Trash2, Save } from "lucide-react";
+import { FileText, Upload, Loader2, Download, Bot, X, Search, Globe, Activity, Edit2, Trash2, Save } from "lucide-react";
+import { downloadFile } from "@/lib/utils";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { DocumentViewerModal } from "@/components/DocumentViewerModal";
 
@@ -692,7 +693,7 @@ export function DocumentsPage() {
                                     <div key={doc.id} className="glass-card rounded-2xl p-2.5 flex gap-2.5 items-center shadow-sm border border-white/40 hover:shadow-md hover:border-primary/30 transition-all group overflow-hidden">
                                         <button 
                                             onClick={() => {
-                                                setViewerData({ url: doc.url, title: doc.name, type: doc.category || doc.type });
+                                                setViewerData({ url: doc.url, title: doc.name, type: doc.type });
                                                 setViewerOpen(true);
                                             }}
                                             className="w-12 h-12 rounded-[0.75rem] bg-white flex items-center justify-center flex-shrink-0 overflow-hidden relative border-2 border-slate-200 shadow-sm hover:border-primary/50 transition-colors cursor-pointer"
@@ -780,9 +781,13 @@ export function DocumentsPage() {
                                             <button onClick={() => openEditDocModal(doc)} className="w-9 h-9 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center hover:bg-slate-200 hover:text-slate-900 transition-colors shadow-sm" title="Edit Document">
                                                 <Edit2 size={16} />
                                             </button>
-                                            <a href={doc.url} download target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-full bg-secondary text-secondary-foreground flex items-center justify-center hover:bg-secondary/80 transition-colors shadow-sm" title="Download Document">
+                                            <button 
+                                                onClick={() => downloadFile(doc.url, doc.name)}
+                                                className="w-9 h-9 rounded-full bg-secondary text-secondary-foreground flex items-center justify-center hover:bg-secondary/80 transition-colors shadow-sm" 
+                                                title="Download Document"
+                                            >
                                                 <Download size={18} />
-                                            </a>
+                                            </button>
                                             <button onClick={() => openAddToTimeline(doc)} className="w-9 h-9 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center hover:bg-emerald-100 transition-colors shadow-sm" title="Add to Timeline">
                                                 <Activity size={18} />
                                             </button>
@@ -952,9 +957,12 @@ export function DocumentsPage() {
                                 </div>
                             </div>
                             <div className="pt-4 border-t border-slate-100 flex items-center gap-3">
-                                <a href={editingDoc.url} target="_blank" rel="noopener noreferrer" className="flex-1 flex justify-center items-center gap-2 px-4 py-2.5 bg-blue-50 text-blue-700 font-bold rounded-xl text-sm hover:bg-blue-100 transition-colors">
-                                    <Eye size={16} /> Preview Original Document
-                                </a>
+                                <button 
+                                    onClick={() => downloadFile(editingDoc.url, editingDoc.name)}
+                                    className="flex-1 flex justify-center items-center gap-2 px-4 py-2.5 bg-blue-50 text-blue-700 font-bold rounded-xl text-sm hover:bg-blue-100 transition-colors"
+                                >
+                                    <Download size={16} /> Secure Download Original
+                                </button>
                             </div>
 
                             {/* Linked events management in Edit Modal */}
