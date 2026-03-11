@@ -21,9 +21,12 @@ function triggerBlobDownload(blob: Blob, filename: string) {
 }
 
 export async function downloadFile(url: string, filename: string): Promise<boolean> {
-    console.log(`[Download] Starting for: ${filename}`);
+    console.log(`[Download V3] Starting for: ${filename}`);
     
-    if (url.includes('firebasestorage.googleapis.com')) {
+    // Check if it's a Firebase URL
+    const isFirebase = url.includes('firebasestorage.googleapis.com');
+    
+    if (isFirebase) {
         try {
             const urlObj = new URL(url);
             const pathPart = urlObj.pathname.split('/o/')[1];
@@ -31,47 +34,65 @@ export async function downloadFile(url: string, filename: string): Promise<boole
                 const storagePath = decodeURIComponent(pathPart.split('?')[0]);
                 const storageRef = ref(storage, storagePath);
                 
-                console.log(`[Download] Step 1: Forcing Metadata (Content-Disposition: attachment)`);
-                // This forces the server to tell the browser "Save this file"
+                console.log(`[Download V3] Step 1: Forcing Server-Side Headers`);
+                // Force Content-Disposition: attachment on the server
                 await updateMetadata(storageRef, {
                     contentDisposition: `attachment; filename="${filename}"`
                 });
 
-                // Get a fresh URL which might include the updated metadata state
+                // Wait a tiny bit for the metadata to propagate in the backend/cache
+                await new Promise(resolve => setTimeout(resolve, 500));
+
+                // Get a fresh download URL that includes the attachment instruction
                 const freshUrl = await getDownloadURL(storageRef);
                 
-                console.log(`[Download] Step 2: Triggering direct navigation`);
-                // Create a temporary link and click it - this bypasses CORS completely 
-                // because it's a direct navigation to a file that the server says is an attachment
-                const link = document.createElement('a');
-                link.href = freshUrl;
-                link.download = filename;
-                link.target = "_blank"; // Open in new tab which will immediately close/trigger download
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
+                console.log(`[Download V3] Step 2: Aggressive Triggering`);
                 
+                // Method A: Try hidden iframe first (cleanest, no tab flash)
+                const iframe = document.createElement('iframe');
+                iframe.style.display = 'none';
+                iframe.src = freshUrl;
+                document.body.appendChild(iframe);
+                
+                // Periodically check if we should fall back to window.open
+                setTimeout(() => {
+                    if (document.body.contains(iframe)) {
+                        document.body.removeChild(iframe);
+                    }
+                }, 3000);
+
                 return true;
             }
         } catch (e) {
-            console.warn("[Download] Metadata force failed, falling back to Blob:", e);
+            console.error("[Download V3] Aggressive approach failed:", e);
         }
     }
 
-    // Fallback 1: existing Blob logic (works if CORS is okay)
-    try {
-        const response = await fetch(url, { mode: 'cors' });
-        if (response.ok) {
-            const blob = await response.blob();
-            triggerBlobDownload(blob, filename);
-            return true;
+    // FALLBACK 1: The "Legacy" SDK Way (requires CORS)
+    if (isFirebase) {
+        try {
+            const urlObj = new URL(url);
+            const pathPart = urlObj.pathname.split('/o/')[1];
+            if (pathPart) {
+                const storagePath = decodeURIComponent(pathPart.split('?')[0]);
+                const storageRef = ref(storage, storagePath);
+                const blob = await getBlob(storageRef);
+                triggerBlobDownload(blob, filename);
+                return true;
+            }
+        } catch (e) {
+            console.warn("[Download V3] SDK Blob fallback failed:", e);
         }
-    } catch (err) {
-        console.warn("[Download] Blob fallback failed:", err);
     }
 
-    // Fallback 2: Last resort direct open
-    console.log("[Download] Final fallback: window.open");
-    window.open(url, '_blank');
+    // FALLBACK 2: Direct Open (User will see a new tab, but better than nothing)
+    console.warn("[Download V3] Using final fallback: window.open");
+    const link = document.createElement('a');
+    link.href = url;
+    link.target = "_blank";
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
     return true;
 }

@@ -19,6 +19,7 @@ export function DocumentViewerModal({
 }: DocumentViewerModalProps) {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [downloading, setDownloading] = useState(false);
 
     useEffect(() => {
         if (isOpen) {
@@ -36,6 +37,16 @@ export function DocumentViewerModal({
             document.body.style.overflow = "unset";
         }
     }, [isOpen]);
+
+    const handleDownload = async () => {
+        if (downloading) return;
+        setDownloading(true);
+        try {
+            await downloadFile(url, title || 'document');
+        } finally {
+            setDownloading(false);
+        }
+    };
 
     if (!isOpen) return null;
 
@@ -71,11 +82,16 @@ export function DocumentViewerModal({
                     
                     <div className="flex items-center gap-2">
                         <button 
-                            onClick={() => downloadFile(url, title || 'document')}
-                            className="p-2.5 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors"
+                            onClick={handleDownload}
+                            disabled={downloading}
+                            className="p-2.5 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors disabled:opacity-50"
                             title="Download"
                         >
-                            <Download size={18} />
+                            {downloading ? (
+                                <Loader2 size={18} className="animate-spin" />
+                            ) : (
+                                <Download size={18} />
+                            )}
                         </button>
                         <button 
                             onClick={onClose}
