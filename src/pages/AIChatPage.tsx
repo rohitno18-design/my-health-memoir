@@ -339,11 +339,13 @@ function describeAction(toolName: string, args: Record<string, unknown>): string
 function DocumentCard({ 
     card, 
     onView,
-    onDownload 
+    onDownload,
+    isDownloading
 }: { 
     card: DocumentResultCard; 
     onView: (url: string, name: string, mimeType?: string) => void;
     onDownload: (url: string, title: string) => void;
+    isDownloading?: boolean;
 }) {
     const [expanded, setExpanded] = useState(false);
     const snippet = card.summarySnippet || "";
@@ -399,9 +401,11 @@ function DocumentCard({
                     </button>
                     <button
                         onClick={() => onDownload(card.url, card.name)}
-                        className="flex-1 inline-flex items-center justify-center gap-1.5 text-[11px] font-bold text-slate-600 bg-slate-100 px-3 py-2 rounded-xl hover:bg-slate-200 transition-colors"
+                        disabled={isDownloading}
+                        className="flex-1 inline-flex items-center justify-center gap-1.5 text-[11px] font-bold text-slate-600 bg-slate-100 px-3 py-2 rounded-xl hover:bg-slate-200 transition-colors disabled:opacity-50"
                     >
-                        <Download size={13} /> Download
+                        {isDownloading ? <Loader2 size={13} className="animate-spin" /> : <Download size={13} />}
+                        {isDownloading ? "Downloading..." : "Download"}
                     </button>
                 </div>
             </div>
@@ -501,6 +505,18 @@ export function AIChatPage() {
 
     const [viewerOpen, setViewerOpen] = useState(false);
     const [viewerData, setViewerData] = useState({ url: "", title: "", type: "" });
+    const [downloadingDocId, setDownloadingDocId] = useState<string | null>(null);
+    const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
+
+    const handleDocDownload = async (url: string, title: string, docId: string) => {
+        if (downloadingDocId) return;
+        setDownloadingDocId(docId);
+        try {
+            await downloadFile(url, title);
+        } finally {
+            setDownloadingDocId(null);
+        }
+    };
 
     const geminiHistoryRef = useRef<GeminiContent[]>([]);
     const pendingDocResultsRef = useRef<DocumentResultCard[]>([]);
@@ -1297,7 +1313,8 @@ export function AIChatPage() {
                                                 setViewerData({ url, title, type: type || "" });
                                                 setViewerOpen(true);
                                             }}
-                                            onDownload={(url, title) => downloadFile(url, title)}
+                                            onDownload={(url, title) => handleDocDownload(url, title, card.id)}
+                                            isDownloading={downloadingDocId === card.id}
                                         />
                                     ))}
                                 </div>
@@ -1308,24 +1325,32 @@ export function AIChatPage() {
                                 <div className="mt-3 px-1">
                                     <button 
                                         onClick={async () => {
-                                            const { title, summary, documentIds } = msg.generatedPdf!;
-                                            const docs: any[] = [];
-                                            for (const id of documentIds) {
-                                                const dSnap = await getDocs(query(collection(db, "documents"), where("__name__", "==", id)));
-                                                if (!dSnap.empty) {
-                                                    const data = dSnap.docs[0].data();
-                                                    docs.push({
-                                                        date: data.docDate || "N/A",
-                                                        name: data.name || "Untitled",
-                                                        summary: data.aiSummary || "N/A"
-                                                    });
+                                            if (isDownloadingPdf) return;
+                                            setIsDownloadingPdf(true);
+                                            try {
+                                                const { title, summary, documentIds } = msg.generatedPdf!;
+                                                const docs: any[] = [];
+                                                for (const id of documentIds) {
+                                                    const dSnap = await getDocs(query(collection(db, "documents"), where("__name__", "==", id)));
+                                                    if (!dSnap.empty) {
+                                                        const data = dSnap.docs[0].data();
+                                                        docs.push({
+                                                            date: data.docDate || "N/A",
+                                                            name: data.name || "Untitled",
+                                                            summary: data.aiSummary || "N/A"
+                                                        });
+                                                    }
                                                 }
+                                                generateHealthReportPDF(title as string, summary as string, docs);
+                                            } finally {
+                                                setIsDownloadingPdf(false);
                                             }
-                                            generateHealthReportPDF(title as string, summary as string, docs);
                                         }}
-                                        className="flex items-center gap-2 bg-emerald-600 text-white px-4 py-2.5 rounded-xl text-xs font-bold shadow-lg shadow-emerald-600/20 hover:bg-emerald-700 transition-all active:scale-95"
+                                        disabled={isDownloadingPdf}
+                                        className="flex items-center gap-2 bg-emerald-600 text-white px-4 py-2.5 rounded-xl text-xs font-bold shadow-lg shadow-emerald-600/20 hover:bg-emerald-700 transition-all active:scale-95 disabled:opacity-50"
                                     >
-                                        <Download size={14} /> Download Health Report PDF
+                                        {isDownloadingPdf ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
+                                        {isDownloadingPdf ? "Compiling PDF..." : "Download Health Report PDF"}
                                     </button>
                                 </div>
                             )}
