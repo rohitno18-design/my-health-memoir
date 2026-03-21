@@ -7,6 +7,7 @@ import { Plus, User, Users, Loader2, Pencil, Trash2, X, CheckCircle2, Camera, Al
 import { LifeTimeline } from "@/components/LifeTimeline";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 export interface LifeEvent {
     id: string;
@@ -104,6 +105,7 @@ function Toast({ message }: { message: string }) {
 export function PatientsPage() {
     const { user } = useAuth();
     const navigate = useNavigate();
+    const { t } = useTranslation();
     const [patients, setPatients] = useState<Patient[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -276,14 +278,14 @@ export function PatientsPage() {
 
             <div className="flex items-center justify-between pt-6">
                 <div>
-                    <h1 className="text-xl font-bold">Patient Profiles</h1>
-                    <p className="text-xs text-muted-foreground mt-0.5">Manage comprehensive health records</p>
+                    <h1 className="text-xl font-bold">{t("patients.title")}</h1>
+                    <p className="text-xs text-muted-foreground mt-0.5">{t("patients.subtitle")}</p>
                 </div>
                 <button
                     onClick={openCreate}
                     className="flex items-center gap-1.5 text-sm bg-primary text-primary-foreground px-4 py-2.5 rounded-xl font-medium shadow-sm hover:bg-primary/90 transition-colors active:scale-95"
                 >
-                    <Plus size={16} /> Add Profile
+                    <Plus size={16} /> {t("patients.add")}
                 </button>
             </div>
 
@@ -294,12 +296,12 @@ export function PatientsPage() {
                     <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
                         <Users size={28} className="text-primary/70" />
                     </div>
-                    <h3 className="font-semibold text-foreground mb-1">No profiles yet</h3>
+                    <h3 className="font-semibold text-foreground mb-1">{t("patients.noProfiles")}</h3>
                     <p className="text-sm text-muted-foreground max-w-[200px] mx-auto mb-6">
-                        Add yourself or family members to start tracking complete medical histories.
+                        {t("patients.emptyDesc")}
                     </p>
                     <button onClick={openCreate} className="text-sm text-primary font-medium hover:underline bg-primary/5 px-4 py-2 rounded-xl">
-                        + Create First Profile
+                        {t("patients.createFirst")}
                     </button>
                 </div>
             ) : (
@@ -323,7 +325,7 @@ export function PatientsPage() {
                                     {p.relationship}
                                 </p>
                                 <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
-                                    <span className="bg-secondary/70 border border-border/50 px-2 py-0.5 rounded-lg font-medium">{calcAge(p.dob)} yrs</span>
+                                    <span className="bg-secondary/70 border border-border/50 px-2 py-0.5 rounded-lg font-medium">{calcAge(p.dob)} {t("patients.yrs")}</span>
                                     {p.bloodGroup && <span className="bg-red-50 text-red-700 border border-red-100 px-2 py-0.5 rounded-lg font-bold">{p.bloodGroup}</span>}
                                     {p.gender && <span className="bg-secondary/70 border border-border/50 px-2 py-0.5 rounded-lg font-medium">{p.gender}</span>}
                                 </div>
@@ -370,8 +372,8 @@ export function PatientsPage() {
                         <div className="relative z-10 w-full border-b border-white/40 bg-white/40 backdrop-blur-xl">
                             <div className="flex items-center justify-between p-6 pb-2">
                                 <div>
-                                    <h2 className="text-2xl font-bold text-slate-800 tracking-tight">{editingId ? "Edit Patient Profile" : "New Patient Profile"}</h2>
-                                    <p className="text-sm font-semibold text-slate-500 mt-1">Comprehensive health record</p>
+                                    <h2 className="text-2xl font-bold text-slate-800 tracking-tight">{editingId ? t("patients.editProfile") : t("patients.newProfile")}</h2>
+                                    <p className="text-sm font-semibold text-slate-500 mt-1">{t("patients.formRecord")}</p>
                                 </div>
                                 <button onClick={() => setShowModal(false)} className="size-10 rounded-full bg-white/50 flex items-center justify-center text-slate-500 hover:bg-white hover:text-slate-800 hover:shadow-sm transition-all border border-white/60">
                                     <X size={20} />
@@ -389,7 +391,7 @@ export function PatientsPage() {
                                             activeTab === tab ? "border-primary text-primary" : "border-transparent text-slate-400 hover:text-slate-700 hover:border-slate-300"
                                         )}
                                     >
-                                        {tab === "Misc" ? "Family & Lifestyle" : tab}
+                                        {tab === "Misc" ? t("patients.tabs.misc") : tab === "Basic" ? t("patients.tabs.basic") : tab === "Contact" ? t("patients.tabs.contact") : t("patients.tabs.medical")}
                                     </button>
                                 ))}
                             </div>
@@ -421,7 +423,7 @@ export function PatientsPage() {
                                             </div>
                                             <input type="file" accept="image/*" className="hidden" ref={fileRef} onChange={handlePhotoChange} />
                                         </div>
-                                        <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Profile Photo</p>
+                                        <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">{t("patients.photo")}</p>
                                     </div>
 
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -531,7 +533,7 @@ export function PatientsPage() {
                                     onClick={() => setDeleteModal(editingId)}
                                     className="py-3 px-4 bg-destructive/10 text-destructive rounded-xl text-sm font-bold flex items-center justify-center gap-2 hover:bg-destructive/20 transition-colors"
                                 >
-                                    <Trash2 size={18} /> Delete
+                                    <Trash2 size={18} /> {t("patients.delete")}
                                 </button>
                             ) : <div></div>}
                             <button
@@ -541,7 +543,7 @@ export function PatientsPage() {
                                 className="px-8 py-3 bg-primary text-primary-foreground rounded-xl text-sm font-bold flex items-center justify-center gap-2 shadow-lg disabled:opacity-70 active:scale-95 transition-all"
                             >
                                 {saving ? <Loader2 size={18} className="animate-spin" /> : <CheckCircle2 size={18} />}
-                                {editingId ? "Save Changes" : "Create Profile"}
+                                {editingId ? t("patients.save") : t("patients.create")}
                             </button>
                         </div>
                     </div>
@@ -556,12 +558,12 @@ export function PatientsPage() {
                         <div className="w-16 h-16 bg-red-100/80 rounded-[1rem] border border-red-200 flex items-center justify-center mx-auto mb-5 shadow-sm">
                             <AlertTriangle size={28} className="text-destructive" />
                         </div>
-                        <h2 className="text-xl font-bold text-center mb-2">Delete Patient?</h2>
+                        <h2 className="text-xl font-bold text-center mb-2">{t("patients.deleteTitle")}</h2>
                         <p className="text-sm text-center text-muted-foreground mb-6">
-                            This action cannot be undone. All medical records associated with this profile will be permanently lost.
+                            {t("patients.deleteDesc")}
                         </p>
                         <div className="mb-6">
-                            <label className="block text-xs font-bold text-muted-foreground uppercase mb-2 text-center">Type DELETE to confirm</label>
+                            <label className="block text-xs font-bold text-muted-foreground uppercase mb-2 text-center">{t("patients.typeDelete")}</label>
                             <input
                                 type="text"
                                 value={deleteConfirmText}
@@ -575,14 +577,14 @@ export function PatientsPage() {
                                 onClick={() => setDeleteModal(null)}
                                 className="flex-1 py-3 bg-secondary rounded-xl text-sm font-bold hover:bg-secondary/80 transition-colors"
                             >
-                                Cancel
+                                {t("patients.cancel")}
                             </button>
                             <button
                                 onClick={confirmDelete}
                                 disabled={deleteConfirmText !== "DELETE" || saving}
                                 className="flex-1 py-3 bg-destructive text-destructive-foreground rounded-xl text-sm font-bold shadow-lg disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
                             >
-                                {saving ? <Loader2 size={16} className="animate-spin" /> : "Delete"}
+                                {saving ? <Loader2 size={16} className="animate-spin" /> : t("patients.delete")}
                             </button>
                         </div>
                     </div>

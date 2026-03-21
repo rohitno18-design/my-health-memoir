@@ -8,6 +8,7 @@ import { FileText, Upload, Loader2, Download, Bot, X, Search, Globe, Activity, E
 import { downloadFile } from "@/lib/utils";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { DocumentViewerModal } from "@/components/DocumentViewerModal";
+import { useTranslation } from "react-i18next";
 
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY ?? "";
 const MODEL_ID = import.meta.env.VITE_GEMINI_MODEL ?? "gemini-2.0-flash";
@@ -52,6 +53,7 @@ export function DocumentsPage() {
     const { user } = useAuth();
     const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
+    const { t } = useTranslation();
 
     // States
     const [docs, setDocs] = useState<Document[]>([]);
@@ -472,13 +474,13 @@ export function DocumentsPage() {
         <div className="pb-6 w-full max-w-lg mx-auto space-y-6 relative">
             <div className="fixed top-0 left-0 right-0 h-[50vh] soft-gradient-bg -z-10 pointer-events-none"></div>
             <div className="flex items-center justify-between pt-6">
-                <h1 className="text-xl font-bold">Documents</h1>
+                <h1 className="text-xl font-bold">{t("documents.title")}</h1>
                 <button
                     onClick={() => navigate('/dashboard')}
                     className="flex items-center gap-1.5 text-sm bg-primary text-primary-foreground px-4 py-2 rounded-xl font-medium cursor-pointer shadow-sm hover:bg-primary/90 transition-colors"
                 >
                     <Upload size={16} />
-                    Upload New
+                    {t("documents.upload")}
                 </button>
             </div>
 
@@ -491,7 +493,7 @@ export function DocumentsPage() {
                         type="text"
                         value={searchQuery}
                         onChange={(e) => handleSearchChange(e.target.value)}
-                        placeholder="Search by document name, date, doctor, lab..."
+                        placeholder={t("documents.search")}
                         className="w-full pl-12 pr-4 py-3.5 rounded-[1.5rem] border border-white/40 bg-white/40 backdrop-blur-md focus:bg-white/80 focus:ring-2 focus:ring-primary/20 transition-all font-semibold text-slate-700 shadow-sm outline-none placeholder:text-slate-400"
                     />
                 </div>
@@ -607,7 +609,7 @@ export function DocumentsPage() {
                     {filteredDocs.length === 0 ? (
                         <div className="glass-card text-center p-12 text-slate-500 rounded-[2rem] border border-white/40 shadow-sm mt-4">
                             <span className="material-symbols-outlined text-4xl opacity-30 block mb-3">timeline</span>
-                            <p className="font-bold text-foreground">No events found.</p>
+                            <p className="font-bold text-foreground">{t("documents.noDocs")}</p>
                             <p className="text-sm mt-1 max-w-xs mx-auto">Upload documents to build your health timeline.</p>
                         </div>
                     ) : (
@@ -692,7 +694,7 @@ export function DocumentsPage() {
                     {!loading && filteredDocs.length === 0 && (
                         <div className="glass-card text-center p-12 text-slate-500 rounded-[2rem] border border-white/40 shadow-sm mt-4">
                             <FileText size={40} className="mx-auto mb-3 opacity-30" />
-                            <p className="font-bold text-foreground">No documents found.</p>
+                            <p className="font-bold text-foreground">{t("documents.noDocs")}</p>
                             <p className="text-sm mt-1 max-w-xs mx-auto">Try adjusting your search terms or patient filter.</p>
                         </div>
                     )}

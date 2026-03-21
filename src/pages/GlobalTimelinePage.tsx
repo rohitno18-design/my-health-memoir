@@ -6,6 +6,7 @@ import type { LifeEvent, Patient } from "@/pages/PatientsPage";
 import { Loader2, Activity, FileText, User as UserIcon, ChevronDown, ChevronUp, ExternalLink, Bot, X, Edit2, Trash2, Save } from "lucide-react";
 import { EVENT_CATEGORIES } from "@/components/LifeTimeline";
 import ReactMarkdown from "react-markdown";
+import { useTranslation } from "react-i18next";
 
 interface Doc {
     id: string;
@@ -18,6 +19,7 @@ interface Doc {
 
 export function GlobalTimelinePage() {
     const { user } = useAuth();
+    const { t } = useTranslation();
     const [events, setEvents] = useState<(LifeEvent & { patientName?: string, patientPhoto?: string })[]>([]);
     const [patients, setPatients] = useState<Patient[]>([]);
     const [allDocs, setAllDocs] = useState<Doc[]>([]);
@@ -45,7 +47,7 @@ export function GlobalTimelinePage() {
             let allEvents = eSnap.docs.map(d => {
                 const data = d.data() as LifeEvent;
                 const p = pts.find(pt => pt.id === data.patientId);
-                return { ...data, id: d.id, patientName: p?.name || "Unknown", patientPhoto: (p as any)?.photoURL };
+                return { ...data, id: d.id, patientName: p?.name || t("timeline.unknown"), patientPhoto: (p as any)?.photoURL };
             });
             allEvents.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
             setEvents(allEvents);
@@ -121,8 +123,8 @@ export function GlobalTimelinePage() {
                         <Activity size={24} />
                     </div>
                     <div>
-                        <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">Family Timeline</h2>
-                        <p className="text-xs font-semibold text-slate-500">Tap any event to see full details</p>
+                        <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">{t("timeline.title")}</h2>
+                        <p className="text-xs font-semibold text-slate-500">{t("timeline.subtitle")}</p>
                     </div>
                 </div>
             </section>
@@ -130,16 +132,16 @@ export function GlobalTimelinePage() {
             {/* Filters */}
             <div className="glass-card rounded-2xl p-4 shadow-sm border border-slate-200/60 mb-8 flex flex-col sm:flex-row gap-3">
                 <div className="flex-1">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 block">Patient</label>
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 block">{t("timeline.patient")}</label>
                     <select value={filterPatient || ""} onChange={e => setFilterPatient(e.target.value || null)} className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 outline-none">
-                        <option value="">All Family Members</option>
+                        <option value="">{t("timeline.allFamily")}</option>
                         {patients.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                     </select>
                 </div>
                 <div className="flex-1">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 block">Event Type</label>
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 block">{t("timeline.eventType")}</label>
                     <select value={filterCategory || ""} onChange={e => setFilterCategory(e.target.value || null)} className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 outline-none">
-                        <option value="">All Events</option>
+                        <option value="">{t("timeline.allEvents")}</option>
                         {EVENT_CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
                     </select>
                 </div>
@@ -151,8 +153,8 @@ export function GlobalTimelinePage() {
             ) : filteredEvents.length === 0 ? (
                 <div className="text-center py-16 bg-white/50 rounded-[2rem] border border-white shadow-sm">
                     <Activity size={48} className="mx-auto mb-4 text-emerald-200" />
-                    <p className="font-bold text-lg text-slate-800">No events yet.</p>
-                    <p className="text-sm max-w-xs mx-auto mt-2 text-slate-500">Upload a document from Dashboard or add an event manually from a Patient's profile.</p>
+                    <p className="font-bold text-lg text-slate-800">{t("timeline.noEvents")}</p>
+                    <p className="text-sm max-w-xs mx-auto mt-2 text-slate-500">{t("timeline.noEventsDesc")}</p>
                 </div>
             ) : (
                 <div className="relative pl-6 border-l-2 border-slate-200/60 pb-12 space-y-6">
@@ -207,7 +209,7 @@ export function GlobalTimelinePage() {
 
                                     {/* Expand/collapse indicator */}
                                     <div className={`flex items-center justify-between mt-3 text-xs font-bold ${colorText}`}>
-                                        <span>{linkedDocs.length > 0 ? `${linkedDocs.length} document${linkedDocs.length > 1 ? 's' : ''} attached` : 'No documents'}</span>
+                                        <span>{linkedDocs.length > 0 ? `${linkedDocs.length} ${linkedDocs.length > 1 ? t("timeline.documentsAttached") : t("timeline.documentAttached")}` : t("timeline.noDocuments")}</span>
                                         {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                                     </div>
 
@@ -220,7 +222,7 @@ export function GlobalTimelinePage() {
 
                                             {linkedDocs.length > 0 && (
                                                 <div>
-                                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-1"><FileText size={12} /> Attached Documents</p>
+                                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-1"><FileText size={12} /> {t("timeline.attachedDocs")}</p>
                                                     <div className="grid gap-2">
                                                         {linkedDocs.map(doc => (
                                                             <div key={doc.id} className="flex items-center gap-3 bg-slate-50 border border-slate-200 rounded-2xl p-3">
@@ -230,9 +232,9 @@ export function GlobalTimelinePage() {
                                                                 <div className="flex-1 min-w-0">
                                                                     <p className="font-bold text-sm text-slate-800 truncate">{doc.name}</p>
                                                                     <div className="flex items-center gap-2 mt-1">
-                                                                        <a href={doc.url} target="_blank" rel="noopener noreferrer" className="text-[11px] font-bold text-blue-600 flex items-center gap-1 hover:underline"><ExternalLink size={11} /> Open</a>
+                                                                        <a href={doc.url} target="_blank" rel="noopener noreferrer" className="text-[11px] font-bold text-blue-600 flex items-center gap-1 hover:underline"><ExternalLink size={11} /> {t("timeline.open")}</a>
                                                                         {doc.aiSummary && (
-                                                                            <button onClick={e => { e.stopPropagation(); setViewingSummary({ text: doc.aiSummary!, docName: doc.name }); }} className="text-[11px] font-bold text-violet-600 flex items-center gap-1 hover:underline"><Bot size={11} /> Summary</button>
+                                                                            <button onClick={e => { e.stopPropagation(); setViewingSummary({ text: doc.aiSummary!, docName: doc.name }); }} className="text-[11px] font-bold text-violet-600 flex items-center gap-1 hover:underline"><Bot size={11} /> {t("timeline.summary")}</button>
                                                                         )}
                                                                         <button
                                                                             onClick={async (e) => {
@@ -245,7 +247,7 @@ export function GlobalTimelinePage() {
                                                                             }}
                                                                             className="text-[11px] font-bold text-red-600 flex items-center gap-1 hover:underline ml-auto"
                                                                         >
-                                                                            <X size={11} /> Unlink
+                                                                            <X size={11} /> {t("timeline.unlink")}
                                                                         </button>
                                                                     </div>
                                                                 </div>
@@ -269,7 +271,7 @@ export function GlobalTimelinePage() {
                     <div className="w-full max-w-2xl bg-white rounded-t-[2.5rem] sm:rounded-[2.5rem] flex flex-col shadow-2xl max-h-[88vh]" onClick={e => e.stopPropagation()}>
                         <div className="p-5 border-b flex justify-between items-center bg-violet-50 rounded-t-[2.5rem]">
                             <div>
-                                <h3 className="font-bold text-violet-900 flex items-center gap-2"><Bot size={18} className="text-violet-600" /> AI Summary</h3>
+                                <h3 className="font-bold text-violet-900 flex items-center gap-2"><Bot size={18} className="text-violet-600" /> {t("timeline.aiSummary")}</h3>
                                 <p className="text-xs text-violet-600/70 mt-0.5 font-semibold">{viewingSummary.docName}</p>
                             </div>
                             <button onClick={() => setViewingSummary(null)} className="size-9 rounded-full bg-violet-100 flex items-center justify-center hover:bg-violet-200"><X size={18} /></button>
@@ -287,7 +289,7 @@ export function GlobalTimelinePage() {
                             </ReactMarkdown>
                         </div>
                         <div className="p-4 border-t">
-                            <button onClick={() => setViewingSummary(null)} className="w-full py-3 bg-violet-600 text-white font-bold rounded-2xl text-sm hover:bg-violet-700 transition-colors">Close</button>
+                            <button onClick={() => setViewingSummary(null)} className="w-full py-3 bg-violet-600 text-white font-bold rounded-2xl text-sm hover:bg-violet-700 transition-colors">{t("timeline.close")}</button>
                         </div>
                     </div>
                 </div>
@@ -299,7 +301,7 @@ export function GlobalTimelinePage() {
                     <div className="w-full max-w-xl bg-white rounded-t-[2.5rem] sm:rounded-[2.5rem] flex flex-col shadow-2xl max-h-[88vh]" onClick={e => e.stopPropagation()}>
                         <div className="p-6 border-b flex justify-between items-center bg-slate-50 rounded-t-[2.5rem] flex-shrink-0">
                             <div>
-                                <h3 className="font-bold text-slate-900 flex items-center gap-2"><Edit2 size={18} className="text-emerald-600" /> Edit Event</h3>
+                                <h3 className="font-bold text-slate-900 flex items-center gap-2"><Edit2 size={18} className="text-emerald-600" /> {t("timeline.editEvent")}</h3>
                             </div>
                             <button onClick={() => setEditingEvent(null)} className="size-9 rounded-full bg-slate-200 flex items-center justify-center hover:bg-slate-300 text-slate-600"><X size={18} /></button>
                         </div>
@@ -307,49 +309,49 @@ export function GlobalTimelinePage() {
                         <div className="overflow-y-auto p-6 flex-1 space-y-4">
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
-                                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">Title</label>
+                                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">{t("timeline.editTitle")}</label>
                                     <input type="text" value={editDraft.title} onChange={e => setEditDraft({ ...editDraft, title: e.target.value })} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-semibold outline-none focus:border-emerald-500" />
                                 </div>
                                 <div>
-                                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">Date</label>
+                                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">{t("timeline.editDate")}</label>
                                     <input type="date" value={editDraft.date} onChange={e => setEditDraft({ ...editDraft, date: e.target.value })} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-semibold outline-none focus:border-emerald-500" />
                                 </div>
                             </div>
                             <div>
-                                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">Category</label>
+                                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">{t("timeline.editCategory")}</label>
                                 <select value={editDraft.category} onChange={e => setEditDraft({ ...editDraft, category: e.target.value })} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-semibold outline-none focus:border-emerald-500">
                                     {EVENT_CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
                                 </select>
                             </div>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
-                                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">Patient</label>
+                                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">{t("timeline.patient")}</label>
                                     <select value={editDraft.patientId} onChange={e => setEditDraft({ ...editDraft, patientId: e.target.value })} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-semibold outline-none focus:border-emerald-500">
                                         {patients.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">Description</label>
+                                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">{t("timeline.editDescription")}</label>
                                     <textarea value={editDraft.description} onChange={e => setEditDraft({ ...editDraft, description: e.target.value })} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-medium outline-none focus:border-emerald-500 min-h-[40px] resize-none" />
                                 </div>
                             </div>
 
                             {/* Linked Docs Management */}
                             <div>
-                                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 block">Linked Documents</label>
+                                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 block">{t("timeline.linkedDocs")}</label>
                                 {editDraft.documentIds.length === 0 ? (
-                                    <p className="text-xs text-slate-500">No documents linked.</p>
+                                    <p className="text-xs text-slate-500">{t("timeline.noDocsLinked")}</p>
                                 ) : (
                                     <div className="space-y-2">
                                         {editDraft.documentIds.map(docId => {
                                             const doc = allDocs.find(d => d.id === docId);
                                             return (
                                                 <div key={docId} className="flex justify-between items-center bg-slate-50 border border-slate-200 rounded-xl p-2.5">
-                                                    <span className="text-sm font-semibold text-slate-700 truncate pr-4">{doc?.name || "Unknown Document"}</span>
+                                                    <span className="text-sm font-semibold text-slate-700 truncate pr-4">{doc?.name || t("timeline.unknownDoc")}</span>
                                                     <button
                                                         onClick={() => setEditDraft({ ...editDraft, documentIds: editDraft.documentIds.filter(id => id !== docId) })}
                                                         className="size-7 rounded-md bg-red-50 text-red-600 flex items-center justify-center hover:bg-red-100 flex-shrink-0"
-                                                        title="Unlink document"
+                                                        title={t("timeline.unlinkDoc")}
                                                     >
                                                         <X size={14} />
                                                     </button>
@@ -368,7 +370,7 @@ export function GlobalTimelinePage() {
                                 className="px-4 py-2.5 bg-red-50 text-red-600 font-bold rounded-xl text-sm hover:bg-red-100 transition-colors flex items-center gap-2"
                             >
                                 {isDeletingEvent ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
-                                <span className="hidden sm:inline">Delete Event</span>
+                                <span className="hidden sm:inline">{t("timeline.deleteEvent")}</span>
                             </button>
 
                             <button
@@ -377,7 +379,7 @@ export function GlobalTimelinePage() {
                                 className="px-6 py-2.5 bg-emerald-600 text-white font-bold rounded-xl text-sm hover:bg-emerald-700 transition-colors flex items-center gap-2 shadow-sm"
                             >
                                 {isSavingEdit ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
-                                Save Changes
+                                {t("timeline.saveChanges")}
                             </button>
                         </div>
                     </div>

@@ -5,6 +5,7 @@ import { db } from "@/lib/firebase";
 import { useAuth } from "@/contexts/AuthContext";
 import { Bot, Plus, MessageSquare, Clock, Trash2, Edit2, CheckCircle2, Circle, X } from "lucide-react";
 import type { Chat } from "@/types/chat";
+import { useTranslation } from "react-i18next";
 
 function formatRelativeTime(timestamp: unknown): string {
     if (!timestamp) return "";
@@ -27,6 +28,7 @@ function formatRelativeTime(timestamp: unknown): string {
 export function ChatListPage() {
     const { user } = useAuth();
     const navigate = useNavigate();
+    const { t } = useTranslation();
     const [chats, setChats] = useState<Chat[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -94,7 +96,7 @@ export function ChatListPage() {
     const startRename = (e: React.MouseEvent, chat: Chat) => {
         e.stopPropagation();
         setRenamingChatId(chat.id);
-        setNewTitle(chat.title || "Untitled Chat");
+        setNewTitle(chat.title || t("aiChatList.untitled"));
     };
 
     const handleRename = async (e: React.FormEvent) => {
@@ -119,9 +121,9 @@ export function ChatListPage() {
             {/* Header */}
             <div className="px-5 pt-6 pb-4 flex items-center justify-between relative z-50 bg-white/40 backdrop-blur-md">
                 <div>
-                    <h1 className="text-xl font-bold">AI Health Assistant</h1>
+                    <h1 className="text-xl font-bold">{t("aiChatList.title")}</h1>
                     <p className="text-xs text-muted-foreground mt-0.5">
-                        {isSelectionMode ? `${selectedIds.size} selected` : "Your health intelligence center"}
+                        {isSelectionMode ? `${selectedIds.size} ${t("aiChatList.selected")}` : t("aiChatList.subtitle")}
                     </p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -142,7 +144,7 @@ export function ChatListPage() {
                             className="flex items-center gap-1.5 bg-primary text-primary-foreground px-4 py-2 rounded-2xl text-sm font-semibold shadow-md shadow-primary/20 hover:bg-primary/90 transition-all active:scale-95"
                         >
                             <Plus size={15} />
-                            New
+                            {t("aiChatList.new")}
                         </button>
                     )}
                 </div>
@@ -153,21 +155,21 @@ export function ChatListPage() {
                 <div className="px-5 mb-2 animate-in slide-in-from-top-4 fade-in duration-300 z-40">
                     <div className="glass-card rounded-[1.5rem] p-3 shadow-lg border border-primary/20 bg-white/80 backdrop-blur-xl flex items-center justify-between">
                         <span className="text-xs font-bold text-slate-700 ml-2">
-                            {selectedIds.size} chat{selectedIds.size !== 1 ? "s" : ""} selected
+                            {selectedIds.size} {selectedIds.size !== 1 ? t("aiChatList.chatsSelected") : t("aiChatList.selected")}
                         </span>
                         <div className="flex items-center gap-2">
                             <button
                                 onClick={() => setSelectedIds(new Set())}
                                 className="px-3 py-1.5 rounded-lg text-[10px] font-bold text-slate-500 hover:bg-slate-100 transition-colors"
                             >
-                                Deselect All
+                                {t("aiChatList.deselectAll")}
                             </button>
                             <button
                                 onClick={handleBulkDelete}
                                 className="px-4 py-1.5 bg-red-500 text-white rounded-lg text-[10px] font-bold flex items-center gap-1.5 shadow-md shadow-red-100 hover:bg-red-600 transition-all active:scale-95"
                             >
                                 <Trash2 size={12} />
-                                Delete Selected
+                                {t("aiChatList.deleteSelected")}
                             </button>
                         </div>
                     </div>
@@ -186,7 +188,7 @@ export function ChatListPage() {
                     <div className="absolute inset-0 bg-white/50 backdrop-blur-[2px] z-50 flex items-center justify-center">
                         <div className="bg-white p-4 rounded-2xl shadow-xl flex items-center gap-3 font-bold text-slate-700">
                             <Trash2 size={20} className="animate-pulse text-red-500" />
-                            Processing...
+                            {t("aiChatList.processing")}
                         </div>
                     </div>
                 )}
@@ -196,15 +198,15 @@ export function ChatListPage() {
                         <div className="w-16 h-16 rounded-2xl bg-violet-100 flex items-center justify-center mx-auto mb-3">
                             <Bot size={28} className="text-violet-600" />
                         </div>
-                        <p className="text-sm font-semibold">No chats yet</p>
+                        <p className="text-sm font-semibold">{t("aiChatList.noChats")}</p>
                         <p className="text-xs text-muted-foreground mt-1 mb-5 max-w-xs mx-auto leading-relaxed">
-                            Ask me to find documents, link records to your timeline, or answer health questions.
+                            {t("aiChatList.noChatsDesc")}
                         </p>
                         <button
                             onClick={() => navigate("/ai-chat/new")}
                             className="bg-primary text-primary-foreground px-5 py-2 rounded-2xl text-sm font-semibold hover:bg-primary/90 transition-all"
                         >
-                            Start New Chat
+                            {t("aiChatList.startNew")}
                         </button>
                     </div>
                 )}
@@ -237,7 +239,7 @@ export function ChatListPage() {
                                         />
                                     </form>
                                 ) : (
-                                    <p className="font-semibold text-sm truncate">{chat.title || "Untitled Chat"}</p>
+                                    <p className="font-semibold text-sm truncate">{chat.title || t("aiChatList.untitled")}</p>
                                 )}
                                 <div className="flex items-center gap-1 mt-0.5 text-xs text-muted-foreground">
                                     <Clock size={11} />
@@ -254,13 +256,13 @@ export function ChatListPage() {
                                                 onClick={(e) => { e.stopPropagation(); setConfirmingDeleteId(null); }}
                                                 className="px-2 py-1 rounded-lg bg-slate-100 text-slate-600 text-[10px] font-bold hover:bg-slate-200"
                                             >
-                                                Cancel
+                                                {t("aiChatList.cancel")}
                                             </button>
                                             <button
                                                 onClick={(e) => { e.stopPropagation(); handleConfirmDelete(chat.id); }}
                                                 className="px-3 py-1 rounded-lg bg-red-500 text-white text-[10px] font-bold hover:bg-red-600 shadow-sm"
                                             >
-                                                Confirm
+                                                {t("aiChatList.confirm")}
                                             </button>
                                         </div>
                                     ) : (

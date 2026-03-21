@@ -46,6 +46,7 @@ import {
 } from "lucide-react";
 import { cn, downloadFile } from "@/lib/utils";
 import type { ChatMessage, DocumentResultCard, PendingAction } from "@/types/chat";
+import { useTranslation } from "react-i18next";
 
 interface Document {
     id: string;
@@ -480,6 +481,7 @@ export function AIChatPage() {
     const navigate = useNavigate();
     const location = useLocation();
     const { user } = useAuth();
+    const { t } = useTranslation();
 
     const isNewChat = !chatIdParam || chatIdParam === "new";
 
@@ -1222,12 +1224,12 @@ export function AIChatPage() {
                         <ArrowLeft size={16} className="text-slate-600" />
                     </button>
                     <div className="flex-1 min-w-0">
-                        <h1 className="text-lg font-bold truncate">AI Health Assistant</h1>
+                        <h1 className="text-lg font-bold truncate">{t("aiChat.title")}</h1>
                     </div>
                 </div>
                 <div className="flex items-center gap-2 text-xs text-amber-700 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2">
                     <AlertTriangle size={12} className="flex-shrink-0" />
-                    <span>Not a substitute for professional medical advice</span>
+                    <span>{t("aiChat.disclaimer")}</span>
                 </div>
             </div>
 
@@ -1244,23 +1246,23 @@ export function AIChatPage() {
                         <div className="w-14 h-14 rounded-2xl bg-violet-100 flex items-center justify-center mx-auto mb-3">
                             <Bot size={24} className="text-violet-600" />
                         </div>
-                        <p className="text-sm font-semibold">How can I help you?</p>
+                        <p className="text-sm font-semibold">{t("aiChat.howCanIHelp")}</p>
                         <p className="text-xs text-muted-foreground mt-1 mb-4">
-                            I can search your records, link documents to your timeline, or answer health questions.
+                            {t("aiChat.helpDesc")}
                         </p>
                         <div className="flex flex-col gap-2">
                             {[
-                                "Show all my blood sugar reports",
-                                "Link my last 5 documents to events by date",
-                                "What does HbA1c level mean?",
+                                { text: t("aiChat.prompts.blood"), val: "Show all my blood sugar reports" },
+                                { text: t("aiChat.prompts.records"), val: "Link my last 5 documents to events by date" },
+                                { text: t("aiChat.prompts.hba1c"), val: "What does HbA1c level mean?" },
                             ].map((s) => (
                                 <button
-                                    key={s}
-                                    onClick={() => setInput(s)}
+                                    key={s.val}
+                                    onClick={() => setInput(s.val)}
                                     className="flex items-center gap-2 text-[12px] text-left px-3 py-2 rounded-xl bg-violet-50 text-violet-700 hover:bg-violet-100 transition-colors font-medium"
                                 >
                                     <Sparkles size={11} className="flex-shrink-0" />
-                                    {s}
+                                    {s.text}
                                 </button>
                             ))}
                         </div>
@@ -1462,8 +1464,8 @@ export function AIChatPage() {
                             onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && sendMessage()}
                             placeholder={
                                 confirmation
-                                    ? "Review the proposed changes above..."
-                                    : "Ask or attach documents..."
+                                    ? t("aiChat.reviewChanges")
+                                    : t("aiChat.placeholder")
                             }
                             disabled={isInputDisabled}
                             className="flex-1 px-5 py-3 rounded-[1.25rem] border border-white/40 bg-white/40 backdrop-blur-md text-slate-800 placeholder:text-slate-500 focus:outline-none focus:bg-white/80 focus:ring-2 focus:ring-primary/20 transition-all font-semibold shadow-inner disabled:opacity-50 disabled:cursor-not-allowed"

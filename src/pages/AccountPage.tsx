@@ -12,6 +12,7 @@ import { useNavigate } from "react-router-dom";
 import {
     doc, updateDoc, collection, getDocs
 } from "firebase/firestore";
+import { useTranslation } from "react-i18next";
 import { db } from "@/lib/firebase";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
@@ -167,6 +168,7 @@ function EditableField({
 
 // ─── GenderSelect ─────────────────────────────────────────────────────────────
 function GenderSelect({ value, onSave }: { value: string; onSave: (v: string) => Promise<void> }) {
+    const { t } = useTranslation();
     const [saving, setSaving] = useState(false);
     const [saved, setSaved] = useState(false);
     const [error, setError] = useState("");
@@ -195,7 +197,7 @@ function GenderSelect({ value, onSave }: { value: string; onSave: (v: string) =>
                 <User size={15} className="text-muted-foreground" />
             </div>
             <div className="flex-1">
-                <p className="text-[11px] text-muted-foreground">Gender</p>
+                <p className="text-[11px] text-muted-foreground">{t("account.gender")}</p>
                 <select
                     value={local}
                     onChange={handleChange}
@@ -642,6 +644,7 @@ function SettingsSection({
     logout: () => Promise<void>;
     user: import("firebase/auth").User | null;
 }) {
+    const { t } = useTranslation();
     const defaults: UserSettings = {
         notifAppointments: true,
         notifHealthTips: true,
@@ -671,12 +674,12 @@ function SettingsSection({
     };
 
     const notifToggles = [
-        { key: "notifHealthTips" as const, icon: Sparkles, label: "Daily Health Tips", sub: "Personalised wellness recommendations", color: "bg-amber-50 text-amber-600" },
-        { key: "notifAIInsights" as const, icon: Bell, label: "AI Insights", sub: "Updates when AI analyses your documents", color: "bg-violet-50 text-violet-600" },
+        { key: "notifHealthTips" as const, icon: Sparkles, label: t("account.healthTips"), sub: t("account.healthTipsSub"), color: "bg-amber-50 text-amber-600" },
+        { key: "notifAIInsights" as const, icon: Bell, label: t("account.aiInsights"), sub: t("account.aiInsightsSub"), color: "bg-violet-50 text-violet-600" },
     ];
 
     const privacyToggles = [
-        { key: "privacyDataSharing" as const, icon: Share2, label: "Anonymous Data Sharing", sub: "Help improve health research (no PII)", color: "bg-rose-50 text-rose-600" },
+        { key: "privacyDataSharing" as const, icon: Share2, label: t("account.dataSharing"), sub: t("account.dataSharingSub"), color: "bg-rose-50 text-rose-600" },
     ];
 
     return (
@@ -685,10 +688,10 @@ function SettingsSection({
 
             {/* Quick nav */}
             <div className="bg-card border border-border rounded-2xl overflow-hidden">
-                <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-4 pt-3 pb-1">Quick Access</p>
+                <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-4 pt-3 pb-1">{t("account.quickAccess")}</p>
                 {[
-                    { label: "Manage Patients", sub: "Add/view family members", path: "/patients", colorBg: "bg-violet-50", colorText: "text-violet-600" },
-                    { label: "My Documents", sub: "Upload & view records", path: "/documents", colorBg: "bg-blue-50", colorText: "text-blue-600" },
+                    { label: t("account.managePatients"), sub: t("account.managePatientsSub"), path: "/patients", colorBg: "bg-violet-50", colorText: "text-violet-600" },
+                    { label: t("account.myDocs"), sub: t("account.myDocsSub"), path: "/documents", colorBg: "bg-blue-50", colorText: "text-blue-600" },
                 ].map(({ label, sub, path, colorBg, colorText }) => (
                     <button key={path} onClick={() => navigate(path)}
                         className="w-full flex items-center gap-3 p-4 hover:bg-accent/50 transition-colors border-t border-border first:border-t-0">
@@ -706,7 +709,7 @@ function SettingsSection({
 
             {/* Notifications */}
             <div className="glass-card rounded-[1.5rem] shadow-sm border border-white/50 overflow-hidden divide-y divide-white/40 mx-5 mt-2">
-                <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-4 pt-3 pb-1">Notifications</p>
+                <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-4 pt-3 pb-1">{t("account.notifications")}</p>
                 {notifToggles.map(({ key, icon: Icon, label, sub, color }) => (
                     <div key={key} className="flex items-center gap-3 p-4 border-t border-border first:border-t-0">
                         <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center", color)}>
@@ -726,7 +729,7 @@ function SettingsSection({
 
             {/* Privacy */}
             <div className="glass-card rounded-[1.5rem] shadow-sm border border-white/50 overflow-hidden divide-y divide-white/40 mx-5 mb-5">
-                <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-4 pt-3 pb-1">Privacy</p>
+                <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-4 pt-3 pb-1">{t("account.privacy")}</p>
                 {privacyToggles.map(({ key, icon: Icon, label, sub, color }) => (
                     <div key={key} className="flex items-center gap-3 p-4 border-t border-border first:border-t-0">
                         <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center", color)}>
@@ -746,15 +749,15 @@ function SettingsSection({
 
             {/* Account info */}
             <div className="glass-card rounded-[1.5rem] p-5 space-y-2 shadow-sm border border-white/50 mx-5">
-                <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-3">Account Info</p>
-                <div className="flex justify-between text-sm"><span className="text-muted-foreground">UID</span><span className="font-mono text-xs text-muted-foreground">{user?.uid?.slice(0, 12)}…</span></div>
-                <div className="flex justify-between text-sm"><span className="text-muted-foreground">Email verified</span><span className={user?.emailVerified ? "text-green-600 font-medium" : "text-amber-600 font-medium"}>{user?.emailVerified ? "Verified ✓" : "Not verified"}</span></div>
+                <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-3">{t("account.accountInfo")}</p>
+                <div className="flex justify-between text-sm"><span className="text-muted-foreground">{t("account.uid")}</span><span className="font-mono text-xs text-muted-foreground">{user?.uid?.slice(0, 12)}…</span></div>
+                <div className="flex justify-between text-sm"><span className="text-muted-foreground">{t("account.emailVerified")}</span><span className={user?.emailVerified ? "text-green-600 font-medium" : "text-amber-600 font-medium"}>{user?.emailVerified ? t("account.verified") : t("account.notVerified")}</span></div>
             </div>
 
             {/* Sign out */}
             <button onClick={async () => { await logout(); navigate("/login"); }}
                 className="w-full flex items-center justify-center gap-2 py-3 bg-destructive/10 text-destructive rounded-2xl text-sm font-semibold hover:bg-destructive/20 transition-colors">
-                <LogOut size={16} /> Sign Out
+                <LogOut size={16} /> {t("account.signOut")}
             </button>
         </div>
     );
@@ -763,6 +766,7 @@ function SettingsSection({
 // ─── AccountPage ──────────────────────────────────────────────────────────────
 // ─── SecurityHistory ──────────────────────────────────────────────────────────
 function SecurityHistory({ userId }: { userId: string }) {
+    const { t } = useTranslation();
     const [logs, setLogs] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -805,7 +809,7 @@ function SecurityHistory({ userId }: { userId: string }) {
                         <div className="w-9 h-9 rounded-xl bg-slate-50 flex items-center justify-center">
                             <ShieldCheck size={17} className="text-slate-600" />
                         </div>
-                        <p className="text-sm font-semibold">Recent Security Activity</p>
+                        <p className="text-sm font-semibold">{t("account.recentActivity")}</p>
                     </div>
                     <button onClick={() => { setLoading(true); fetchLogs(); }} className="p-1.5 hover:bg-secondary rounded-lg transition-colors">
                         <RefreshCw size={14} className={cn("text-muted-foreground", loading && "animate-spin")} />
@@ -813,8 +817,8 @@ function SecurityHistory({ userId }: { userId: string }) {
                 </div>
                 <div className="text-center py-4">
                     <ShieldCheck size={24} className="mx-auto text-muted-foreground/30 mb-2" />
-                    <p className="text-sm text-muted-foreground">No recent security activity</p>
-                    <p className="text-[10px] text-muted-foreground mt-1">Try refreshing if you recently made changes</p>
+                    <p className="text-sm text-muted-foreground">{t("account.noActivity")}</p>
+                    <p className="text-[10px] text-muted-foreground mt-1">{t("account.refreshHint")}</p>
                 </div>
             </div>
         );
@@ -827,7 +831,7 @@ function SecurityHistory({ userId }: { userId: string }) {
                     <div className="w-9 h-9 rounded-xl bg-slate-50 flex items-center justify-center">
                         <ShieldCheck size={17} className="text-slate-600" />
                     </div>
-                    <p className="text-sm font-semibold">Recent Security Activity</p>
+                    <p className="text-sm font-semibold">{t("account.recentActivity")}</p>
                 </div>
                 <button onClick={() => { setLoading(true); fetchLogs(); }} className="p-1.5 hover:bg-secondary rounded-lg transition-colors">
                     <RefreshCw size={14} className={cn("text-muted-foreground", loading && "animate-spin")} />
@@ -841,12 +845,12 @@ function SecurityHistory({ userId }: { userId: string }) {
                                 <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                                     {log.type.replace("_", " ")}
                                 </p>
-                                <p className="text-[10px] text-muted-foreground">
+                            <p className="text-[10px] text-muted-foreground">
                                     {log.timestamp?.toDate ? new Date(log.timestamp.toDate()).toLocaleDateString() : "Just now"}
                                 </p>
                             </div>
                             <p className="text-xs mt-1 text-foreground">
-                                Changed from <span className="font-mono text-muted-foreground">{log.oldValue}</span> to <span className="font-mono">{log.newValue}</span>
+                                {t("account.changedFrom")} <span className="font-mono text-muted-foreground">{log.oldValue}</span> {t("account.to")} <span className="font-mono">{log.newValue}</span>
                             </p>
                             {log.notifiedOld && (
                                 <p className="text-[10px] text-green-600 font-medium mt-1 flex items-center gap-1">
@@ -867,6 +871,7 @@ export function AccountPage() {
         user, userProfile, logout, refreshUser,
         updateUserProfile, uploadProfilePhoto
     } = useAuth();
+    const { t } = useTranslation();
     const navigate = useNavigate();
     const [section, setSection] = useState<Section>("info");
     const [photoUploading, setPhotoUploading] = useState(false);
@@ -939,9 +944,9 @@ export function AccountPage() {
     };
 
     const tabs: { id: Section; label: string }[] = [
-        { id: "info", label: "Personal" },
-        { id: "security", label: "Security" },
-        { id: "settings", label: "Settings" },
+        { id: "info", label: t("account.personalInfo") },
+        { id: "security", label: t("account.security") },
+        { id: "settings", label: t("account.settings") },
     ];
 
     return (
@@ -1002,7 +1007,7 @@ export function AccountPage() {
             {section === "info" && (
                 <div className="glass-card rounded-[1.5rem] p-5 space-y-1 shadow-sm border border-white/50">
                     <EditableField
-                        label="Full Name"
+                        label={t("account.fullName")}
                         icon={User}
                         value={userProfile?.displayName ?? ""}
                         onSave={v => handleProfileSave({ displayName: v })}
@@ -1014,7 +1019,7 @@ export function AccountPage() {
                                 <Phone size={15} className="text-muted-foreground" />
                             </div>
                             <div className="flex-1 min-w-0">
-                                <p className="text-[11px] text-muted-foreground">Phone Number</p>
+                                <p className="text-[11px] text-muted-foreground">{t("account.phoneNum")}</p>
                                 <p className="text-sm font-medium truncate">
                                     {userProfile?.phoneNumber || <span className="text-muted-foreground italic">Not set</span>}
                                     {userProfile?.phoneVerified && (
@@ -1065,7 +1070,7 @@ export function AccountPage() {
                                 <Mail size={17} className="text-blue-600" />
                             </div>
                             <div className="flex-1 text-left">
-                                <p className="text-sm font-semibold">Change Email</p>
+                                <p className="text-sm font-semibold">{t("account.changeEmail")}</p>
                                 <p className="text-xs text-muted-foreground truncate">{user?.email || userProfile?.email}</p>
                                 {(userProfile as any)?.pendingEmail && (
                                     <p className="text-[10px] text-orange-600">⏳ Pending: {(userProfile as any).pendingEmail}</p>
@@ -1080,7 +1085,7 @@ export function AccountPage() {
                                 <Phone size={17} className="text-emerald-600" />
                             </div>
                             <div className="flex-1 text-left">
-                                <p className="text-sm font-semibold">Change Phone Number</p>
+                                <p className="text-sm font-semibold">{t("account.changePhone")}</p>
                                 <p className="text-xs text-muted-foreground truncate">{userProfile?.phoneNumber || "Not set"}</p>
                             </div>
                             <ChevronRight size={16} className="text-muted-foreground" />
@@ -1092,7 +1097,7 @@ export function AccountPage() {
                                 <Lock size={17} className="text-orange-600" />
                             </div>
                             <div className="flex-1 text-left">
-                                <p className="text-sm font-semibold">Change Password</p>
+                                <p className="text-sm font-semibold">{t("account.changePassword")}</p>
                                 <p className="text-xs text-muted-foreground">••••••••</p>
                             </div>
                             <ChevronRight size={16} className="text-muted-foreground" />
@@ -1105,19 +1110,19 @@ export function AccountPage() {
                             <div className="w-9 h-9 rounded-xl bg-green-50 flex items-center justify-center">
                                 <ShieldCheck size={17} className="text-green-600" />
                             </div>
-                            <p className="text-sm font-semibold">Verification Status</p>
+                            <p className="text-sm font-semibold">{t("account.verificationStatus")}</p>
                         </div>
                         <div className="space-y-2 ml-12">
                             <div className="flex items-center justify-between">
-                                <span className="text-xs text-muted-foreground">Email</span>
+                                <span className="text-xs text-muted-foreground">{t("account.email")}</span>
                                 <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${userProfile?.emailVerified ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"}`}>
-                                    {userProfile?.emailVerified ? "Verified ✓" : "Not verified"}
+                                    {userProfile?.emailVerified ? t("account.verified") : t("account.notVerified")}
                                 </span>
                             </div>
                             <div className="flex items-center justify-between">
-                                <span className="text-xs text-muted-foreground">Phone</span>
+                                <span className="text-xs text-muted-foreground">{t("account.phone")}</span>
                                 <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${userProfile?.phoneVerified ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"}`}>
-                                    {userProfile?.phoneVerified ? "Verified ✓" : "Not verified"}
+                                    {userProfile?.phoneVerified ? t("account.verified") : t("account.notVerified")}
                                 </span>
                             </div>
                         </div>
