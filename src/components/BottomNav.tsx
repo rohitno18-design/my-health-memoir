@@ -1,31 +1,33 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTranslation } from "react-i18next";
 
 const navItems = [
-    { path: "/dashboard", mIcon: "home", label: "Home" },
-    { path: "/patients", mIcon: "group", label: "Family" },
-    { path: "/timeline", mIcon: "timeline", label: "Timeline" },
-    { path: "/documents", mIcon: "folder_managed", label: "Docs" },
-    { path: "/ai-chat", mIcon: "auto_awesome", label: "AI" },
+    { path: "/dashboard", mIcon: "home", labelKey: "nav.home" },
+    { path: "/patients", mIcon: "group", labelKey: "nav.family" },
+    { path: "/timeline", mIcon: "timeline", labelKey: "nav.timeline" },
+    { path: "/documents", mIcon: "folder_managed", labelKey: "nav.docs" },
+    { path: "/ai-chat", mIcon: "auto_awesome", labelKey: "nav.ai" },
 ];
 
 
 const adminNavItems = [
-    { path: "/admin", mIcon: "admin_panel_settings", label: "Admin" },
+    { path: "/admin", mIcon: "admin_panel_settings", labelKey: "nav.admin" },
 ];
 
 export function BottomNav() {
     const navigate = useNavigate();
     const location = useLocation();
     const { isAdmin } = useAuth();
+    const { t } = useTranslation();
 
     const items = isAdmin ? [...navItems, ...adminNavItems] : navItems;
 
     return (
         <nav className="fixed bottom-6 left-4 right-4 sm:left-6 sm:right-6 z-50 max-w-lg mx-auto">
             <div className="glass-card rounded-[2rem] p-2 px-3 flex items-center justify-between shadow-2xl shadow-primary/10 border border-white/60">
-                {items.map(({ path, mIcon, label }) => {
+                {items.map(({ path, mIcon, labelKey }) => {
                     const active =
                         location.pathname === path ||
                         (path === "/profile" && location.pathname === "/patients") ||
@@ -41,7 +43,7 @@ export function BottomNav() {
                             )}
                         >
                             <span className={cn("material-symbols-outlined text-[24px] mb-[2px] transition-transform", active && "fill-1 scale-110")}>{mIcon}</span>
-                            <span className={cn("text-[10px] tracking-wide transition-all", active ? "font-bold" : "font-semibold")}>{label}</span>
+                            <span className={cn("text-[10px] tracking-wide transition-all", active ? "font-bold" : "font-semibold")}>{t(labelKey)}</span>
                         </button>
                     );
                 })}

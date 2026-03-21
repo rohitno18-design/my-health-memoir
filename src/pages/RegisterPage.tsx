@@ -5,10 +5,12 @@ import { Heart, Mail, Lock, User, Eye, EyeOff, Loader2, ArrowLeft } from "lucide
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 import { type ConfirmationResult } from "firebase/auth";
+import { useTranslation } from "react-i18next";
 
 export function RegisterPage() {
     const { registerWithEmail, sendPhoneOtp } = useAuth();
     const navigate = useNavigate();
+    const { t } = useTranslation();
 
     // Tab: email or phone
     const [method, setMethod] = useState<"email" | "phone" | "otp">("email");
@@ -90,14 +92,14 @@ export function RegisterPage() {
                     <div className="w-16 h-16 rounded-2xl bg-primary flex items-center justify-center shadow-lg mb-4">
                         <Heart size={28} className="text-primary-foreground fill-primary-foreground" />
                     </div>
-                    <h1 className="text-2xl font-bold">Create Account</h1>
-                    <p className="text-muted-foreground text-sm mt-2">Start your health journey</p>
+                    <h1 className="text-2xl font-bold">{t("auth.registerTitle")}</h1>
+                    <p className="text-muted-foreground text-sm mt-2">{t("auth.startJourney")}</p>
                 </div>
 
                 <div className="glass-card rounded-[2rem] shadow-2xl border border-white/50 p-6 sm:p-8 relative overflow-hidden group">
                     <div className="absolute top-0 right-0 size-32 bg-primary/10 rounded-full blur-3xl pointer-events-none -z-10 group-hover:bg-primary/20 transition-colors"></div>
                     <div className="absolute bottom-0 left-0 size-32 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none -z-10 group-hover:bg-emerald-500/20 transition-colors"></div>
-                    <h2 className="text-xl font-bold mb-6 text-slate-800 relative z-10">Register</h2>
+                    <h2 className="text-xl font-bold mb-6 text-slate-800 relative z-10">{t("auth.registerTitle")}</h2>
 
                     {error && (
                         <div className="bg-destructive/10 text-destructive text-sm rounded-lg p-3 mb-4">
@@ -113,12 +115,12 @@ export function RegisterPage() {
                             <button type="button"
                                 onClick={() => { setMethod("email"); setError(""); }}
                                 className={`flex-1 text-sm font-bold py-2 rounded-md transition-colors ${method === "email" ? "bg-white shadow-sm text-primary" : "text-slate-500 hover:text-slate-800"}`}>
-                                Email
+                                {t("auth.email")}
                             </button>
                             <button type="button"
                                 onClick={() => { setMethod("phone"); setError(""); }}
                                 className={`flex-1 text-sm font-bold py-2 rounded-md transition-colors ${method === "phone" ? "bg-white shadow-sm text-primary" : "text-slate-500 hover:text-slate-800"}`}>
-                                Phone
+                                {t("auth.phone")}
                             </button>
                         </div>
                     )}
@@ -127,7 +129,7 @@ export function RegisterPage() {
                     {method === "email" && (
                         <form onSubmit={handleEmailSubmit} className="space-y-4">
                             <div>
-                                <label className="block text-sm font-medium mb-1.5">Full Name</label>
+                                <label className="block text-sm font-medium mb-1.5">{t("auth.fullName")}</label>
                                 <div className="relative">
                                     <User size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                                     <input type="text" value={name}
@@ -137,7 +139,7 @@ export function RegisterPage() {
                                 </div>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium mb-1.5">Email</label>
+                                <label className="block text-sm font-medium mb-1.5">{t("auth.email")}</label>
                                 <div className="relative">
                                     <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                                     <input type="email" value={email}
@@ -147,7 +149,7 @@ export function RegisterPage() {
                                 </div>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium mb-1.5">Password</label>
+                                <label className="block text-sm font-medium mb-1.5">{t("auth.password")}</label>
                                 <div className="relative">
                                     <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                                     <input type={showPw ? "text" : "password"} value={password}
@@ -163,7 +165,7 @@ export function RegisterPage() {
                             <button type="submit" disabled={loading}
                                 className="w-full py-2.5 bg-primary text-primary-foreground rounded-lg font-medium text-sm hover:bg-primary/90 transition-colors disabled:opacity-60 flex items-center justify-center gap-2">
                                 {loading && <Loader2 size={16} className="animate-spin" />}
-                                {loading ? "Creating account..." : "Create Account"}
+                                {loading ? "Creating account..." : t("auth.registerTitle")}
                             </button>
                         </form>
                     )}
@@ -172,7 +174,7 @@ export function RegisterPage() {
                     {method === "phone" && (
                         <form onSubmit={handlePhoneSubmit} className="space-y-4">
                             <div>
-                                <label className="block text-sm font-medium mb-1.5">Phone Number</label>
+                                <label className="block text-sm font-medium mb-1.5">{t("auth.phone")}</label>
                                 <PhoneInput
                                     country={'in'} value={phone}
                                     onChange={p => setPhone(p)}
@@ -184,7 +186,7 @@ export function RegisterPage() {
                             <button type="submit" disabled={loading}
                                 className="w-full py-2.5 bg-primary text-primary-foreground rounded-lg font-medium text-sm hover:bg-primary/90 transition-colors disabled:opacity-60 flex items-center justify-center gap-2">
                                 {loading && <Loader2 size={16} className="animate-spin" />}
-                                {loading ? "Sending code..." : "Send Verification Code"}
+                                {loading ? "Sending code..." : t("auth.sendCode")}
                             </button>
                         </form>
                     )}
@@ -207,7 +209,7 @@ export function RegisterPage() {
                             </div>
                             <button type="submit" disabled={loading || otp.length < 6}
                                 className="w-full py-3 bg-primary text-primary-foreground rounded-xl font-bold text-sm hover:bg-primary/90 transition-all shadow-md disabled:opacity-60 flex items-center justify-center gap-2 active:scale-95">
-                                {loading ? <Loader2 size={16} className="animate-spin" /> : "Verify & Register"}
+                                {loading ? <Loader2 size={16} className="animate-spin" /> : t("auth.verifyRegister")}
                             </button>
                             <button type="button" onClick={() => { setMethod("phone"); setOtp(""); setError(""); }}
                                 className="w-full text-center text-sm flex items-center justify-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors mt-2">
@@ -217,9 +219,9 @@ export function RegisterPage() {
                     )}
 
                     <p className="text-sm text-center mt-4 text-muted-foreground">
-                        Already have an account?{" "}
+                        {t("auth.hasAccount")}{" "}
                         <Link to="/login" className="text-primary font-medium hover:underline">
-                            Sign in
+                            {t("auth.loginTitle")}
                         </Link>
                     </p>
                 </div>

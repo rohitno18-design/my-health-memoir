@@ -7,6 +7,7 @@ import { db, storage } from "@/lib/firebase";
 import { collection, addDoc, serverTimestamp, getDocs, query, where, doc, updateDoc, arrayUnion } from "firebase/firestore";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY ?? "";
 const MODEL_ID = import.meta.env.VITE_GEMINI_MODEL ?? "gemini-2.0-flash";
 const API_VERSION = import.meta.env.VITE_GEMINI_API_VERSION ?? "v1beta";
@@ -76,10 +77,10 @@ const languages = [
 ];
 
 const quickLinks = [
-    { label: "Vault", icon: "folder_managed", path: "/documents", color: "text-blue-600 bg-blue-50" },
-    { label: "AI Chat", icon: "forum", path: "/ai-chat", color: "text-violet-600 bg-violet-50" },
-    { label: "Patients", icon: "groups", path: "/patients", color: "text-emerald-600 bg-emerald-50" },
-    { label: "Profile", icon: "account_circle", path: "/profile", color: "text-orange-600 bg-orange-50" },
+    { labelKey: "dashboard.vault", icon: "folder_managed", path: "/documents", color: "text-blue-600 bg-blue-50" },
+    { labelKey: "dashboard.aiChat", icon: "forum", path: "/ai-chat", color: "text-violet-600 bg-violet-50" },
+    { labelKey: "dashboard.patients", icon: "groups", path: "/patients", color: "text-emerald-600 bg-emerald-50" },
+    { labelKey: "dashboard.profile", icon: "account_circle", path: "/profile", color: "text-orange-600 bg-orange-50" },
 ];
 
 const getBase64 = (file: File): Promise<string> =>
@@ -93,6 +94,7 @@ const getBase64 = (file: File): Promise<string> =>
 export function DashboardPage() {
     const { userProfile, user } = useAuth();
     const navigate = useNavigate();
+    const { t } = useTranslation();
 
     // Upload & Analysis State
     const [patients, setPatients] = useState<{ id: string, name: string }[]>([]);
@@ -163,9 +165,9 @@ export function DashboardPage() {
 
     const formatGreeting = () => {
         const hour = new Date().getHours();
-        if (hour < 12) return "Good morning";
-        if (hour < 17) return "Good afternoon";
-        return "Good evening";
+        if (hour < 12) return t("dashboard.morning");
+        if (hour < 17) return t("dashboard.afternoon");
+        return t("dashboard.evening");
     };
 
     const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -379,10 +381,10 @@ export function DashboardPage() {
 
             {/* Welcome Section */}
             <section className="px-6 pt-8 pb-4">
-                <p className="text-slate-500 text-sm font-semibold mb-1 uppercase tracking-wider">{formatGreeting()}, {userProfile?.displayName ? userProfile.displayName.split(' ')[0] : 'Guest'}</p>
+                <p className="text-slate-500 text-sm font-semibold mb-1 uppercase tracking-wider">{formatGreeting()}, {userProfile?.displayName ? userProfile.displayName.split(' ')[0] : t("dashboard.guest")}</p>
                 <h2 className="text-[32px] font-extrabold text-slate-900 tracking-tight leading-[1.1] mb-2">
-                    Your health is in <br />
-                    <span className="text-primary italic font-serif opacity-90">perfect harmony</span>
+                    {t("dashboard.tagline1")} <br />
+                    <span className="text-primary italic font-serif opacity-90">{t("dashboard.tagline2")}</span>
                 </h2>
             </section>
 
@@ -395,14 +397,14 @@ export function DashboardPage() {
                             <div className="flex size-8 items-center justify-center rounded-xl bg-white/20 backdrop-blur-md shadow-sm border border-white/10">
                                 <span className="material-symbols-outlined text-white text-[20px]">auto_awesome</span>
                             </div>
-                            <span className="text-xs font-bold tracking-widest uppercase text-white/90">AI Health Intelligence</span>
+                            <span className="text-xs font-bold tracking-widest uppercase text-white/90">{t("dashboard.aiTitle")}</span>
                         </div>
                         <div className="space-y-2 max-w-[90%]">
-                            <p className="text-lg font-semibold leading-snug">"I'm ready to analyze your latest medical reports. What would you like me to look at?"</p>
+                            <p className="text-lg font-semibold leading-snug">{t("dashboard.aiDesc")}</p>
                         </div>
                         <div className="flex gap-3 pt-3">
                             <button onClick={() => fileInputRef.current?.click()} className="flex-1 bg-white text-primary rounded-xl py-3 px-4 text-sm font-black shadow-lg shadow-black/10 hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 transition-all flex items-center justify-center gap-2">
-                                Upload Document
+                                {t("dashboard.uploadBtn")}
                                 <span className="material-symbols-outlined text-[18px]">arrow_upward</span>
                             </button>
                             <button onClick={() => cameraInputRef.current?.click()} className="size-12 shrink-0 bg-white/20 backdrop-blur-md border border-white/20 rounded-xl flex items-center justify-center hover:bg-white/30 hover:-translate-y-0.5 active:translate-y-0 shadow-lg shadow-black/5 transition-all text-white">
@@ -470,7 +472,7 @@ export function DashboardPage() {
                     <input
                         name="search"
                         type="text"
-                        placeholder="Search disease, hospital..."
+                        placeholder={t("dashboard.searchPlaceholder")}
                         className="w-full pl-12 pr-4 py-4 rounded-[1.5rem] border border-white/40 bg-white/40 backdrop-blur-md focus:bg-white/80 focus:ring-2 focus:ring-primary/20 transition-all font-semibold text-slate-700 shadow-sm outline-none placeholder:text-slate-400"
                     />
                     <button type="submit" className="hidden">Search</button>
@@ -479,9 +481,9 @@ export function DashboardPage() {
 
             {/* Quick Access Grid */}
             <section className="pb-8 space-y-3 mt-2">
-                <h3 className="text-[17px] font-extrabold text-slate-900 mb-3 px-1">Quick Access</h3>
+                <h3 className="text-[17px] font-extrabold text-slate-900 mb-3 px-1">{t("dashboard.quickAccess")}</h3>
                 <div className="grid grid-cols-2 gap-3">
-                    {quickLinks.map(({ label, icon, path, color }) => (
+                    {quickLinks.map(({ labelKey, icon, path, color }) => (
                         <button
                             key={path}
                             onClick={() => navigate(path)}
@@ -490,7 +492,7 @@ export function DashboardPage() {
                             <div className={cn("size-12 rounded-xl flex items-center justify-center group-hover:scale-105 transition-transform", color)}>
                                 <span className="material-symbols-outlined text-[24px]">{icon}</span>
                             </div>
-                            <span className="text-[14px] font-extrabold text-slate-800">{label}</span>
+                            <span className="text-[14px] font-extrabold text-slate-800">{t(labelKey)}</span>
                         </button>
                     ))}
                 </div>

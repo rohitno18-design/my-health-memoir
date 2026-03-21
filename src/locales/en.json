@@ -1,0 +1,48 @@
+{
+  "translation": {
+    "header": {
+      "title": "Health Memoir",
+      "liveSyncing": "Live Syncing"
+    },
+    "nav": {
+      "home": "Home",
+      "family": "Family",
+      "timeline": "Timeline",
+      "docs": "Docs",
+      "ai": "AI",
+      "admin": "Admin"
+    },
+    "dashboard": {
+      "morning": "Good morning",
+      "afternoon": "Good afternoon",
+      "evening": "Good evening",
+      "guest": "Guest",
+      "tagline1": "Your health is in",
+      "tagline2": "perfect harmony",
+      "aiTitle": "AI Health Intelligence",
+      "aiDesc": "\"I'm ready to analyze your latest medical reports. What would you like me to look at?\"",
+      "uploadBtn": "Upload Document",
+      "searchPlaceholder": "Search disease, hospital...",
+      "quickAccess": "Quick Access",
+      "vault": "Vault",
+      "aiChat": "AI Chat",
+      "patients": "Family",
+      "profile": "Profile"
+    },
+    "auth": {
+      "loginTitle": "Sign in",
+      "registerTitle": "Register",
+      "email": "Email",
+      "phone": "Phone",
+      "password": "Password",
+      "fullName": "Full Name",
+      "sendCode": "Send Verification Code",
+      "verifyCode": "Verify & Sign In",
+      "verifyRegister": "Verify & Register",
+      "noAccount": "Don't have an account?",
+      "hasAccount": "Already have an account?",
+      "startJourney": "Start your health journey",
+      "subtitle": "Your Universal Health OS"
+    }
+  }
+}
