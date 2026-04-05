@@ -47,6 +47,9 @@ export function EmergencyPage() {
         setInfo(defaultInfo);
       }
       setLoading(false);
+    }, (err) => {
+      console.error("Emergency info error:", err);
+      setLoading(false);
     });
     return () => unsub();
   }, [user]);
@@ -55,8 +58,7 @@ export function EmergencyPage() {
 
   const handleSOS = () => {
     setIsSOSActive(true);
-    // In a real app, this would trigger SMS/Push notifications via a cloud function
-    console.log("SOS TRIGGERED for", user?.uid);
+    alert("Emergency SOS Activated. In a production environment, this would instantly notify your chosen ICE contacts.");
     setTimeout(() => setIsSOSActive(false), 5000);
   };
 
@@ -88,7 +90,11 @@ export function EmergencyPage() {
           <motion.div 
             initial={{ opacity: 0, scale: 0.9 }} 
             animate={{ opacity: 1, scale: 1 }}
-            className="w-full max-w-[320px] p-8 rounded-[2.5rem] bg-[#171f33] border border-white/10 shadow-2xl relative group overflow-hidden"
+            className="w-full max-w-[320px] p-8 rounded-[2.5rem] bg-[#171f33] border border-white/10 shadow-2xl relative group overflow-hidden cursor-pointer active:scale-95 transition-all"
+            onClick={() => {
+              alert("Opening public paramedic preview...");
+              window.open(pulseUrl, '_blank');
+            }}
           >
             <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
             <div className="bg-white p-6 rounded-[2rem] shadow-inner mb-6 flex items-center justify-center">

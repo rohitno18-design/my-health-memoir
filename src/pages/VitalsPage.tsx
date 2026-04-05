@@ -42,13 +42,25 @@ export function VitalsPage() {
   const [isLogModalOpen, setIsLogModalOpen] = useState(false);
   const [newVal, setNewVal] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const [patients, setPatients] = useState<any[]>([]);
+  const [selectedPatientId, setSelectedPatientId] = useState<string>("self");
 
   useEffect(() => {
     if (!user) return;
+    const unsubPatients = onSnapshot(query(collection(db, "patients"), where("userId", "==", user.uid)), (snap) => {
+        setPatients(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    });
+    return () => unsubPatients();
+  }, [user]);
+
+  useEffect(() => {
+    if (!user) return;
+    const currentPatientId = selectedPatientId === "self" ? user.uid : selectedPatientId;
     const q = query(
       collection(db, "vitals"),
       where("userId", "==", user.uid),
       where("type", "==", activeTab),
+      where("patientId", "==", currentPatientId),
       orderBy("timestamp", "desc"),
       limit(50)
     );
@@ -75,9 +87,11 @@ export function VitalsPage() {
     e.preventDefault();
     if (!user || !newVal) return;
     setIsSaving(true);
+    const currentPatientId = selectedPatientId === "self" ? user.uid : selectedPatientId;
     try {
       await addDoc(collection(db, "vitals"), {
         userId: user.uid,
+        patientId: currentPatientId,
         type: activeTab,
         value: newVal,
         unit: VITAL_CONFIG[activeTab].unit,
@@ -85,8 +99,10 @@ export function VitalsPage() {
       });
       setIsLogModalOpen(false);
       setNewVal("");
-    } catch (e) {
+      alert(`${activeTab} saved successfully for ${selectedPatientId === 'self' ? 'You' : patients.find(p=>p.id===selectedPatientId)?.name || 'Patient'}!`);
+    } catch (e: any) {
       console.error(e);
+      alert("Failed to save vital: " + e.message);
     } finally {
       setIsSaving(false);
     }
@@ -103,9 +119,28 @@ export function VitalsPage() {
       </div>
 
       <header className="px-6 py-8 space-y-6 relative z-10">
-        <div>
-           <h1 className="text-3xl font-black font-lexend tracking-tighter">Vitals Analytics</h1>
-           <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mt-1">Slate Guardian Monitoring</p>
+        <div className="flex items-center justify-between">
+           <div>
+              <h1 className="text-3xl font-black font-lexend tracking-tighter">Vitals Analytics</h1>
+              <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mt-1">Slate Guardian Monitoring</p>
+           </div>
+           
+           {/* Profile Selector */}
+           <div className="relative group">
+              <select 
+                value={selectedPatientId}
+                onChange={(e) => setSelectedPatientId(e.target.value)}
+                className="appearance-none bg-[#171f33] border border-white/10 text-white text-xs font-bold font-lexend px-4 py-2 pr-8 rounded-full shadow-lg outline-none focus:border-emerald-500/50 transition-colors"
+              >
+                <option value="self">My Vitals</option>
+                {patients.map(p => (
+                  <option key={p.id} value={p.id}>{p.name}'s Vitals</option>
+                ))}
+              </select>
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                <ArrowDownRight size={14} className="text-emerald-500" />
+              </div>
+           </div>
         </div>
 
         {/* Segmented Control */}
