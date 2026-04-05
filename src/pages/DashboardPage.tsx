@@ -47,6 +47,7 @@ export function DashboardPage() {
 
     // Data State
     const [patients, setPatients] = useState<any[]>([]);
+    const [vitals, setVitals] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
     // Upload & Analysis State
@@ -66,11 +67,11 @@ export function DashboardPage() {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const cameraInputRef = useRef<HTMLInputElement>(null);
 
-    // Fetch Patients (Family)
+    // Fetch Patients & Vitals
     useEffect(() => {
         if (!user) return;
-        const q = query(collection(db, "patients"), where("userId", "==", user.uid));
-        const unsub = onSnapshot(q, (snap) => {
+        const qPatients = query(collection(db, "patients"), where("userId", "==", user.uid));
+        const unsubPatients = onSnapshot(qPatients, (snap) => {
             const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
             setPatients(data);
             if (data.length > 0 && !form.patientId) {
@@ -78,7 +79,16 @@ export function DashboardPage() {
             }
             setLoading(false);
         });
-        return () => unsub();
+
+        const qVitals = query(collection(db, "vitals"), where("userId", "==", user.uid));
+        const unsubVitals = onSnapshot(qVitals, (snap) => {
+            setVitals(snap.docs.map(d => d.data()));
+        });
+
+        return () => {
+            unsubPatients();
+            unsubVitals();
+        };
     }, [user, form.patientId]);
 
     const formatGreeting = () => {
@@ -176,11 +186,18 @@ export function DashboardPage() {
         setAiSummary("");
     };
 
-    const mockVitalsData = [
-        { date: "2024-03-01", value: 110 }, { date: "2024-03-02", value: 115 },
-        { date: "2024-03-03", value: 112 }, { date: "2024-03-04", value: 118 },
-        { date: "2024-03-05", value: 114 },
-    ];
+    const getVitalData = (type: string) => {
+        const filtered = vitals.filter(v => v.type === type).sort((a,b) => (a.timestamp?.toMillis() || 0) - (b.timestamp?.toMillis() || 0));
+        const val = filtered.length > 0 ? filtered[filtered.length - 1].value : "--";
+        const chartData = filtered.slice(-7).map((v: any) => ({
+            date: "", 
+            value: typeof v.value === 'string' ? parseInt(v.value.split('/')[0]) || 0 : v.value
+        }));
+        return { val, chartData: chartData.length > 0 ? chartData : [{date: "", value: 0}] };
+    };
+
+    const glucose = getVitalData("Glucose");
+    const bp = getVitalData("Blood Pressure");
 
     if (loading) {
       return (
@@ -240,7 +257,7 @@ export function DashboardPage() {
                         className="bento-card col-span-1 cursor-pointer active:scale-95 transition-all"
                         onClick={() => navigate("/vitals")}
                     >
-                        <VitalsQuickView type="Glucose" value={114} unit="mg/dL" trend="down" data={mockVitalsData} color="#10B981" />
+                        <VitalsQuickView type="Glucose" value={glucose.val} unit="mg/dL" trend={glucose.val === "--" ? "stable" : "stable"} data={glucose.chartData} color="#10B981" />
                     </motion.div>
 
                     <motion.div 
@@ -248,7 +265,7 @@ export function DashboardPage() {
                         className="bento-card col-span-1 cursor-pointer active:scale-95 transition-all"
                         onClick={() => navigate("/vitals")}
                     >
-                        <VitalsQuickView type="BP" value="120/80" unit="mmHg" trend="stable" data={mockVitalsData.map(d => ({ ...d, value: d.value + 10 }))} color="#3B82F6" />
+                        <VitalsQuickView type="BP" value={bp.val} unit="mmHg" trend={bp.val === "--" ? "stable" : "stable"} data={bp.chartData} color="#3B82F6" />
                     </motion.div>
 
                     <motion.div 

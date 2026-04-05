@@ -10,7 +10,25 @@
       "timeline": "Timeline",
       "docs": "Docs",
       "ai": "AI",
-      "admin": "Admin"
+      "admin": "Admin",
+      "vitals": "Vitals",
+      "emergency": "SOS"
+    },
+    "aiChatList": {
+      "title": "AI Chats",
+      "subtitle": "Your AI health consultations",
+      "selected": "selected",
+      "chatsSelected": "chats selected",
+      "deselectAll": "Deselect All",
+      "deleteSelected": "Delete Selected",
+      "processing": "Processing...",
+      "noChats": "No conversations yet",
+      "noChatsDesc": "Start a new conversation with your AI health assistant.",
+      "startNew": "Start New Chat",
+      "untitled": "Untitled Chat",
+      "cancel": "Cancel",
+      "confirm": "Confirm",
+      "new": "New Chat"
     },
     "dashboard": {
       "morning": "Good morning",
