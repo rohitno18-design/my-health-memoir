@@ -8,7 +8,7 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { QRCodeSVG } from "qrcode.react";
 import { db } from "@/lib/firebase";
-import { doc, onSnapshot, updateDoc, setDoc } from "firebase/firestore";
+import { doc, onSnapshot, updateDoc, setDoc, query, collection, where } from "firebase/firestore";
 import { cn } from "@/lib/utils";
 
 interface EmergencyInfo {
@@ -27,10 +27,24 @@ export function EmergencyPage() {
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [isSOSActive, setIsSOSActive] = useState(false);
+  const [patients, setPatients] = useState<any[]>([]);
+  const [selectedPatientId, setSelectedPatientId] = useState<string>("");
 
   useEffect(() => {
     if (!user) return;
-    const unsub = onSnapshot(doc(db, "emergency_info", user.uid), (snap) => {
+    const unsubPatients = onSnapshot(query(collection(db, "patients"), where("userId", "==", user.uid)), (snap) => {
+        const pats = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        setPatients(pats);
+        if (pats.length > 0 && !selectedPatientId) {
+           setSelectedPatientId(pats[0].id);
+        }
+    });
+    return () => unsubPatients();
+  }, [user]);
+
+  useEffect(() => {
+    if (!user || !selectedPatientId) return;
+    const unsub = onSnapshot(doc(db, "emergency_info", selectedPatientId), (snap) => {
       if (snap.exists()) {
         setInfo(snap.data() as EmergencyInfo);
       } else {
@@ -43,7 +57,7 @@ export function EmergencyPage() {
           organDonor: false,
           notifiedOnSOS: true
         };
-        setDoc(doc(db, "emergency_info", user.uid), defaultInfo);
+        setDoc(doc(db, "emergency_info", selectedPatientId), defaultInfo);
         setInfo(defaultInfo);
       }
       setLoading(false);
@@ -52,9 +66,9 @@ export function EmergencyPage() {
       setLoading(false);
     });
     return () => unsub();
-  }, [user]);
+  }, [user, selectedPatientId]);
 
-  const pulseUrl = `${window.location.origin}/pulse/${user?.uid}`;
+  const pulseUrl = `${window.location.origin}/pulse/${selectedPatientId}`;
 
   const handleSOS = () => {
     setIsSOSActive(true);
@@ -79,9 +93,24 @@ export function EmergencyPage() {
           </div>
           <h1 className="text-xl font-black tracking-tight font-lexend">Clinical Sentinel</h1>
         </div>
-        <button onClick={() => setEditing(true)} className="p-2 hover:bg-white/5 rounded-full transition-colors">
-          <Settings size={20} className="text-slate-400" />
-        </button>
+        <div className="flex items-center gap-2">
+          {patients.length > 0 ? (
+            <select 
+              value={selectedPatientId}
+              onChange={(e) => setSelectedPatientId(e.target.value)}
+              className="appearance-none bg-rose-500/10 text-rose-500 text-xs font-bold font-lexend px-3 py-1.5 pr-6 rounded-lg outline-none cursor-pointer"
+            >
+              {patients.map(p => (
+                <option key={p.id} value={p.id} className="bg-[#0b1326] text-white">{p.name}</option>
+              ))}
+            </select>
+          ) : (
+             <span className="text-xs text-rose-500 font-bold">No Patients</span>
+          )}
+          <button onClick={() => setEditing(true)} className="p-2 hover:bg-white/5 rounded-full transition-colors">
+            <Settings size={20} className="text-slate-400" />
+          </button>
+        </div>
       </header>
 
       <main className="px-6 pt-8 space-y-10 relative z-10">
@@ -225,7 +254,7 @@ export function EmergencyPage() {
                   <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Blood Type</label>
                   <select 
                     value={info?.bloodType} 
-                    onChange={e => updateDoc(doc(db, "emergency_info", user!.uid), { bloodType: e.target.value })}
+                    onChange={e => updateDoc(doc(db, "emergency_info", selectedPatientId), { bloodType: e.target.value }).catch(err => alert("Failed: " + err.message))}
                     className="w-full mt-2 p-4 rounded-2xl bg-slate-900 border border-white/5 text-white font-bold"
                   >
                     {["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-", "Not Set"].map(t => <option key={t} value={t}>{t}</option>)}
@@ -238,7 +267,7 @@ export function EmergencyPage() {
                      <p className="text-[10px] text-slate-500">Publicly show donor status</p>
                    </div>
                    <button 
-                    onClick={() => updateDoc(doc(db, "emergency_info", user!.uid), { organDonor: !info?.organDonor })}
+                    onClick={() => updateDoc(doc(db, "emergency_info", selectedPatientId), { organDonor: !info?.organDonor }).catch(err => alert("Failed: " + err.message))}
                     className={cn("size-6 rounded flex items-center justify-center transition-colors", info?.organDonor ? "bg-emerald-500" : "bg-slate-700")}
                    >
                      {info?.organDonor && <Check size={16} />}
@@ -253,7 +282,7 @@ export function EmergencyPage() {
                   placeholder="Peanuts, Penicillin..."
                   className="w-full p-4 rounded-2xl bg-slate-900 border border-white/5 text-white font-medium min-h-[100px]"
                   defaultValue={info?.allergies.join(", ")}
-                  onBlur={e => updateDoc(doc(db, "emergency_info", user!.uid), { allergies: e.target.value.split(",").map(v => v.trim()).filter(Boolean) })}
+                  onBlur={e => updateDoc(doc(db, "emergency_info", selectedPatientId), { allergies: e.target.value.split(",").map(v => v.trim()).filter(Boolean) }).catch(err => alert("Failed: " + err.message))}
                 />
               </div>
             </div>

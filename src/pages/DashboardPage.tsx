@@ -80,7 +80,10 @@ export function DashboardPage() {
             setLoading(false);
         });
 
-        const qVitals = query(collection(db, "vitals"), where("userId", "==", user.uid));
+        const currentPatientId = form.patientId || (patients.length > 0 ? patients[0].id : null);
+        if (!currentPatientId) return;
+
+        const qVitals = query(collection(db, "vitals"), where("userId", "==", user.uid), where("patientId", "==", currentPatientId));
         const unsubVitals = onSnapshot(qVitals, (snap) => {
             setVitals(snap.docs.map(d => d.data()));
         });
@@ -196,7 +199,7 @@ export function DashboardPage() {
         return { val, chartData: chartData.length > 0 ? chartData : [{date: "", value: 0}] };
     };
 
-    const glucose = getVitalData("Glucose");
+    const glucose = getVitalData("Sugar");
     const bp = getVitalData("Blood Pressure");
 
     if (loading) {
@@ -257,7 +260,7 @@ export function DashboardPage() {
                         className="bento-card col-span-1 cursor-pointer active:scale-95 transition-all"
                         onClick={() => navigate("/vitals")}
                     >
-                        <VitalsQuickView type="Glucose" value={glucose.val} unit="mg/dL" trend={glucose.val === "--" ? "stable" : "stable"} data={glucose.chartData} color="#10B981" />
+                        <VitalsQuickView type="Sugar" value={glucose.val} unit="mg/dL" trend={glucose.val === "--" ? "stable" : "stable"} data={glucose.chartData} color="#10B981" />
                     </motion.div>
 
                     <motion.div 

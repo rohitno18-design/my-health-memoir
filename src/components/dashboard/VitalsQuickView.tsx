@@ -2,7 +2,7 @@ import { Area, AreaChart, ResponsiveContainer } from "recharts";
 import { Activity, Heart, Droplet } from "lucide-react";
 
 interface VitalsQuickViewProps {
-  type: "BP" | "Glucose" | "Pulse";
+  type: "BP" | "Sugar" | "Pulse";
   value: string | number;
   unit: string;
   trend: "up" | "down" | "stable";
@@ -11,7 +11,7 @@ interface VitalsQuickViewProps {
 }
 
 export function VitalsQuickView({ type, value, unit, trend, data, color }: VitalsQuickViewProps) {
-  const Icon = type === "BP" ? Activity : type === "Glucose" ? Droplet : Heart;
+  const Icon = type === "BP" ? Activity : type === "Sugar" ? Droplet : Heart;
 
   return (
     <div className="flex flex-col h-full overflow-hidden group">

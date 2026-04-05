@@ -13,26 +13,30 @@ service cloud.firestore {
 
     // Patients — users can read/write their own patient records
     match /patients/{patientId} {
-      allow read, write: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
       allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
     }
 
     // Documents — users can read/write their own documents
     match /documents/{docId} {
-      allow read, write: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
       allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
     }
 
     // Appointments — users can read/write their own appointments
     match /appointments/{apptId} {
-      allow read, write: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
       allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
     }
 
     // Life Events — users can read/write their own life timeline events
     match /life_events/{eventId} {
-      allow read, write: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
       allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
     }
 
     // Doctors — anyone authenticated can read, only admins can write
@@ -42,14 +46,18 @@ service cloud.firestore {
     }
     // Vitals — users can read/write their own vitals
     match /vitals/{vitalId} {
-      allow read, write: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
       allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
     }
 
-    // Emergency Info — users can write their own, but public can read for emergencies
-    match /emergency_info/{userId} {
+    // Emergency Info — public can read for emergencies, only owners can alter
+    // The path variable `patientId` is now the patient's ID, not the app user's ID
+    match /emergency_info/{patientId} {
       allow read: if true;
-      allow write: if request.auth != null && request.auth.uid == userId;
+      // We must verify that the user trying to write the emergency profile ACTUALLY owns the patient.
+      // So we get the parent patient document and verify the userId matches request.auth.uid.
+      allow write: if request.auth != null && get(/databases/$(database)/documents/patients/$(patientId)).data.userId == request.auth.uid;
     }
   }
 }

@@ -17,7 +17,7 @@ import {
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 
-type VitalType = "Glucose" | "Blood Pressure" | "Heart Rate";
+type VitalType = "Sugar" | "Blood Pressure" | "Heart Rate";
 
 interface VitalLog {
   id: string;
@@ -29,38 +29,41 @@ interface VitalLog {
 }
 
 const VITAL_CONFIG = {
-  "Glucose": { unit: "mg/dL", color: "#10B981", icon: Droplets, bg: "bg-emerald-500/10" },
+  "Sugar": { unit: "mg/dL", color: "#10B981", icon: Droplets, bg: "bg-emerald-500/10" },
   "Blood Pressure": { unit: "mmHg", color: "#3B82F6", icon: Activity, bg: "bg-blue-500/10" },
   "Heart Rate": { unit: "bpm", color: "#F43F5E", icon: Heart, bg: "bg-rose-500/10" }
 };
 
 export function VitalsPage() {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState<VitalType>("Glucose");
+  const [activeTab, setActiveTab] = useState<VitalType>("Sugar");
   const [logs, setLogs] = useState<VitalLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [isLogModalOpen, setIsLogModalOpen] = useState(false);
   const [newVal, setNewVal] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [patients, setPatients] = useState<any[]>([]);
-  const [selectedPatientId, setSelectedPatientId] = useState<string>("self");
+  const [selectedPatientId, setSelectedPatientId] = useState<string>("");
 
   useEffect(() => {
     if (!user) return;
     const unsubPatients = onSnapshot(query(collection(db, "patients"), where("userId", "==", user.uid)), (snap) => {
-        setPatients(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+        const pats = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        setPatients(pats);
+        if (pats.length > 0 && !selectedPatientId) {
+           setSelectedPatientId(pats[0].id);
+        }
     });
     return () => unsubPatients();
   }, [user]);
 
   useEffect(() => {
-    if (!user) return;
-    const currentPatientId = selectedPatientId === "self" ? user.uid : selectedPatientId;
+    if (!user || !selectedPatientId) return;
     const q = query(
       collection(db, "vitals"),
       where("userId", "==", user.uid),
       where("type", "==", activeTab),
-      where("patientId", "==", currentPatientId),
+      where("patientId", "==", selectedPatientId),
       orderBy("timestamp", "desc"),
       limit(50)
     );
@@ -85,13 +88,12 @@ export function VitalsPage() {
 
   const handleAddLog = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user || !newVal) return;
+    if (!user || !newVal || !selectedPatientId) return;
     setIsSaving(true);
-    const currentPatientId = selectedPatientId === "self" ? user.uid : selectedPatientId;
     try {
       await addDoc(collection(db, "vitals"), {
         userId: user.uid,
-        patientId: currentPatientId,
+        patientId: selectedPatientId,
         type: activeTab,
         value: newVal,
         unit: VITAL_CONFIG[activeTab].unit,
@@ -99,7 +101,7 @@ export function VitalsPage() {
       });
       setIsLogModalOpen(false);
       setNewVal("");
-      alert(`${activeTab} saved successfully for ${selectedPatientId === 'self' ? 'You' : patients.find(p=>p.id===selectedPatientId)?.name || 'Patient'}!`);
+      alert(`${activeTab} saved successfully for ${patients.find(p=>p.id===selectedPatientId)?.name || 'Patient'}!`);
     } catch (e: any) {
       console.error(e);
       alert("Failed to save vital: " + e.message);
@@ -131,8 +133,9 @@ export function VitalsPage() {
                 value={selectedPatientId}
                 onChange={(e) => setSelectedPatientId(e.target.value)}
                 className="appearance-none bg-[#171f33] border border-white/10 text-white text-xs font-bold font-lexend px-4 py-2 pr-8 rounded-full shadow-lg outline-none focus:border-emerald-500/50 transition-colors"
+                disabled={patients.length === 0}
               >
-                <option value="self">My Vitals</option>
+                {patients.length === 0 && <option value="">No patients added yet</option>}
                 {patients.map(p => (
                   <option key={p.id} value={p.id}>{p.name}'s Vitals</option>
                 ))}
@@ -145,7 +148,7 @@ export function VitalsPage() {
 
         {/* Segmented Control */}
         <div className="flex bg-[#171f33] p-1.5 rounded-2xl border border-white/5">
-          {(["Glucose", "Blood Pressure", "Heart Rate"] as VitalType[]).map(tab => (
+          {(["Sugar", "Blood Pressure", "Heart Rate"] as VitalType[]).map(tab => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -274,7 +277,14 @@ export function VitalsPage() {
               
               <form onSubmit={handleAddLog} className="space-y-6">
                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Value ({VITAL_CONFIG[activeTab].unit})</label>
+                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">
+                      Enter Value ({VITAL_CONFIG[activeTab].unit})
+                    </label>
+                    <p className="text-xs text-slate-400 ml-1 mb-2">
+                      {activeTab === 'Sugar' && "For India, usually measured fasting (<100mg/dL) or post-meal (<140mg/dL)."}
+                      {activeTab === 'Blood Pressure' && "Format is Systolic/Diastolic (e.g., 120/80). Normal is < 120/80 mmHg."}
+                      {activeTab === 'Heart Rate' && "Normal resting heart rate is between 60 to 100 bpm."}
+                    </p>
                     <input 
                       autoFocus
                       type={activeTab === "Blood Pressure" ? "text" : "number"}

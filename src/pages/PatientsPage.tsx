@@ -3,7 +3,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { collection, query, where, getDocs, addDoc, doc, updateDoc, serverTimestamp, deleteDoc } from "firebase/firestore";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { db, storage } from "@/lib/firebase";
-import { Plus, User, Users, Loader2, Pencil, Trash2, X, CheckCircle2, Camera, AlertTriangle, FileText, Activity } from "lucide-react";
+import { Plus, User, Users, Loader2, Pencil, Trash2, X, CheckCircle2, Camera, AlertTriangle, Activity } from "lucide-react";
 import { LifeTimeline } from "@/components/LifeTimeline";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
@@ -247,60 +247,62 @@ export function PatientsPage() {
 
     const renderSelect = (label: string, key: keyof typeof form, options: string[]) => (
         <div key={key}>
-            <label className="block text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-1.5 ml-1">{label}</label>
+            <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 ml-1">{label}</label>
             <select
                 value={form[key]}
                 onChange={e => setForm(prev => ({ ...prev, [key]: e.target.value }))}
-                className="w-full px-4 py-3.5 rounded-[1.25rem] border border-white/40 bg-white/40 backdrop-blur-md text-slate-800 focus:outline-none focus:bg-white/80 focus:ring-2 focus:ring-primary/20 transition-all font-semibold shadow-sm cursor-pointer"
+                className="w-full px-4 py-3.5 rounded-[1.25rem] bg-[#171f33] border border-white/5 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all font-bold shadow-inner cursor-pointer"
             >
-                {options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                {options.map(opt => <option key={opt} value={opt} className="bg-[#0b1326] text-white py-2">{opt}</option>)}
             </select>
         </div>
     );
 
     const renderTextarea = (label: string, key: keyof typeof form, placeholder?: string) => (
         <div key={key} className="col-span-full">
-            <label className="block text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-1.5 ml-1">{label}</label>
+            <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 ml-1">{label}</label>
             <textarea
                 value={form[key]}
                 onChange={e => setForm(prev => ({ ...prev, [key]: e.target.value }))}
                 placeholder={placeholder}
                 rows={2}
-                className="w-full px-4 py-3.5 rounded-[1.25rem] border border-white/40 bg-white/40 backdrop-blur-md text-slate-800 placeholder:text-slate-400 focus:outline-none focus:bg-white/80 focus:ring-2 focus:ring-primary/20 transition-all font-semibold shadow-sm resize-none"
+                className="w-full px-4 py-3.5 rounded-[1.25rem] bg-[#171f33] border border-white/5 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all font-bold shadow-inner resize-none"
             />
         </div>
     );
 
     return (
-        <div className="pb-6 w-full max-w-lg mx-auto overflow-x-hidden space-y-6">
-            <div className="fixed top-0 left-0 right-0 h-[50vh] soft-gradient-bg -z-10 pointer-events-none"></div>
+        <div className="relative min-h-screen bg-[#0b1326] text-white">
+            <div className="absolute inset-x-0 top-0 h-96 bg-gradient-to-b from-blue-900/10 to-transparent pointer-events-none" />
+            <div className="max-w-3xl mx-auto px-6 py-8 pb-32 relative z-10 w-full animate-in fade-in duration-500 space-y-6">
+            
             {toastMessage && <Toast message={toastMessage} />}
 
             <div className="flex items-center justify-between pt-6">
                 <div>
-                    <h1 className="text-xl font-bold">{t("patients.title")}</h1>
-                    <p className="text-xs text-muted-foreground mt-0.5">{t("patients.subtitle")}</p>
+                    <h1 className="text-3xl font-black font-lexend tracking-tighter">{t("nav.family")}</h1>
+                    <p className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest mt-0.5">Manage Profiles</p>
                 </div>
                 <button
                     onClick={openCreate}
-                    className="flex items-center gap-1.5 text-sm bg-primary text-primary-foreground px-4 py-2.5 rounded-xl font-medium shadow-sm hover:bg-primary/90 transition-colors active:scale-95"
+                    className="flex items-center justify-center size-12 bg-emerald-500 text-[#0b1326] rounded-2xl font-black shadow-lg hover:bg-emerald-600 transition-colors active:scale-95"
                 >
-                    <Plus size={16} /> {t("patients.add")}
+                    <Plus size={24} />
                 </button>
             </div>
 
             {loading ? (
                 <div className="flex justify-center py-20"><Loader2 size={24} className="animate-spin text-slate-400" /></div>
             ) : patients.length === 0 ? (
-                <div className="glass-card text-center py-16 rounded-[2rem] mx-5 border border-white/40 shadow-sm content-center">
-                    <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                        <Users size={28} className="text-primary/70" />
+                <div className="bg-[#171f33] text-center py-20 rounded-[2.5rem] border border-white/5 shadow-inner content-center">
+                    <div className="w-16 h-16 bg-slate-800 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-white/5">
+                        <Users size={28} className="text-slate-500" />
                     </div>
-                    <h3 className="font-semibold text-foreground mb-1">{t("patients.noProfiles")}</h3>
-                    <p className="text-sm text-muted-foreground max-w-[200px] mx-auto mb-6">
+                    <h3 className="font-bold text-white mb-1">{t("patients.noProfiles")}</h3>
+                    <p className="text-[11px] font-medium text-slate-400 max-w-[200px] mx-auto mb-6">
                         {t("patients.emptyDesc")}
                     </p>
-                    <button onClick={openCreate} className="text-sm text-primary font-medium hover:underline bg-primary/5 px-4 py-2 rounded-xl">
+                    <button onClick={openCreate} className="text-xs text-emerald-500 font-bold hover:underline bg-emerald-500/10 px-4 py-2 rounded-xl">
                         {t("patients.createFirst")}
                     </button>
                 </div>
@@ -309,45 +311,38 @@ export function PatientsPage() {
                     {patients.map(p => (
                         <div key={p.id}
                             onClick={() => navigate(`/documents?patientId=${p.id}`)}
-                            className="glass-card rounded-[1.5rem] p-4 flex items-center gap-4 cursor-pointer border border-white/40 hover:border-primary/40 hover:shadow-md transition-all group active:scale-[0.98]">
-                            <div className="w-14 h-14 rounded-[1rem] bg-orange-50/70 flex items-center justify-center flex-shrink-0 overflow-hidden border border-orange-100 shadow-inner">
+                            className="bg-[#171f33] rounded-[1.5rem] p-4 flex items-center gap-4 cursor-pointer border border-white/5 hover:border-emerald-500/30 hover:shadow-2xl transition-all group active:scale-[0.98]">
+                            <div className="w-14 h-14 rounded-[1rem] bg-slate-800 flex items-center justify-center flex-shrink-0 overflow-hidden border border-white/10 shadow-inner">
                                 {p.photoURL ? (
                                     <img src={p.photoURL} alt={p.name} className="w-full h-full object-cover" />
                                 ) : (
-                                    <span className="text-xl font-bold text-orange-600">
+                                    <span className="text-xl font-bold text-slate-400">
                                         {p.name?.[0]?.toUpperCase() ?? <User size={24} />}
                                     </span>
                                 )}
                             </div>
                             <div className="flex-1 min-w-0">
                                 <p className="font-bold text-base truncate">{p.name}</p>
-                                <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mt-0.5 mb-2">
+                                <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest mt-0.5 mb-2">
                                     {p.relationship}
                                 </p>
-                                <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
-                                    <span className="bg-secondary/70 border border-border/50 px-2 py-0.5 rounded-lg font-medium">{calcAge(p.dob)} {t("patients.yrs")}</span>
-                                    {p.bloodGroup && <span className="bg-red-50 text-red-700 border border-red-100 px-2 py-0.5 rounded-lg font-bold">{p.bloodGroup}</span>}
-                                    {p.gender && <span className="bg-secondary/70 border border-border/50 px-2 py-0.5 rounded-lg font-medium">{p.gender}</span>}
+                                <div className="flex flex-wrap items-center gap-1.5 text-xs text-slate-400 font-medium">
+                                    <span className="bg-slate-800 px-2 py-0.5 rounded-lg">{calcAge(p.dob)} {t("patients.yrs")}</span>
+                                    {p.bloodGroup && <span className="bg-rose-500/10 text-rose-500 px-2 py-0.5 rounded-lg font-bold">{p.bloodGroup}</span>}
+                                    {p.gender && <span className="bg-slate-800 px-2 py-0.5 rounded-lg">{p.gender}</span>}
                                 </div>
                             </div>
                             <div className="flex flex-col gap-2">
                                 <div
                                     onClick={(e) => { e.stopPropagation(); openEdit(p); }}
-                                    className="w-9 h-9 rounded-full bg-secondary flex items-center justify-center text-muted-foreground hover:bg-primary hover:text-primary-foreground transition-all shadow-sm"
+                                    className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center text-slate-400 hover:bg-emerald-500 hover:text-[#0b1326] transition-all shadow-sm"
                                     title="Edit Patient"
                                 >
                                     <Pencil size={15} />
                                 </div>
                                 <div
-                                    onClick={(e) => { e.stopPropagation(); navigate(`/documents?patientId=${p.id}`); }}
-                                    className="w-9 h-9 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 hover:bg-blue-600 hover:text-white transition-all shadow-sm"
-                                    title="View Documents"
-                                >
-                                    <FileText size={15} />
-                                </div>
-                                <div
                                     onClick={(e) => { e.stopPropagation(); setTimelinePatient(p); }}
-                                    className="w-9 h-9 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 hover:bg-emerald-600 hover:text-white transition-all shadow-sm"
+                                    className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center text-slate-400 hover:bg-emerald-500 hover:text-[#0b1326] transition-all shadow-sm"
                                     title="Life Timeline"
                                 >
                                     <Activity size={15} />
@@ -360,22 +355,19 @@ export function PatientsPage() {
 
             {/* Create / Edit Modal */}
             {showModal && (
-                <div className="fixed inset-0 z-[60] bg-black/40 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={() => setShowModal(false)}>
+                <div className="fixed inset-0 z-[60] bg-black/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={() => setShowModal(false)}>
                     <div
-                        className="w-full max-w-2xl glass-card rounded-t-[2.5rem] sm:rounded-[2.5rem] flex flex-col max-h-[92vh] sm:max-h-[85vh] shadow-2xl animate-in slide-in-from-bottom-5 sm:zoom-in-95 duration-300 border border-white/50 relative overflow-hidden"
+                        className="w-full max-w-2xl bg-[#0b1326] text-white rounded-t-[2.5rem] sm:rounded-[2.5rem] flex flex-col max-h-[92vh] sm:max-h-[85vh] shadow-[0_0_100px_rgba(16,185,129,0.1)] animate-in slide-in-from-bottom-5 duration-300 border border-emerald-500/20 relative overflow-hidden"
                         onClick={e => e.stopPropagation()}
                     >
-                        <div className="absolute top-0 right-0 size-48 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none -z-10"></div>
-                        <div className="absolute bottom-0 left-0 size-48 bg-primary/10 rounded-full blur-3xl pointer-events-none -z-10"></div>
-
                         {/* Header & Tabs Container */}
-                        <div className="relative z-10 w-full border-b border-white/40 bg-white/40 backdrop-blur-xl">
+                        <div className="relative z-10 w-full border-b border-white/5 bg-[#171f33]/80 backdrop-blur-xl">
                             <div className="flex items-center justify-between p-6 pb-2">
                                 <div>
-                                    <h2 className="text-2xl font-bold text-slate-800 tracking-tight">{editingId ? t("patients.editProfile") : t("patients.newProfile")}</h2>
-                                    <p className="text-sm font-semibold text-slate-500 mt-1">{t("patients.formRecord")}</p>
+                                    <h2 className="text-2xl font-black font-lexend tracking-tighter text-white">{editingId ? t("patients.editProfile") : t("patients.newProfile")}</h2>
+                                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">Health Record</p>
                                 </div>
-                                <button onClick={() => setShowModal(false)} className="size-10 rounded-full bg-white/50 flex items-center justify-center text-slate-500 hover:bg-white hover:text-slate-800 hover:shadow-sm transition-all border border-white/60">
+                                <button onClick={() => setShowModal(false)} className="size-10 rounded-full bg-slate-900 flex items-center justify-center text-slate-400 hover:bg-slate-800 hover:text-white transition-all">
                                     <X size={20} />
                                 </button>
                             </div>
@@ -387,8 +379,8 @@ export function PatientsPage() {
                                         key={tab}
                                         onClick={() => setActiveTab(tab)}
                                         className={cn(
-                                            "py-3 text-[15px] font-bold whitespace-nowrap transition-all border-b-[3px]",
-                                            activeTab === tab ? "border-primary text-primary" : "border-transparent text-slate-400 hover:text-slate-700 hover:border-slate-300"
+                                            "py-3 text-[13px] font-black uppercase tracking-wider whitespace-nowrap transition-all border-b-[3px]",
+                                            activeTab === tab ? "border-emerald-500 text-emerald-500" : "border-transparent text-slate-500 hover:text-slate-300 hover:border-slate-700"
                                         )}
                                     >
                                         {tab === "Misc" ? t("patients.tabs.misc") : tab === "Basic" ? t("patients.tabs.basic") : tab === "Contact" ? t("patients.tabs.contact") : t("patients.tabs.medical")}
@@ -595,6 +587,7 @@ export function PatientsPage() {
             {timelinePatient && (
                 <LifeTimeline patient={timelinePatient} onClose={() => setTimelinePatient(null)} />
             )}
+        </div>
         </div>
     );
 }
