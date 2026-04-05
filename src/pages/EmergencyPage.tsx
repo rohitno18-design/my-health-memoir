@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { 
   ShieldAlert, Phone, Droplets, AlertCircle, 
   Heart, X, Check, Loader2, 
@@ -25,7 +25,6 @@ export function EmergencyPage() {
   const { user } = useAuth();
   const [info, setInfo] = useState<EmergencyInfo | null>(null);
   const [loading, setLoading] = useState(true);
-  const [editing, setEditing] = useState(false);
   const [isSOSActive, setIsSOSActive] = useState(false);
   const [patients, setPatients] = useState<any[]>([]);
   const [selectedPatientId, setSelectedPatientId] = useState<string>("");
@@ -98,7 +97,7 @@ export function EmergencyPage() {
             <select 
               value={selectedPatientId}
               onChange={(e) => setSelectedPatientId(e.target.value)}
-              className="appearance-none bg-rose-500/10 text-rose-500 text-xs font-bold font-lexend px-3 py-1.5 pr-6 rounded-lg outline-none cursor-pointer"
+              className="appearance-none bg-rose-500/10 text-rose-500 text-xs font-bold font-lexend px-3 py-1.5 rounded-lg outline-none cursor-pointer"
             >
               {patients.map(p => (
                 <option key={p.id} value={p.id} className="bg-[#0b1326] text-white">{p.name}</option>
@@ -107,9 +106,6 @@ export function EmergencyPage() {
           ) : (
              <span className="text-xs text-rose-500 font-bold">No Patients</span>
           )}
-          <button onClick={() => setEditing(true)} className="p-2 hover:bg-white/5 rounded-full transition-colors">
-            <Settings size={20} className="text-slate-400" />
-          </button>
         </div>
       </header>
 
@@ -204,7 +200,6 @@ export function EmergencyPage() {
         <section className="space-y-4">
           <div className="flex items-center justify-between px-2">
              <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">In Case of Emergency</h3>
-             <button onClick={() => setEditing(true)} className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">Edit List</button>
           </div>
           <div className="space-y-3">
              {info?.iceContacts.length ? info.iceContacts.map((contact, i) => (
@@ -235,65 +230,6 @@ export function EmergencyPage() {
           This Medical Profile is intended for emergency use only. Universal Health OS does not guarantee immediate response but provides data visualization tools for medical professionals.
         </p>
       </main>
-
-      {/* Edit Modal (Sheet) */}
-      <AnimatePresence>
-        {editing && (
-          <motion.div 
-            initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
-            transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="fixed inset-0 z-50 bg-[#0b1326] flex flex-col"
-          >
-            <header className="p-6 flex items-center justify-between border-b border-white/5">
-              <h2 className="text-xl font-black font-lexend">Edit Profile</h2>
-              <button onClick={() => setEditing(false)} className="size-10 bg-slate-900 rounded-full flex items-center justify-center"><X size={20} /></button>
-            </header>
-            <div className="flex-1 overflow-y-auto p-6 space-y-8 pb-32">
-              <div className="space-y-4">
-                <div>
-                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Blood Type</label>
-                  <select 
-                    value={info?.bloodType} 
-                    onChange={e => updateDoc(doc(db, "emergency_info", selectedPatientId), { bloodType: e.target.value }).catch(err => alert("Failed: " + err.message))}
-                    className="w-full mt-2 p-4 rounded-2xl bg-slate-900 border border-white/5 text-white font-bold"
-                  >
-                    {["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-", "Not Set"].map(t => <option key={t} value={t}>{t}</option>)}
-                  </select>
-                </div>
-
-                <div className="flex items-center justify-between p-4 bg-slate-900 rounded-2xl border border-white/5">
-                   <div>
-                     <p className="font-bold">Organ Donor</p>
-                     <p className="text-[10px] text-slate-500">Publicly show donor status</p>
-                   </div>
-                   <button 
-                    onClick={() => updateDoc(doc(db, "emergency_info", selectedPatientId), { organDonor: !info?.organDonor }).catch(err => alert("Failed: " + err.message))}
-                    className={cn("size-6 rounded flex items-center justify-center transition-colors", info?.organDonor ? "bg-emerald-500" : "bg-slate-700")}
-                   >
-                     {info?.organDonor && <Check size={16} />}
-                   </button>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <h3 className="text-xs font-black text-slate-500 uppercase tracking-widest ml-1">Critical Conditions & Allergies</h3>
-                <p className="text-xs text-slate-600 px-1">Use the medical vault to add records. For now, enter comma-separated values.</p>
-                <textarea 
-                  placeholder="Peanuts, Penicillin..."
-                  className="w-full p-4 rounded-2xl bg-slate-900 border border-white/5 text-white font-medium min-h-[100px]"
-                  defaultValue={info?.allergies.join(", ")}
-                  onBlur={e => updateDoc(doc(db, "emergency_info", selectedPatientId), { allergies: e.target.value.split(",").map(v => v.trim()).filter(Boolean) }).catch(err => alert("Failed: " + err.message))}
-                />
-              </div>
-            </div>
-            <div className="p-6 bg-gradient-to-t from-[#0b1326] via-[#0b1326] to-transparent absolute bottom-0 left-0 right-0">
-               <button onClick={() => setEditing(false)} className="w-full py-4 bg-emerald-600 rounded-2xl font-black shadow-lg shadow-emerald-500/20">
-                 Save & Return
-               </button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }
