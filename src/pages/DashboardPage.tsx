@@ -1,86 +1,35 @@
 import { useState, useRef, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
+import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
-import { Bot, UploadCloud, Loader2, X, Activity } from "lucide-react";
+import { 
+  Bot, UploadCloud, Loader2, X, ShieldCheck, 
+  ChevronRight, Zap, UserCircle 
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { db, storage } from "@/lib/firebase";
-import { collection, addDoc, serverTimestamp, getDocs, query, where, doc, updateDoc, arrayUnion } from "firebase/firestore";
+import { 
+  collection, addDoc, serverTimestamp, query, where, 
+  doc, updateDoc, onSnapshot 
+} from "firebase/firestore";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
-import { cn } from "@/lib/utils";
 import { useTranslation } from "react-i18next";
+
+// Bento Components
+import { FamilyPulse } from "@/components/dashboard/FamilyPulse";
+import { VitalsQuickView } from "@/components/dashboard/VitalsQuickView";
+import { AIInsight } from "@/components/dashboard/AIInsight";
+import { QuickActions } from "@/components/dashboard/QuickActions";
+
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY ?? "";
 const MODEL_ID = import.meta.env.VITE_GEMINI_MODEL ?? "gemini-2.0-flash";
 const API_VERSION = import.meta.env.VITE_GEMINI_API_VERSION ?? "v1beta";
 const API_URL = `https://generativelanguage.googleapis.com/${API_VERSION}/models/${MODEL_ID}:streamGenerateContent?key=${API_KEY}&alt=sse`;
 
-
-const SUMMARY_PROMPT = (lang: string) => `You are a medical & general AI assistant. Analyze the uploaded document or image and provide a summary in ${lang}.
-Use simple, clear, and reassuring language so a non-medical person can easily understand.
-USE MARKDOWN FORMATTING for your response structure. Use '### ' for section headers and '- ' for bullet points. Do not use asterisks (** or *) for bolding unless necessary. 
-
-IMPORTANT INSTRUCTIONS:
-- The user may upload ANY image (like a photo of an injury, a broken car, general objects, etc.) even if it is not a standard medical document. 
-- If the image does not look like a medical document or report, add a friendly note at the very top saying exactly: "This does not look like a standard medical document, but I will summarize what I see here for you!"
-- Always start your summary by clearly stating exactly what this document or image is about.
-- Always include the date of the document (extract it from the document, or use the user-provided date).
-
-- IF this document represents a significant health event (like a surgery, hospital visit, diagnosis, or major life milestone), extract those details into a precise JSON block at the very end of your response. Use categories: 'visit', 'diagnosis', 'procedure', 'milestone', 'note'. Use YYYY-MM-DD format for date. 
-
-Please follow EXACTLY this formatting style:
-
-### ✅ What is this document?
-- [State exactly what the document/photo is]
-
-### ✅ First: The GOOD news (for medical reports) OR What I see (for general images)
-- [Bullet points of normal findings or general visual descriptions]
-
-### ❌ Now the important problems (these need attention)
-- 🔴 [Problem 1: Details, causes]
-
-### ✅ Summary in simple words
-- [Brief simple conclusion]
-
-### ✅ What should be done next (clear action plan)
-- [Steps like 'See a doctor', 'Rest', 'Contact insurance', 'Keep it clean']
-
-### 👉 Overall conclusion
-- [One sentence takeaway]
-
-### 📅 Proposed Life Event
-\`\`\`json
-{
-  "isEvent": true,
-  "title": "[Short title like 'Knee Surgery' or 'Diagnosed with Diabetes']",
-  "category": "[One of: 'visit', 'diagnosis', 'procedure', 'milestone', 'note']",
-  "date": "YYYY-MM-DD",
-  "description": "[Brief 1-sentence description]"
-}
-\`\`\`
-*(Omit this block if the document does not represent a specific event).*`;
-
-
+const SUMMARY_PROMPT = (lang: string) => `You are a medical AI assistant for the Universal Health OS. Analyze the document and provide a summary in ${lang}. Use Markdown formatting.`;
 
 const CATEGORIES = [
     "Prescription", "Lab Report", "Imaging (X-ray/MRI)", "Clinical Note", "Billing/Insurance", "Other"
-];
-
-const EVENT_CATEGORIES = [
-    { id: "visit", label: "Doctor Visit" },
-    { id: "diagnosis", label: "New Diagnosis" },
-    { id: "procedure", label: "Surgery / Procedure" },
-    { id: "milestone", label: "Health Milestone" },
-    { id: "note", label: "General Note" },
-];
-
-const languages = [
-    "English", "Hindi", "Hinglish", "Marathi", "Gujarati", "Tamil", "Telugu", "Bengali"
-];
-
-const quickLinks = [
-    { labelKey: "dashboard.vault", icon: "folder_managed", path: "/documents", color: "text-blue-600 bg-blue-50" },
-    { labelKey: "dashboard.aiChat", icon: "forum", path: "/ai-chat", color: "text-violet-600 bg-violet-50" },
-    { labelKey: "dashboard.patients", icon: "groups", path: "/patients", color: "text-emerald-600 bg-emerald-50" },
-    { labelKey: "dashboard.profile", icon: "account_circle", path: "/profile", color: "text-orange-600 bg-orange-50" },
 ];
 
 const getBase64 = (file: File): Promise<string> =>
@@ -96,71 +45,40 @@ export function DashboardPage() {
     const navigate = useNavigate();
     const { t } = useTranslation();
 
+    // Data State
+    const [patients, setPatients] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+
     // Upload & Analysis State
-    const [patients, setPatients] = useState<{ id: string, name: string }[]>([]);
-    const [episodes, setEpisodes] = useState<{ id: string, name: string }[]>([]);
     const [uploadStep, setUploadStep] = useState<"idle" | "form" | "uploading" | "analyzing" | "summary">("idle");
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [progress, setProgress] = useState(0);
     const [aiSummary, setAiSummary] = useState("");
-    // Episode Creation State
-    const [isCreatingEpisode, setIsCreatingEpisode] = useState(false);
-    const [newEpisodeName, setNewEpisodeName] = useState("");
-
-    // Upfront Timeline State
-    const [lifeEvents, setLifeEvents] = useState<{ id: string, title: string, date: string }[]>([]);
 
     const [form, setForm] = useState({
         patientId: "",
         category: "Lab Report",
-        customCategory: "",
-        episodeId: "",
         docDate: new Date().toISOString().split('T')[0],
-        doctorName: "",
-        hospital: "",
-        lab: "",
         language: "English",
-        generateSummary: true,
-        timelineAction: "none" as "none" | "link" | "create",
-        selectedEventId: "",
-        newEventTitle: "",
-        newEventDate: new Date().toISOString().split('T')[0],
-        newEventCategory: "visit"
+        generateSummary: true
     });
 
     const fileInputRef = useRef<HTMLInputElement>(null);
     const cameraInputRef = useRef<HTMLInputElement>(null);
 
+    // Fetch Patients (Family)
     useEffect(() => {
-        if (user) {
-            getDocs(query(collection(db, "patients"), where("userId", "==", user.uid)))
-                .then(snap => {
-                    const pts = snap.docs.map(d => ({ id: d.id, name: d.data().name }));
-                    setPatients(pts);
-                    if (pts.length > 0) {
-                        setForm(f => ({ ...f, patientId: pts[0].id }));
-                    }
-                });
-        }
-    }, [user]);
-
-    // Fetch episodes & life events when patient changes
-    useEffect(() => {
-        if (user && form.patientId) {
-            getDocs(query(collection(db, "episodes"), where("patientId", "==", form.patientId)))
-                .then(snap => {
-                    setEpisodes(snap.docs.map(d => ({ id: d.id, name: d.data().name })));
-                    setForm(f => ({ ...f, episodeId: "" })); // reset selected episode
-                });
-            getDocs(query(collection(db, "life_events"), where("userId", "==", user.uid), where("patientId", "==", form.patientId)))
-                .then(snap => {
-                    setLifeEvents(snap.docs.map(d => ({ id: d.id, title: d.data().title, date: d.data().date })));
-                    setForm(f => ({ ...f, timelineAction: "none", selectedEventId: "", newEventTitle: "", newEventDate: f.docDate, newEventCategory: "visit" }));
-                });
-        } else {
-            setEpisodes([]);
-            setLifeEvents([]);
-        }
+        if (!user) return;
+        const q = query(collection(db, "patients"), where("userId", "==", user.uid));
+        const unsub = onSnapshot(q, (snap) => {
+            const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            setPatients(data);
+            if (data.length > 0 && !form.patientId) {
+              setForm(f => ({ ...f, patientId: data[0].id }));
+            }
+            setLoading(false);
+        });
+        return () => unsub();
     }, [user, form.patientId]);
 
     const formatGreeting = () => {
@@ -170,22 +88,10 @@ export function DashboardPage() {
         return t("dashboard.evening");
     };
 
-    const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-        // Prevent launching if no patient exists - prompt them to add one first
-        if (patients.length === 0) {
-            alert("Please add a patient profile first before uploading documents.");
-            navigate("/patients");
-            return;
-        }
-
-        const file = e.target.files?.[0];
+    const handleFileSelect = (file: File) => {
         if (!file) return;
-
         setSelectedFile(file);
         setUploadStep("form");
-
-        if (fileInputRef.current) fileInputRef.current.value = "";
-        if (cameraInputRef.current) cameraInputRef.current.value = "";
     };
 
     const processUploadAndAnalyze = async (e: React.FormEvent) => {
@@ -196,21 +102,8 @@ export function DashboardPage() {
         setProgress(0);
         let uploadedUrl = "";
         let firestoreDocId = "";
-        let finalEpisodeId = form.episodeId;
 
         try {
-            // 0. Create new episode if needed
-            if (isCreatingEpisode && newEpisodeName.trim()) {
-                const epDoc = await addDoc(collection(db, "episodes"), {
-                    userId: user.uid,
-                    patientId: form.patientId,
-                    name: newEpisodeName.trim(),
-                    createdAt: serverTimestamp()
-                });
-                finalEpisodeId = epDoc.id;
-            }
-
-            // 1. Upload to Firebase Storage
             const fileName = `${Date.now()}_${selectedFile.name}`;
             const storageRef = ref(storage, `documents/${user.uid}/${fileName}`);
             const uploadTask = uploadBytesResumable(storageRef, selectedFile);
@@ -226,144 +119,54 @@ export function DashboardPage() {
                 );
             });
 
-            // 2. Initial Document Save to Firestore
             const newDoc = await addDoc(collection(db, "documents"), {
                 userId: user.uid,
                 patientId: form.patientId,
                 name: selectedFile.name,
                 type: selectedFile.type,
-                category: form.category === "Other" ? form.customCategory : form.category,
-                episodeId: finalEpisodeId || null,
+                category: form.category,
                 docDate: form.docDate,
-                eventDate: form.docDate, // Save as both for backwards compatibility during migration
-                doctorName: form.doctorName,
-                hospital: form.hospital,
-                lab: form.lab,
                 url: uploadedUrl,
                 status: form.generateSummary ? "analyzing" : "completed",
-                aiSummary: form.generateSummary ? "" : "AI Summary generation was bypassed for this document.",
+                aiSummary: "",
                 createdAt: serverTimestamp(),
             });
             firestoreDocId = newDoc.id;
 
+            if (form.generateSummary) {
+                setUploadStep("analyzing");
+                const base64Data = await getBase64(selectedFile);
+                const res = await fetch(API_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [
+                                { text: SUMMARY_PROMPT(form.language) },
+                                { inline_data: { mime_type: selectedFile.type, data: base64Data } }
+                            ]
+                        }]
+                    })
+                });
 
-            // 3. Handle Upfront Timeline Event Linking
-            if (form.timelineAction === "create" && form.newEventTitle.trim()) {
-                await addDoc(collection(db, "life_events"), {
-                    userId: user.uid,
-                    patientId: form.patientId,
-                    title: form.newEventTitle.trim(),
-                    date: form.newEventDate,
-                    description: `Primary event for ${selectedFile.name}`,
-                    category: form.newEventCategory,
-                    documentIds: [firestoreDocId],
-                    createdAt: serverTimestamp()
-                });
-            } else if (form.timelineAction === "link" && form.selectedEventId) {
-                await updateDoc(doc(db, "life_events", form.selectedEventId), {
-                    documentIds: arrayUnion(firestoreDocId)
-                });
+                if (res.ok) {
+                    const data = await res.json();
+                    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text ?? "Analysis complete.";
+                    setAiSummary(text);
+                    await updateDoc(doc(db, "documents", firestoreDocId), {
+                        aiSummary: text,
+                        status: "completed"
+                    });
+                }
+                setUploadStep("summary");
+            } else {
+                setUploadStep("idle");
+                navigate("/documents");
             }
 
         } catch (err) {
             console.error(err);
-            alert("Failed to upload the document. Please try again.");
             setUploadStep("idle");
-            return;
-        }
-
-        // 4. Summarize using Gemini 2.0 Flash
-        setUploadStep("analyzing");
-        setAiSummary("");
-
-        // Bypass AI if toggle is off
-        if (!form.generateSummary) {
-            setUploadStep("summary");
-            setAiSummary("AI Summary generation was bypassed for this document. You can generate one later from the Documents vault.");
-            return;
-        }
-
-        let finalSummaryText = "";
-
-        try {
-            const base64Data = await getBase64(selectedFile);
-            const actualDocType = form.category === "Other" ? form.customCategory : form.category;
-
-            const res = await fetch(API_URL, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    contents: [{
-                        parts: [
-                            { text: `${SUMMARY_PROMPT(form.language)}\n\nHere is the document. It is a ${actualDocType}. The patient is male/female (adapt logically if visible). Hospital/Clinic: ${form.hospital}, Lab: ${form.lab}. Date: ${form.docDate}.` },
-                            { inline_data: { mime_type: selectedFile.type, data: base64Data } }
-                        ]
-                    }],
-                    generationConfig: { temperature: 0.2 },
-                })
-            });
-
-            if (!res.ok) {
-                const errorBody = await res.text();
-                throw new Error(`API response error: ${res.status} ${errorBody}`);
-            }
-
-            const reader = res.body?.getReader();
-            const decoder = new TextDecoder();
-
-            if (reader) {
-                while (true) {
-                    const { done, value } = await reader.read();
-                    if (done) break;
-                    const chunk = decoder.decode(value);
-                    const lines = chunk.split("\n").filter(l => l.trim().startsWith("data:"));
-
-                    for (const line of lines) {
-                        try {
-                            const jsonStr = line.replace(/^data:\s*/, "");
-                            const data = JSON.parse(jsonStr);
-                            const text = data?.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
-                            if (text) {
-                                finalSummaryText += text;
-                                setAiSummary(prev => prev + text);
-                            }
-                        } catch (e) {
-                            console.warn("Chunk parse error:", e, line);
-                        }
-                    }
-                }
-            }
-
-            if (!finalSummaryText) {
-                throw new Error("AI returned an empty summary.");
-            }
-
-            // We no longer extract JSON proposed events here because logic is now UPFRONT.
-            // Just display the result.
-            setUploadStep("summary");
-
-            // Update the firestore doc with the final summary
-            await updateDoc(doc(db, "documents", firestoreDocId), {
-                aiSummary: finalSummaryText,
-                aiSummaries: { [form.language]: finalSummaryText },
-                status: "completed"
-            });
-
-        } catch (err: any) {
-            console.error("AI Analysis Error Detail:", err);
-            const errorMessage = err.message || "Unknown error";
-            finalSummaryText = `The document was successfully uploaded, but AI analysis failed.\n\nError Details: ${errorMessage}\n\nYou can view your document in the Documents tab and try analyzing it again later.`;
-            setAiSummary(finalSummaryText);
-            setUploadStep("summary");
-
-
-
-            if (firestoreDocId) {
-                await updateDoc(doc(db, "documents", firestoreDocId), {
-                    status: "failed",
-                    aiSummary: `Analysis failed: ${errorMessage}`
-                });
-            }
         }
     };
 
@@ -373,324 +176,177 @@ export function DashboardPage() {
         setAiSummary("");
     };
 
+    const mockVitalsData = [
+        { date: "2024-03-01", value: 110 }, { date: "2024-03-02", value: 115 },
+        { date: "2024-03-03", value: 112 }, { date: "2024-03-04", value: 118 },
+        { date: "2024-03-05", value: 114 },
+    ];
 
+    if (loading) {
+      return (
+        <div className="flex items-center justify-center min-h-screen bg-slate-50">
+          <Loader2 className="animate-spin text-emerald-500" size={32} />
+        </div>
+      );
+    }
 
     return (
-        <div className="pb-6 w-full max-w-lg mx-auto overflow-x-hidden">
-            <div className="absolute top-0 left-0 right-0 h-[50vh] soft-gradient-bg -z-10 pointer-events-none"></div>
+        <div className="pb-24 w-full max-w-lg mx-auto relative min-h-screen bg-slate-50/50">
+            {/* Background */}
+            <div className="fixed inset-0 -z-10 pointer-events-none overflow-hidden">
+                <div className="absolute top-[-10%] left-[-20%] w-full h-[60%] bg-emerald-500/5 blur-[120px] animate-pulse" />
+                <div className="absolute bottom-0 right-0 w-full h-[40%] bg-primary/5 blur-[100px]" />
+            </div>
 
-            {/* Welcome Section */}
-            <section className="px-6 pt-8 pb-4">
-                <p className="text-slate-500 text-sm font-semibold mb-1 uppercase tracking-wider">{formatGreeting()}, {userProfile?.displayName ? userProfile.displayName.split(' ')[0] : t("dashboard.guest")}</p>
-                <h2 className="text-[32px] font-extrabold text-slate-900 tracking-tight leading-[1.1] mb-2">
-                    {t("dashboard.tagline1")} <br />
-                    <span className="text-primary italic font-serif opacity-90">{t("dashboard.tagline2")}</span>
-                </h2>
-            </section>
-
-            {/* AI Assistant Card (Advanced Glassmorphism) */}
-            <section className="px-5 py-4">
-                <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-primary via-primary to-emerald-500 p-6 text-white shadow-xl shadow-primary/20">
-                    <div className="absolute -top-12 -right-12 size-48 bg-white/10 rounded-full blur-3xl pointer-events-none"></div>
-                    <div className="flex flex-col gap-4 relative z-10">
-                        <div className="flex items-center gap-2">
-                            <div className="flex size-8 items-center justify-center rounded-xl bg-white/20 backdrop-blur-md shadow-sm border border-white/10">
-                                <span className="material-symbols-outlined text-white text-[20px]">auto_awesome</span>
-                            </div>
-                            <span className="text-xs font-bold tracking-widest uppercase text-white/90">{t("dashboard.aiTitle")}</span>
-                        </div>
-                        <div className="space-y-2 max-w-[90%]">
-                            <p className="text-lg font-semibold leading-snug">{t("dashboard.aiDesc")}</p>
-                        </div>
-                        <div className="flex gap-3 pt-3">
-                            <button onClick={() => fileInputRef.current?.click()} className="flex-1 bg-white text-primary rounded-xl py-3 px-4 text-sm font-black shadow-lg shadow-black/10 hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 transition-all flex items-center justify-center gap-2">
-                                {t("dashboard.uploadBtn")}
-                                <span className="material-symbols-outlined text-[18px]">arrow_upward</span>
-                            </button>
-                            <button onClick={() => cameraInputRef.current?.click()} className="size-12 shrink-0 bg-white/20 backdrop-blur-md border border-white/20 rounded-xl flex items-center justify-center hover:bg-white/30 hover:-translate-y-0.5 active:translate-y-0 shadow-lg shadow-black/5 transition-all text-white">
-                                <span className="material-symbols-outlined text-[20px]">photo_camera</span>
-                            </button>
-                        </div>
+            {/* Header */}
+            <header className="sticky top-0 z-40 px-6 py-4 flex items-center justify-between bg-white/60 backdrop-blur-xl border-b border-white/40">
+                <div className="flex items-center gap-3">
+                    <div className="size-10 rounded-2xl bg-gradient-to-br from-emerald-600 to-emerald-400 flex items-center justify-center shadow-lg shadow-emerald-500/20">
+                         <ShieldCheck className="text-white" size={20} />
+                    </div>
+                    <div>
+                        <h1 className="text-base font-black text-slate-800 tracking-tight">Health OS</h1>
+                        <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest leading-none">Universal Profile</p>
                     </div>
                 </div>
+                <button onClick={() => navigate("/profile")} className="size-10 rounded-full bg-white border border-slate-200 overflow-hidden shadow-sm flex items-center justify-center">
+                    {userProfile?.photoURL ? (
+                      <img src={userProfile.photoURL} alt="Profile" className="size-full object-cover" />
+                    ) : (
+                      <UserCircle className="text-slate-300" size={24} />
+                    )}
+                </button>
+            </header>
 
-                {/* Hidden Inputs for AI Upload */}
-                <input type="file" accept="image/*" capture="environment" className="hidden" ref={cameraInputRef} onChange={handleFileSelect} />
-                <input type="file" accept=".pdf,image/*" className="hidden" ref={fileInputRef} onChange={handleFileSelect} />
-            </section>
-
-            {/* AI Upload Progress Indicators */}
-            {(uploadStep === "uploading" || uploadStep === "analyzing") && (
-                <section className="mb-4 animate-in fade-in slide-in-from-top-4 duration-500">
-                    <div className="glass-card rounded-[2rem] p-6 shadow-sm border border-primary/10 flex flex-col items-center justify-center gap-5">
-                        {uploadStep === "uploading" ? (
-                            <>
-                                <div className="size-16 rounded-full bg-blue-50 flex items-center justify-center mb-1">
-                                    <UploadCloud size={32} className="animate-bounce text-primary" />
-                                </div>
-                                <div className="w-full space-y-2">
-                                    <div className="flex items-center justify-between text-[11px] font-bold text-slate-500 uppercase tracking-widest">
-                                        <span>Saving securely to Vault...</span>
-                                        <span className="text-primary">{progress}%</span>
-                                    </div>
-                                    <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
-                                        <div className="h-full bg-gradient-to-r from-primary to-blue-400 rounded-full transition-all duration-300 relative overflow-hidden" style={{ width: `${progress}%` }}>
-                                            <div className="absolute inset-0 bg-white/20 animate-pulse"></div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </>
-                        ) : (
-                            <>
-                                <div className="relative mb-2">
-                                    <div className="size-16 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20 shadow-inner">
-                                        <span className="material-symbols-outlined text-[36px] text-primary">auto_awesome</span>
-                                    </div>
-                                    <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full animate-pulse" />
-                                    <span className="absolute -bottom-1 -right-1 size-5 rounded-full border-2 border-white bg-emerald-500 flex items-center justify-center shadow-lg">
-                                        <Loader2 size={10} className="text-white animate-spin" />
-                                    </span>
-                                </div>
-                                <div className="text-center space-y-1">
-                                    <h3 className="font-extrabold text-lg text-slate-900">AI is analyzing...</h3>
-                                    <p className="text-xs font-semibold text-slate-500">Extracting insights from your document</p>
-                                </div>
-                            </>
-                        )}
-                    </div>
+            <main className="px-6 pt-6 space-y-8">
+                {/* Greeting */}
+                <section>
+                    <motion.p initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">
+                        {formatGreeting()}, {userProfile?.displayName?.split(' ')[0] || "Guest"}
+                    </motion.p>
+                    <motion.h2 initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="text-3xl font-black text-slate-900 leading-tight tracking-tighter">
+                        Your Health <br /> <span className="text-emerald-600">at a Glance.</span>
+                    </motion.h2>
                 </section>
-            )}
 
-            {/* Quick Search */}
-            <section className="mb-4 mt-2">
-                <form onSubmit={(e) => {
-                    e.preventDefault();
-                    const val = new FormData(e.currentTarget).get("search") as string;
-                    if (val) navigate(`/documents?search=${encodeURIComponent(val)}`);
-                }} className="relative group">
-                    <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors text-[20px]">search</span>
-                    <input
-                        name="search"
-                        type="text"
-                        placeholder={t("dashboard.searchPlaceholder")}
-                        className="w-full pl-12 pr-4 py-4 rounded-[1.5rem] border border-white/40 bg-white/40 backdrop-blur-md focus:bg-white/80 focus:ring-2 focus:ring-primary/20 transition-all font-semibold text-slate-700 shadow-sm outline-none placeholder:text-slate-400"
-                    />
-                    <button type="submit" className="hidden">Search</button>
-                </form>
-            </section>
+                {/* Bento Grid */}
+                <div className="grid grid-cols-2 gap-4">
+                    <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2 }} className="bento-card col-span-2 md:col-span-1 min-h-[160px]">
+                        <FamilyPulse patients={patients} onSelect={(id) => navigate(`/documents?patientId=${id}`)} />
+                    </motion.div>
 
-            {/* Quick Access Grid */}
-            <section className="pb-8 space-y-3 mt-2">
-                <h3 className="text-[17px] font-extrabold text-slate-900 mb-3 px-1">{t("dashboard.quickAccess")}</h3>
-                <div className="grid grid-cols-2 gap-3">
-                    {quickLinks.map(({ labelKey, icon, path, color }) => (
-                        <button
-                            key={path}
-                            onClick={() => navigate(path)}
-                            className="bg-white/40 backdrop-blur-md border border-white/40 rounded-[1.5rem] p-4 flex flex-col items-start gap-3 shadow-sm hover:shadow-md hover:border-primary/30 transition-all active:scale-95 group"
-                        >
-                            <div className={cn("size-12 rounded-xl flex items-center justify-center group-hover:scale-105 transition-transform", color)}>
-                                <span className="material-symbols-outlined text-[24px]">{icon}</span>
-                            </div>
-                            <span className="text-[14px] font-extrabold text-slate-800">{t(labelKey)}</span>
-                        </button>
-                    ))}
-                </div>
-            </section>
+                    <motion.div 
+                        initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.3 }} 
+                        className="bento-card col-span-1 cursor-pointer active:scale-95 transition-all"
+                        onClick={() => navigate("/vitals")}
+                    >
+                        <VitalsQuickView type="Glucose" value={114} unit="mg/dL" trend="down" data={mockVitalsData} color="#10B981" />
+                    </motion.div>
 
-            {/* Meta Form Modal */}
-            {uploadStep === "form" && (
-                <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-                    <div className="w-full max-w-lg bg-card rounded-[2rem] p-6 shadow-2xl animate-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
-                        <div className="flex items-center justify-between mb-4 flex-shrink-0">
-                            <div>
-                                <h3 className="text-xl font-bold">Document Details</h3>
-                                <p className="text-xs text-muted-foreground">Fill in details for precise AI analysis</p>
-                            </div>
-                            <button onClick={resetUpload} className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center"><X size={16} /></button>
-                        </div>
+                    <motion.div 
+                        initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.4 }} 
+                        className="bento-card col-span-1 cursor-pointer active:scale-95 transition-all"
+                        onClick={() => navigate("/vitals")}
+                    >
+                        <VitalsQuickView type="BP" value="120/80" unit="mmHg" trend="stable" data={mockVitalsData.map(d => ({ ...d, value: d.value + 10 }))} color="#3B82F6" />
+                    </motion.div>
 
-                        <div className="overflow-y-auto flex-1 custom-scrollbar pr-2">
-                            <form onSubmit={processUploadAndAnalyze} className="space-y-4 pb-2">
-                                <div>
-                                    <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1.5 ml-1">Attach to Patient *</label>
-                                    <div className="flex gap-2 items-center">
-                                        <select required value={form.patientId} onChange={e => setForm({ ...form, patientId: e.target.value })} className="flex-1 px-4 py-3 rounded-xl border border-input bg-background/50 font-medium">
-                                            {patients.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                                        </select>
-                                        <button
-                                            type="button"
-                                            onClick={() => navigate('/patients')}
-                                            className="px-4 py-3 bg-secondary text-secondary-foreground rounded-xl text-sm font-bold flex-shrink-0"
-                                        >
-                                            + Patient
-                                        </button>
-                                    </div>
-                                </div>
+                    <motion.div 
+                        initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.5 }} 
+                        className="bento-card col-span-2 min-h-[180px] bg-gradient-to-br from-violet-50/50 to-white cursor-pointer active:scale-[0.98] transition-all"
+                        onClick={() => navigate("/ai-chat")}
+                    >
+                        <AIInsight type="Tip" content="Your dad's sugar trends are rising (4%). We suggest a quick HBA1C check this week." />
+                    </motion.div>
 
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1.5 ml-1">Document Category *</label>
-                                        <select required value={form.category} onChange={e => setForm({ ...form, category: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-input bg-background/50 font-medium">
-                                            {CATEGORIES.map(t => <option key={t} value={t}>{t}</option>)}
-                                        </select>
-                                    </div>
-                                    <div className="flex flex-col">
-                                        <div className="flex items-center justify-between mb-1.5 ml-1">
-                                            <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Episode of Care</label>
-                                            <button
-                                                type="button"
-                                                onClick={() => setIsCreatingEpisode(!isCreatingEpisode)}
-                                                className="text-[10px] font-bold text-primary hover:underline uppercase tracking-wider whitespace-nowrap"
-                                            >
-                                                {isCreatingEpisode ? "Cancel" : "+ New"}
-                                            </button>
-                                        </div>
-                                        {isCreatingEpisode ? (
-                                            <input type="text" value={newEpisodeName} onChange={e => setNewEpisodeName(e.target.value)} placeholder="e.g. Knee Surgery 2023" className="w-full px-4 py-3 rounded-xl border border-input bg-background/50 font-medium" />
-                                        ) : (
-                                            <select value={form.episodeId} onChange={e => setForm({ ...form, episodeId: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-input bg-background/50 font-medium">
-                                                <option value="">None (General)</option>
-                                                {episodes.map(ep => <option key={ep.id} value={ep.id}>{ep.name}</option>)}
-                                            </select>
-                                        )}
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1.5 ml-1">Document Date *</label>
-                                        <input type="date" required value={form.docDate} onChange={e => setForm({ ...form, docDate: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-input bg-background/50 font-medium" />
-                                    </div>
-                                </div>
-                                    <div className="col-span-2 grid grid-cols-1 md:grid-cols-3 gap-4">
-                                        <div>
-                                            <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1.5 ml-1">Doctor Name</label>
-                                            <input type="text" value={form.doctorName} onChange={e => setForm({ ...form, doctorName: e.target.value })} placeholder="Optional" className="w-full px-4 py-3 rounded-xl border border-input bg-background/50 font-medium" />
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1.5 ml-1">Hospital / Clinic</label>
-                                            <input type="text" value={form.hospital} onChange={e => setForm({ ...form, hospital: e.target.value })} placeholder="Optional" className="w-full px-4 py-3 rounded-xl border border-input bg-background/50 font-medium" />
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1.5 ml-1">Lab Name</label>
-                                            <input type="text" value={form.lab} onChange={e => setForm({ ...form, lab: e.target.value })} placeholder="Optional" className="w-full px-4 py-3 rounded-xl border border-input bg-background/50 font-medium" />
-                                        </div>
-                                    </div>
-
-                                <div className="p-4 bg-blue-50/50 rounded-2xl border border-blue-100/50 space-y-3">
-                                    <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1.5 ml-1 flex items-center gap-1.5 text-blue-800"><Activity size={14} /> Timeline Linking</label>
-                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                                        <button type="button" onClick={() => setForm({ ...form, timelineAction: "none" })} className={`px-2 sm:px-3 py-2 rounded-xl text-xs font-bold transition-all border ${form.timelineAction === "none" ? "bg-slate-800 text-white shadow-sm border-slate-800" : "bg-white text-slate-500 border-slate-200 hover:bg-slate-50"}`}>
-                                            Skip Timeline
-                                        </button>
-                                        <button type="button" onClick={() => setForm({ ...form, timelineAction: "link" })} className={`px-2 sm:px-3 py-2 rounded-xl text-xs font-bold transition-all border ${form.timelineAction === "link" ? "bg-blue-600 text-white shadow-sm border-blue-600" : "bg-white text-slate-500 border-slate-200 hover:bg-slate-50"}`}>
-                                            Link to Existing
-                                        </button>
-                                        <button type="button" onClick={() => setForm({ ...form, timelineAction: "create" })} className={`px-2 sm:px-3 py-2 rounded-xl text-xs font-bold transition-all border ${form.timelineAction === "create" ? "bg-emerald-600 text-white shadow-sm border-emerald-600" : "bg-white text-slate-500 border-slate-200 hover:bg-slate-50"}`}>
-                                            + New Event
-                                        </button>
-                                    </div>
-
-                                    {form.timelineAction === "link" && (
-                                        <div className="pt-2 animate-in slide-in-from-top-2 fade-in">
-                                            <select required value={form.selectedEventId} onChange={e => setForm({ ...form, selectedEventId: e.target.value })} className="w-full px-4 py-3 bg-white border border-blue-100 rounded-xl text-sm font-bold text-slate-700 outline-none focus:border-blue-300">
-                                                <option value="">— Select an Event —</option>
-                                                {lifeEvents.map(ev => <option key={ev.id} value={ev.id}>{ev.title} ({ev.date})</option>)}
-                                            </select>
-                                        </div>
-                                    )}
-
-                                    {form.timelineAction === "create" && (
-                                        <div className="pt-2 animate-in slide-in-from-top-2 fade-in space-y-2">
-                                            <input required type="text" placeholder="Event Title (e.g. Broken Arm Recovery)" value={form.newEventTitle} onChange={e => setForm({ ...form, newEventTitle: e.target.value })} className="w-full px-4 py-3 bg-white border border-emerald-100 rounded-xl text-sm font-bold text-slate-700 outline-none focus:border-emerald-300 placeholder:font-medium placeholder:text-slate-400" />
-                                            <div className="grid grid-cols-2 gap-2">
-                                                <div className="space-y-1">
-                                                    <label className="text-[10px] font-bold text-emerald-800/60 uppercase tracking-widest ml-1">Event Date</label>
-                                                    <input type="date" value={form.newEventDate} onChange={e => setForm({ ...form, newEventDate: e.target.value })} className="w-full px-3 py-2.5 bg-white border border-emerald-100 rounded-xl text-xs font-bold text-slate-700 outline-none focus:border-emerald-300" />
-                                                </div>
-                                                <div className="space-y-1">
-                                                    <label className="text-[10px] font-bold text-emerald-800/60 uppercase tracking-widest ml-1">Category</label>
-                                                    <select value={form.newEventCategory} onChange={e => setForm({ ...form, newEventCategory: e.target.value })} className="w-full px-3 py-2.5 bg-white border border-emerald-100 rounded-xl text-xs font-bold text-slate-700 outline-none focus:border-emerald-300">
-                                                        {EVENT_CATEGORIES.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
-                                                    </select>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-
-                                <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-100 flex items-center justify-between">
-                                    <div className="flex flex-col">
-                                        <span className="text-sm font-bold text-emerald-900 flex items-center gap-1.5"><Bot size={16} /> Generate AI Summary</span>
-                                        <span className="text-xs font-medium text-emerald-700">Extract insights and suggested events</span>
-                                    </div>
-                                    <label className="relative inline-flex items-center cursor-pointer">
-                                        <input type="checkbox" className="sr-only peer" checked={form.generateSummary} onChange={e => setForm({ ...form, generateSummary: e.target.checked })} />
-                                        <div className="w-11 h-6 bg-emerald-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
-                                    </label>
-                                </div>
-
-                                {form.generateSummary && (
-                                    <div>
-                                        <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1.5 ml-1 flex items-center gap-1.5 text-violet-600"><Bot size={14} /> Summary Language</label>
-                                        <select required={form.generateSummary} value={form.language} onChange={e => setForm({ ...form, language: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-violet-100 bg-violet-50/50 text-violet-900 font-bold focus:ring-violet-500">
-                                            {languages.map(l => <option key={l} value={l}>{l}</option>)}
-                                        </select>
-                                    </div>
-                                )}
-
-                                <button type="submit" className="w-full py-3.5 bg-primary text-primary-foreground rounded-xl font-bold flex items-center justify-center gap-2 mt-2 shadow-lg hover:shadow-xl transition-all mb-2">
-                                    <UploadCloud size={18} /> {form.generateSummary ? "Upload & Analyze instantly" : "Upload Document Instantly"}
-                                </button>
-                            </form>
-                        </div>
+                    <div className="col-span-2">
+                        <QuickActions onUpload={() => fileInputRef.current?.click()} onCamera={() => cameraInputRef.current?.click()} />
                     </div>
                 </div>
-            )}
 
-            {/* AI Summary Modal */}
-            {
-                uploadStep === "summary" && (
-                    <div className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
-                        <div className="w-full max-w-2xl bg-card rounded-t-3xl sm:rounded-3xl flex flex-col shadow-2xl animate-in slide-in-from-bottom-5 duration-300 max-h-[92vh]">
-                            <div className="p-5 border-b border-border flex justify-between items-center bg-violet-50/50 rounded-t-3xl text-violet-900">
-                                <div>
-                                    <h2 className="font-bold flex items-center gap-2"><Bot size={20} className="text-violet-600" /> AI Summary Complete</h2>
-                                    <p className="text-xs font-medium text-violet-700/70 mt-0.5">Translated securely using Gemini Health Model</p>
-                                </div>
-                                <button onClick={resetUpload} className="w-8 h-8 flex items-center justify-center rounded-full bg-violet-100 hover:bg-violet-200">
-                                    <X size={18} />
-                                </button>
+                {/* Emergency Card */}
+                <section>
+                    <button onClick={() => navigate("/emergency")} className="w-full p-6 rounded-[2rem] bg-rose-50 border border-rose-100 flex items-center justify-between group relative overflow-hidden">
+                        <div className="flex items-center gap-4 relative z-10">
+                            <div className="size-14 rounded-2xl bg-rose-500 flex items-center justify-center text-white shadow-lg shadow-rose-500/30 group-hover:scale-110 transition-transform">
+                                <Zap size={24} />
                             </div>
-
-
-
-                            <div className="overflow-y-auto px-6 py-4 scroll-smooth custom-scrollbar flex-1 bg-white">
-                                <div className="prose prose-sm max-w-none text-foreground font-medium leading-relaxed">
-                                    <ReactMarkdown
-                                        components={{
-                                            h1: ({ ...props }) => <h1 className="text-[18px] font-extrabold text-slate-900 mt-5 mb-2 leading-tight" {...props} />,
-                                            h2: ({ ...props }) => <h2 className="text-[16px] font-bold text-slate-800 mt-5 mb-2 leading-tight" {...props} />,
-                                            h3: ({ ...props }) => <h3 className="text-[15px] font-bold text-slate-800 mt-4 mb-2 leading-tight border-b pb-1 border-slate-100" {...props} />,
-                                            strong: ({ ...props }) => <strong className="font-bold text-slate-800" {...props} />,
-                                            ul: ({ ...props }) => <ul className="list-disc pl-5 my-2 space-y-1.5 text-slate-700" {...props} />,
-                                            ol: ({ ...props }) => <ol className="list-decimal pl-5 my-2 space-y-1.5 text-slate-700" {...props} />,
-                                            li: ({ ...props }) => <li className="leading-relaxed text-sm" {...props} />,
-                                            p: ({ ...props }) => <p className="mb-2.5 leading-relaxed text-sm text-slate-700" {...props} />,
-                                        }}
-                                    >
-                                        {aiSummary}
-                                    </ReactMarkdown>
-                                </div>
-                            </div>
-                            <div className="p-4 border-t border-border bg-gray-50/50 rounded-b-3xl">
-                                <button onClick={resetUpload} className="w-full py-3 bg-secondary text-secondary-foreground hover:bg-secondary/80 font-bold rounded-xl transition-colors">
-                                    Close & Back to Dashboard
-                                </button>
+                            <div className="text-left">
+                                <h3 className="font-black text-slate-800 text-lg">Emergency Pulse</h3>
+                                <p className="text-xs font-bold text-rose-600/70 uppercase tracking-widest">Medical QR & SOS</p>
                             </div>
                         </div>
-                    </div>
-                )
-            }
+                        <ChevronRight className="text-slate-400 group-hover:translate-x-1 transition-transform" />
+                    </button>
+                </section>
+            </main>
 
-        </div >
+            {/* Modals & Inputs */}
+            <input type="file" accept="image/*" capture="environment" className="hidden" ref={cameraInputRef} onChange={(e) => handleFileSelect(e.target.files?.[0]!)} />
+            <input type="file" accept=".pdf,image/*" className="hidden" ref={fileInputRef} onChange={(e) => handleFileSelect(e.target.files?.[0]!)} />
+
+            <AnimatePresence>
+              {uploadStep === "uploading" && (
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="fixed inset-0 z-50 bg-white/80 backdrop-blur-md flex items-center justify-center p-6">
+                  <div className="w-full max-w-xs text-center space-y-4">
+                    <div className="size-20 bg-emerald-100 rounded-full flex items-center justify-center mx-auto animate-pulse">
+                      <UploadCloud className="text-emerald-600" size={32} />
+                    </div>
+                    <h3 className="font-black text-slate-900 text-lg">Uploading Securely...</h3>
+                    <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                      <div className="h-full bg-emerald-500 transition-all duration-300" style={{ width: `${progress}%` }} />
+                    </div>
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{progress}% Complete</p>
+                  </div>
+                </motion.div>
+              )}
+
+              {uploadStep === "form" && (
+                <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
+                  <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="w-full max-w-sm bg-white rounded-[2rem] p-6 shadow-2xl space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-xl font-black text-slate-900">Document Scan</h3>
+                      <button onClick={resetUpload} className="p-2 bg-slate-100 rounded-full"><X size={16} /></button>
+                    </div>
+                    <form onSubmit={processUploadAndAnalyze} className="space-y-4">
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Select Patient</label>
+                        <select required value={form.patientId} onChange={e => setForm({...form, patientId: e.target.value})} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold text-slate-700">
+                          {patients.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                        </select>
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Document Category</label>
+                        <select required value={form.category} onChange={e => setForm({...form, category: e.target.value})} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold text-slate-700">
+                          {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                        </select>
+                      </div>
+                      <button type="submit" className="w-full py-4 bg-emerald-600 text-white rounded-xl font-black shadow-lg shadow-emerald-500/20 active:scale-95 transition-all">
+                        Begin AI Analysis
+                      </button>
+                    </form>
+                  </motion.div>
+                </div>
+              )}
+
+              {uploadStep === "summary" && (
+                <div className="fixed inset-0 z-50 bg-white flex flex-col p-6 overflow-y-auto">
+                  <header className="flex items-center justify-between mb-8 flex-shrink-0">
+                    <div className="flex items-center gap-2">
+                      <Bot className="text-violet-600" />
+                      <h2 className="text-xl font-black">AI Audit Results</h2>
+                    </div>
+                    <button onClick={resetUpload} className="size-10 bg-slate-100 rounded-full flex items-center justify-center"><X size={20} /></button>
+                  </header>
+                  <div className="prose prose-slate max-w-none flex-1">
+                    <ReactMarkdown>{aiSummary}</ReactMarkdown>
+                  </div>
+                  <button onClick={() => navigate("/documents")} className="mt-8 w-full py-4 bg-slate-900 text-white rounded-xl font-black flex-shrink-0">
+                    Close and View in Vault
+                  </button>
+                </div>
+              )}
+            </AnimatePresence>
+        </div>
     );
 }

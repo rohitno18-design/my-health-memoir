@@ -14,6 +14,9 @@ import { ChatListPage } from "@/pages/ChatListPage";
 import { AIChatPage } from "@/pages/AIChatPage";
 import { AdminPage } from "@/pages/AdminPage";
 import { GlobalTimelinePage } from "@/pages/GlobalTimelinePage";
+import { EmergencyPage } from "@/pages/EmergencyPage";
+import { PulsePage } from "@/pages/PulsePage";
+import { VitalsPage } from "@/pages/VitalsPage";
 
 const queryClient = new QueryClient();
 
@@ -26,6 +29,9 @@ function App() {
             {/* Public routes */}
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
+            
+            {/* PUBLIC EMERGENCY PULSE (No Auth, No Layout) */}
+            <Route path="/pulse/:userId" element={<PulsePage />} />
 
             {/* Protected routes — wrapped in VerificationGate */}
             <Route
@@ -42,9 +48,11 @@ function App() {
               <Route path="/patients" element={<PatientsPage />} />
               <Route path="/timeline" element={<GlobalTimelinePage />} />
               <Route path="/documents" element={<DocumentsPage />} />
+              <Route path="/vitals" element={<VitalsPage />} />
               <Route path="/ai-chat" element={<ChatListPage />} />
               <Route path="/ai-chat/new" element={<AIChatPage />} />
               <Route path="/ai-chat/:chatId" element={<AIChatPage />} />
+              <Route path="/emergency" element={<EmergencyPage />} />
               <Route
                 path="/admin"
                 element={

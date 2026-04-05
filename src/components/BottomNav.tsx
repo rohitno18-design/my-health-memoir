@@ -5,12 +5,11 @@ import { useTranslation } from "react-i18next";
 
 const navItems = [
     { path: "/dashboard", mIcon: "home", labelKey: "nav.home" },
-    { path: "/patients", mIcon: "group", labelKey: "nav.family" },
-    { path: "/timeline", mIcon: "timeline", labelKey: "nav.timeline" },
+    { path: "/vitals", mIcon: "health_metrics", labelKey: "nav.vitals" },
+    { path: "/emergency", mIcon: "shield_alert", labelKey: "nav.emergency" },
     { path: "/documents", mIcon: "folder_managed", labelKey: "nav.docs" },
     { path: "/ai-chat", mIcon: "auto_awesome", labelKey: "nav.ai" },
 ];
-
 
 const adminNavItems = [
     { path: "/admin", mIcon: "admin_panel_settings", labelKey: "nav.admin" },
@@ -26,11 +25,10 @@ export function BottomNav() {
 
     return (
         <nav className="fixed bottom-6 left-4 right-4 sm:left-6 sm:right-6 z-50 max-w-lg mx-auto">
-            <div className="glass-card rounded-[2rem] p-2 px-3 flex items-center justify-between shadow-2xl shadow-primary/10 border border-white/60">
+            <div className="glass-card rounded-[2rem] p-2 px-3 flex items-center justify-between shadow-2xl shadow-primary/10 border border-white/60 bg-white/70 backdrop-blur-xl">
                 {items.map(({ path, mIcon, labelKey }) => {
                     const active =
                         location.pathname === path ||
-                        (path === "/profile" && location.pathname === "/patients") ||
                         (path === "/ai-chat" && location.pathname.startsWith("/ai-chat"));
 
                     return (
@@ -38,7 +36,7 @@ export function BottomNav() {
                             key={path}
                             onClick={() => navigate(path)}
                             className={cn(
-                                "flex flex-col items-center justify-center flex-1 sm:w-[4.5rem] h-14 rounded-[1.25rem] transition-all duration-300 active:scale-95",
+                                "flex flex-col items-center justify-center flex-1 h-14 rounded-[1.25rem] transition-all duration-300 active:scale-95",
                                 active ? "bg-primary text-white shadow-md shadow-primary/20" : "text-slate-500 hover:text-primary hover:bg-primary/5"
                             )}
                         >
