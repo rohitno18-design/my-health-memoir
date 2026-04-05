@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+// AIInsight component
 import { Bot, Sparkles, AlertCircle } from "lucide-react";
 
 interface AIInsightProps {

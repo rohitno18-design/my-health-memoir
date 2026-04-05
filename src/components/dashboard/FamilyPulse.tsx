@@ -1,6 +1,5 @@
 import { motion } from "framer-motion";
 import { User, Users } from "lucide-react";
-import { cn } from "@/lib/utils";
 import type { Patient } from "@/pages/PatientsPage";
 
 interface FamilyPulseProps {

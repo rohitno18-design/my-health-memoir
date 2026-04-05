@@ -2,10 +2,9 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   ShieldAlert, Phone, Droplets, AlertCircle, 
-  ChevronRight, Heart, X, Check, Loader2, 
-  Settings, Share2, Info, UserCheck, Zap
+  Heart, X, Check, Loader2, 
+  Settings, Zap
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { QRCodeSVG } from "qrcode.react";
 import { db } from "@/lib/firebase";
@@ -24,7 +23,6 @@ interface EmergencyInfo {
 
 export function EmergencyPage() {
   const { user } = useAuth();
-  const navigate = useNavigate();
   const [info, setInfo] = useState<EmergencyInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);

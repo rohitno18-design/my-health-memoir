@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import { Area, AreaChart, ResponsiveContainer } from "recharts";
 import { Activity, Heart, Droplet } from "lucide-react";
 
