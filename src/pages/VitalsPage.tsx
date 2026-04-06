@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Activity, Heart, Droplets, Plus,
-  ArrowUpRight, ArrowDownRight, Loader2, X, Check,
+  Loader2, X, Check,
   History
 } from "lucide-react";
 import {
@@ -265,7 +265,7 @@ export function VitalsPage() {
 
           {loading ? (
             <div className="py-10 flex justify-center"><Loader2 className="animate-spin text-emerald-400" size={24} /></div>
-          ) : logs.length > 0 ? logs.map((log, i) => (
+          ) : logs.length > 0 ? logs.map((log) => (
             <div key={log.id} className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <div className="size-11 rounded-xl bg-slate-50 border border-slate-100 flex flex-col items-center justify-center">

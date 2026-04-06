@@ -1266,30 +1266,27 @@ export function AIChatPage() {
                             {[
                                 { 
                                     text: t("aiChat.prompts.blood"), 
-                                    val: "मेरे पिछले 3 ब्लड शुगर रिपोर्ट्स चेक करके बताओ कि क्या ट्रेंड है?",
                                     icon: "analytics"
                                 },
                                 { 
                                     text: t("aiChat.prompts.records"), 
-                                    val: "मेने जो आज रिपोर्ट्स अपलोड की हैं उन्हें टाइमलाइन में ऑर्गनाइज़ कर दो।",
                                     icon: "auto_awesome"
                                 },
                                 { 
                                     text: t("aiChat.prompts.hba1c"), 
-                                    val: "HbA1c लेवल 7.2 का क्या मतलब होता है?",
                                     icon: "help" 
                                 },
                             ].map((s) => (
                                 <button
-                                    key={s.val}
-                                    onClick={() => setInput(s.val)}
+                                    key={s.text}
+                                    onClick={() => setInput(s.text)}
                                     className="group relative flex items-center gap-3 p-4 rounded-3xl bg-white/60 border border-white/80 hover:bg-white hover:border-violet-200 transition-all text-left shadow-sm active:scale-[0.98]"
                                 >
                                     <div className="w-10 h-10 rounded-2xl bg-violet-50 text-violet-600 flex items-center justify-center group-hover:bg-violet-600 group-hover:text-white transition-colors">
                                         <span className="material-symbols-outlined text-[20px]">{s.icon}</span>
                                     </div>
                                     <span className="text-[13px] font-bold text-slate-700 leading-tight">
-                                        {s.val}
+                                        {s.text}
                                     </span>
                                 </button>
                             ))}

@@ -15,9 +15,14 @@ i18n
   // for all options read: https://www.i18next.com/overview/configuration-options
   .init({
     resources: {
-      en: enTranslation,
-      hi: hiTranslation,
+      en: {
+        translation: enTranslation,
+      },
+      hi: {
+        translation: hiTranslation,
+      },
     },
+    defaultNS: 'translation',
     fallbackLng: 'en',
     debug: false,
     interpolation: {
