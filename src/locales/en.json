@@ -19,6 +19,7 @@
     "downloading": "Downloading",
     "translate": "Translate",
     "unlink": "Unlink",
+    "complete": "Complete",
     "localeCode": "en-US"
   },
   "header": {
@@ -59,7 +60,15 @@
     "no": "No",
     "morning": "Good Morning",
     "afternoon": "Good Afternoon",
-    "evening": "Good Evening"
+    "evening": "Good Evening",
+    "healthAtAGlance1": "Health at a",
+    "healthAtAGlance2": "Glance",
+    "uploading": "Uploading Document",
+    "docScan": "Scan Document",
+    "category": "Category",
+    "beginAnalysis": "Begin AI Analysis",
+    "auditResults": "Medical Audit Results",
+    "viewInVault": "View in Vault"
   },
   "vitals": {
     "title": "Vital Statistics",
@@ -269,7 +278,8 @@
     "alcohol": "Alcohol",
     "tobacco": "Tobacco/Pan",
     "msgUpdated": "Patient updated successfully!",
-    "msgAdded": "Patient added successfully!"
+    "msgAdded": "Patient added successfully!",
+    "label": "Patient"
   },
   "aiChat": {
     "title": "AI Health Intelligence",
@@ -370,5 +380,17 @@
     "verifyBtn": "Verify Code",
     "sendCode": "Send Verification Code",
     "pendingChange": "Pending change to {{email}}"
+  },
+  "emergency": {
+    "title": "Emergency SOS",
+    "subtitle": "Alert your emergency contacts"
+  },
+  "nav": {
+    "home": "Home",
+    "family": "Family",
+    "vitals": "Vitals",
+    "docs": "Docs",
+    "ai": "AI Health",
+    "admin": "Admin"
   }
 }

@@ -19,6 +19,7 @@
     "downloading": "डाउनलोड हो रहा है",
     "translate": "अनुवाद",
     "unlink": "लिंक हटाएँ",
+    "complete": "पूरा हुआ",
     "localeCode": "hi-IN"
   },
   "header": {
@@ -59,22 +60,30 @@
     "no": "नहीं",
     "morning": "शुभ प्रभात",
     "afternoon": "शुभ दोपहर",
-    "evening": "शुभ संध्या"
+    "evening": "शुभ संध्या",
+    "healthAtAGlance1": "हेल्थ एट ए",
+    "healthAtAGlance2": "ग्लांस",
+    "uploading": "डॉक्यूमेंट अपलोड हो रहा है",
+    "docScan": "डॉक्यूमेंट स्कैन",
+    "category": "कैटगरी",
+    "beginAnalysis": "एनालिसिस शुरू करें",
+    "auditResults": "मेडिकल ऑडिट रिपोर्ट",
+    "viewInVault": "वॉल्ट में देखें"
   },
   "vitals": {
-    "title": "Vital स्टैटिस्टिक्स",
+    "title": "वाइटल स्टैटिक्स",
     "subtitle": "अपने जरूरी हेल्थ मार्कर्स को ट्रैक करें",
-    "sugar": "Blood Sugar",
-    "bp": "Blood Pressure (BP)",
+    "sugar": "ब्लड शुगर (Sugar)",
+    "bp": "ब्लड प्रेशर (BP)",
     "heartRate": "हार्ट रेट",
-    "low": "Low",
-    "normal": "नॉर्मल",
-    "preDiabetic": "Pre-Diabetic",
-    "high": "High",
-    "hypertensive": "Hypertensive",
-    "elevated": "बढ़ा हुआ",
+    "low": "लो (Low)",
+    "normal": "नॉर्मल (Normal)",
+    "preDiabetic": "प्री-डायबिटिक (Pre-Diabetic)",
+    "high": "हाई (High)",
+    "hypertensive": "हाइपरटेंसिव (Hypertensive)",
+    "elevated": "बढ़ा हुआ (Elevated)",
     "latest": "ताज़ा रीडिंग",
-    "history": "हेल्थ हिस्ट्री",
+    "history": "वाइटल्स हिस्ट्री",
     "selectPatient": "पेशेंट चुनें",
     "unit_sugar": "mg/dL",
     "unit_bp": "mmHg",
@@ -269,7 +278,8 @@
     "alcohol": "शराब",
     "tobacco": "तंबाकू/पान",
     "msgUpdated": "पेशेंट जानकारी अपडेट हो गई!",
-    "msgAdded": "पेशेंट सफलतापूर्वक जुड़ गया!"
+    "msgAdded": "पेशेंट सफलतापूर्वक जुड़ गया!",
+    "label": "पेशेंट"
   },
   "aiChat": {
     "title": "AI हेल्थ इंटेलिजेंस",
@@ -370,5 +380,17 @@
     "verifyBtn": "कोड वेरिफाई करें",
     "sendCode": "वेरिफिकेशन कोड भेजें",
     "pendingChange": "{{email}} पर बदलाव पेंडिंग है"
+  },
+  "emergency": {
+    "title": "इमरजेंसी SOS",
+    "subtitle": "अपने इमरजेंसी कॉन्टेक्स्ट को अलर्ट करें"
+  },
+  "nav": {
+    "home": "होम",
+    "family": "फैमिली",
+    "vitals": "वाइटल्स",
+    "docs": "डॉक्यूमेंट",
+    "ai": "AI चैट",
+    "admin": "एडमिन"
   }
 }
