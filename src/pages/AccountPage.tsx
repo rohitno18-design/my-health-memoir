@@ -6,7 +6,7 @@ import {
     Check, Loader2, LogOut, Pencil, ShieldCheck,
     Calendar, Droplets, UserCircle, AlertTriangle, X,
     Bell, Share2, Sparkles, CheckCircle2, ArrowRight,
-    RefreshCw,
+    RefreshCw, AlertCircle,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -82,12 +82,12 @@ function EditableField({
     type?: string;
     placeholder?: string;
 }) {
+    const { t } = useTranslation();
     const [editing, setEditing] = useState(false);
     const [val, setVal] = useState(value);
     const [saving, setSaving] = useState(false);
     const [saveError, setSaveError] = useState("");
 
-    // Keep local state in sync when the parent value changes (e.g. after successful save)
     useEffect(() => {
         if (!editing) setVal(value);
     }, [value, editing]);
@@ -130,7 +130,7 @@ function EditableField({
                             className="w-full mt-0.5 text-sm bg-secondary rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-ring"
                         />
                     ) : (
-                        <p className="text-sm font-medium truncate">{value || <span className="text-muted-foreground italic">Not set</span>}</p>
+                        <p className="text-sm font-medium truncate">{value || <span className="text-muted-foreground italic text-xs uppercase font-bold tracking-widest">{t("common.notSet")}</span>}</p>
                     )}
                 </div>
                 {editing ? (
@@ -192,7 +192,7 @@ function GenderSelect({ value, onSave }: { value: string; onSave: (v: string) =>
     };
 
     return (
-        <div className="flex items-center gap-3 py-3">
+        <div className="flex items-center gap-3 py-3 last:border-0 border-b border-border">
             <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
                 <User size={15} className="text-muted-foreground" />
             </div>
@@ -204,11 +204,11 @@ function GenderSelect({ value, onSave }: { value: string; onSave: (v: string) =>
                     disabled={saving}
                     className="mt-0.5 text-sm font-medium bg-transparent focus:outline-none w-full disabled:opacity-60"
                 >
-                    <option value="">Not specified</option>
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
-                    <option value="Other">Other</option>
-                    <option value="Prefer not to say">Prefer not to say</option>
+                    <option value="">{t("common.notSpecified")}</option>
+                    <option value="Male">{t("common.male")}</option>
+                    <option value="Female">{t("common.female")}</option>
+                    <option value="Other">{t("common.other")}</option>
+                    <option value="Prefer not to say">{t("common.preferNotToSay")}</option>
                 </select>
                 {error && <p className="text-xs text-destructive mt-0.5">{error}</p>}
             </div>
@@ -220,6 +220,7 @@ function GenderSelect({ value, onSave }: { value: string; onSave: (v: string) =>
 
 // ─── ChangePasswordModal ──────────────────────────────────────────────────────
 function ChangePasswordModal({ onClose }: { onClose: () => void }) {
+    const { t } = useTranslation();
     const { updateUserPassword, logSecurityActivity } = useAuth();
     const [current, setCurrent] = useState("");
     const [next, setNext] = useState("");
@@ -230,8 +231,8 @@ function ChangePasswordModal({ onClose }: { onClose: () => void }) {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (next !== confirm) { setError("Passwords don't match."); return; }
-        if (next.length < 6) { setError("New password must be at least 6 characters."); return; }
+        if (next !== confirm) { setError(t("account.errPasswordMatch")); return; }
+        if (next.length < 6) { setError(t("account.errPasswordLength")); return; }
         setError(""); setSaving(true);
         try {
             await updateUserPassword(current, next);
@@ -241,11 +242,11 @@ function ChangePasswordModal({ onClose }: { onClose: () => void }) {
         } catch (err: unknown) {
             const code = (err as { code?: string })?.code;
             if (code === "auth/wrong-password" || code === "auth/invalid-credential") {
-                setError("Current password is incorrect.");
+                setError(t("account.errCurrentPassword"));
             } else if (code === "auth/too-many-requests") {
-                setError("Too many attempts. Please try again later.");
+                setError(t("account.errTooMany"));
             } else {
-                setError("Update failed. Please try again.");
+                setError(t("account.errUpdateFailed"));
             }
         } finally { setSaving(false); }
     };
@@ -253,10 +254,8 @@ function ChangePasswordModal({ onClose }: { onClose: () => void }) {
     return (
         <div className="fixed inset-0 z-50 bg-black/40 flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
             <div className="w-full max-w-lg glass-card border border-white/50 backdrop-blur-xl rounded-t-[2rem] sm:rounded-[2rem] p-6 space-y-4 max-h-[90vh] overflow-y-auto shadow-2xl relative z-10" onClick={e => e.stopPropagation()}>
-                <div className="absolute top-0 right-0 size-32 bg-primary/10 rounded-full blur-3xl pointer-events-none -z-10"></div>
-                <div className="absolute bottom-0 left-0 size-32 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none -z-10"></div>
                 <div className="flex items-center justify-between">
-                    <h2 className="font-bold">Change Password</h2>
+                    <h2 className="font-bold">{t("account.changePassword")}</h2>
                     <button onClick={onClose}><X size={18} /></button>
                 </div>
                 {done ? (
@@ -264,15 +263,15 @@ function ChangePasswordModal({ onClose }: { onClose: () => void }) {
                         <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-2">
                             <Check size={22} className="text-green-600" />
                         </div>
-                        <p className="font-medium text-sm">Password updated successfully!</p>
+                        <p className="font-medium text-sm">{t("account.msgPasswordUpdated")}</p>
                     </div>
                 ) : (
                     <form onSubmit={handleSubmit} className="space-y-3">
                         {error && <div className="bg-destructive/10 text-destructive text-xs rounded-lg p-2.5 flex items-center gap-2"><AlertTriangle size={13} />{error}</div>}
                         {[
-                            { label: "Current password", val: current, set: setCurrent },
-                            { label: "New password", val: next, set: setNext },
-                            { label: "Confirm new password", val: confirm, set: setConfirm },
+                            { label: t("account.currentPassword"), val: current, set: setCurrent },
+                            { label: t("account.newPassword"), val: next, set: setNext },
+                            { label: t("account.confirmPassword"), val: confirm, set: setConfirm },
                         ].map(({ label, val, set }) => (
                             <div key={label}>
                                 <label className="block text-xs font-medium mb-1">{label}</label>
@@ -283,7 +282,7 @@ function ChangePasswordModal({ onClose }: { onClose: () => void }) {
                         <button type="submit" disabled={saving}
                             className="w-full py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-medium flex items-center justify-center gap-2 disabled:opacity-60">
                             {saving && <Loader2 size={14} className="animate-spin" />}
-                            Update Password
+                            {t("account.updateBtn")}
                         </button>
                     </form>
                 )}
@@ -294,6 +293,7 @@ function ChangePasswordModal({ onClose }: { onClose: () => void }) {
 
 // ─── ChangeEmailModal ─────────────────────────────────────────────────────────
 function ChangeEmailModal({ onClose, onSuccess }: { onClose: () => void; onSuccess: (msg: string) => void }) {
+    const { t } = useTranslation();
     const { user, userProfile, updateUserEmail, logSecurityActivity, refreshUser } = useAuth();
     const [newEmail, setNewEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -302,138 +302,77 @@ function ChangeEmailModal({ onClose, onSuccess }: { onClose: () => void; onSucce
     const [done, setDone] = useState(false);
     const [refreshing, setRefreshing] = useState(true);
 
-    // CRITICAL: Refresh auth state when modal opens to get the LATEST Auth email
-    // If user verified a previous email change in another tab, this picks it up
     useEffect(() => {
         (async () => {
-            try {
-                await refreshUser();
-            } catch (e) {
-                console.error("Refresh before email change failed:", e);
-            } finally {
-                setRefreshing(false);
-            }
+            try { await refreshUser(); } catch (e) { console.error(e); } finally { setRefreshing(false); }
         })();
     }, []);
 
-    // Auth email is always the source of truth — security warnings go here
     const authEmail = user?.email || "";
-    // pendingEmail from Firestore (if any previous change is still unverified)
     const pendingEmail = (userProfile as any)?.pendingEmail || null;
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError(""); setSaving(true);
         try {
-            // updateUserEmail now force-reloads Auth internally too
             await updateUserEmail(newEmail, password);
-
-            // After updateUserEmail, the Auth email might have been refreshed
-            // so re-read it for the log message
             const currentAuthEmail = user?.email || authEmail;
-
-            // Log that a change was requested
             await logSecurityActivity("EMAIL_CHANGE_REQUESTED", currentAuthEmail, newEmail, {
                 status: "pending_verification",
                 message: `Verification link sent to ${newEmail}. Security alert sent to ${currentAuthEmail}.`
             });
-
             setDone(true);
-            onSuccess(`Verification link sent to ${newEmail}. Security alert sent to ${currentAuthEmail}.`);
+            onSuccess(t("account.msgVerificationSent", { email: newEmail }));
         } catch (err: unknown) {
-            console.error("Email update error:", err);
+            console.error(err);
             const msg = err instanceof Error ? err.message : String(err);
             const code = (err as { code?: string })?.code;
-
             if (code === "auth/wrong-password" || code === "auth/invalid-credential") {
-                setError("Current password is incorrect.");
+                setError(t("account.errCurrentPassword"));
             } else if (code === "auth/email-already-in-use") {
-                setError("That email is already used by another account.");
+                setError(t("account.errEmailUsed"));
             } else if (code === "auth/requires-recent-login") {
-                setError("Security timeout. Please log out and back in to change your email.");
+                setError(t("account.errTimeout"));
             } else {
-                setError(`Update failed: ${msg}`);
+                setError(t("account.errUpdateFailed") + ": " + msg);
             }
         } finally { setSaving(false); }
     };
 
-    if (refreshing) {
-        return (
-            <div className="fixed inset-0 z-50 bg-black/40 flex items-end sm:items-center justify-center p-0 sm:p-4">
-                <div className="w-full max-w-lg glass-card border border-white/50 backdrop-blur-xl rounded-t-[2rem] sm:rounded-[2rem] p-6 shadow-2xl">
-                    <div className="flex flex-col items-center gap-3 py-8">
-                        <Loader2 size={24} className="animate-spin text-primary" />
-                        <p className="text-sm text-muted-foreground">Refreshing your account info…</p>
-                    </div>
-                </div>
-            </div>
-        );
-    }
+    if (refreshing) return <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4"><Loader2 className="animate-spin" /></div>;
 
     return (
         <div className="fixed inset-0 z-50 bg-black/40 flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
             <div className="w-full max-w-lg glass-card border border-white/50 backdrop-blur-xl rounded-t-[2rem] sm:rounded-[2rem] p-6 space-y-4 max-h-[90vh] overflow-y-auto shadow-2xl relative z-10" onClick={e => e.stopPropagation()}>
-                <div className="absolute top-0 right-0 size-32 bg-primary/10 rounded-full blur-3xl pointer-events-none -z-10"></div>
-                <div className="absolute bottom-0 left-0 size-32 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none -z-10"></div>
                 <div className="flex items-center justify-between">
-                    <h2 className="font-bold">Change Email</h2>
+                    <h2 className="font-bold">{t("account.changeEmail")}</h2>
                     <button onClick={onClose}><X size={18} /></button>
                 </div>
                 {done ? (
                     <div className="text-center py-6 space-y-4">
-                        <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center mx-auto">
-                            <Mail size={32} className="text-blue-600 animate-pulse" />
-                        </div>
-                        <div className="space-y-1">
-                            <p className="font-bold text-lg">Verification Sent!</p>
-                            <p className="text-sm text-muted-foreground px-4">
-                                A verification link has been sent to <strong>{newEmail}</strong>.
-                            </p>
-                        </div>
-                        <div className="bg-blue-50 border border-blue-100 rounded-xl p-3 mx-4">
-                            <p className="text-xs text-blue-800 leading-relaxed">
-                                Your email will <strong>not</strong> update until you click the link in <strong>{newEmail}</strong>.
-                                The security warning was sent to <strong>{authEmail}</strong>.
-                                After verifying, please refresh the page to see the change.
-                            </p>
-                        </div>
-                        <button onClick={onClose} className="w-full mt-4 py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-medium">
-                            Got it, I'll check my mail
-                        </button>
+                        <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center mx-auto"><Mail size={32} className="text-blue-600" /></div>
+                        <p className="font-bold text-lg">{t("account.done")}</p>
+                        <p className="text-sm text-muted-foreground leading-snug">{t("account.msgVerificationSent", { email: newEmail })}</p>
+                        <button onClick={onClose} className="w-full py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-medium">{t("common.ok")}</button>
                     </div>
                 ) : (
                     <form onSubmit={handleSubmit} className="space-y-3">
-                        {error && <div className="bg-destructive/10 text-destructive text-xs rounded-lg p-2.5 flex items-center gap-2"><AlertTriangle size={13} />{error}</div>}
-                        {pendingEmail && (
-                            <div className="bg-orange-50 border border-orange-200 rounded-xl p-3">
-                                <p className="text-xs text-orange-800 font-semibold mb-1">⏳ Previous email change pending</p>
-                                <p className="text-xs text-orange-700 leading-relaxed">
-                                    You previously requested to change to <strong>{pendingEmail}</strong>, but it hasn't been verified yet.
-                                    Your current login email is still <strong>{authEmail}</strong> — that's where the security warning will go.
-                                </p>
-                            </div>
-                        )}
-                        <div className="bg-amber-50 border border-amber-200 rounded-xl p-3">
-                            <p className="text-xs text-amber-800">⚠️ After changing your email, you will need to verify the new address. The security warning will be sent to your current login email below.</p>
-                        </div>
+                        {error && <div className="bg-destructive/10 text-destructive text-xs rounded-lg p-2.5 flex items-center gap-2"><AlertTriangle size={13} /> {error}</div>}
+                        {pendingEmail && <div className="bg-orange-50 border border-orange-200 rounded-xl p-3 text-xs text-orange-800">⏳ {t("account.pendingChange", { email: pendingEmail })}</div>}
+                        <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-800">⚠️ {t("account.securityWarning")}</div>
                         <div>
-                            <label className="block text-xs font-medium mb-1">Current login email <span className="text-muted-foreground font-normal">(security warnings go here)</span></label>
-                            <p className="text-sm text-muted-foreground px-3 py-2.5 rounded-xl border border-border bg-secondary">{authEmail}</p>
-                        </div>
-                        <div>
-                            <label className="block text-xs font-medium mb-1">New email</label>
+                            <label className="block text-xs font-medium mb-1">{t("account.newEmail")}</label>
                             <input type="email" value={newEmail} onChange={e => setNewEmail(e.target.value)} required
                                 className="w-full px-3 py-2.5 rounded-xl border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
                         </div>
                         <div>
-                            <label className="block text-xs font-medium mb-1">Current password (to confirm)</label>
+                            <label className="block text-xs font-medium mb-1">{t("account.currentPassword")}</label>
                             <input type="password" value={password} onChange={e => setPassword(e.target.value)} required
                                 className="w-full px-3 py-2.5 rounded-xl border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
                         </div>
-                        <button type="submit" disabled={saving}
-                            className="w-full py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-medium flex items-center justify-center gap-2 disabled:opacity-60">
+                        <button type="submit" disabled={saving} className="w-full py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-medium flex items-center justify-center gap-2">
                             {saving && <Loader2 size={14} className="animate-spin" />}
-                            Update Email & Send Verification
+                            {t("account.updateBtn")}
                         </button>
                     </form>
                 )}
@@ -444,6 +383,7 @@ function ChangeEmailModal({ onClose, onSuccess }: { onClose: () => void; onSucce
 
 // ─── ChangePhoneModal ─────────────────────────────────────────────────────────
 function ChangePhoneModal({ onClose, onSuccess }: { onClose: () => void; onSuccess: (msg: string) => void }) {
+    const { t } = useTranslation();
     const { userProfile, linkPhoneToAccount, updateUserProfile, refreshUser, logSecurityActivity, getRecaptchaVerifier } = useAuth();
     const [phone, setPhone] = useState("");
     const [otp, setOtp] = useState("");
@@ -455,47 +395,30 @@ function ChangePhoneModal({ onClose, onSuccess }: { onClose: () => void; onSucce
     const recaptchaId = "recaptcha-phone-change";
     const oldPhone = userProfile?.phoneNumber || "";
 
-    // Ensure reCAPTCHA is ready when modal opens
     useEffect(() => {
         const timer = setTimeout(() => {
-            try { getRecaptchaVerifier(recaptchaId); } catch (e) { console.error("Recaptcha init error", e); }
+            try { getRecaptchaVerifier(recaptchaId); } catch (e) { console.error(e); }
         }, 500);
         return () => clearTimeout(timer);
     }, []);
 
     const handleSendOtp = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!phone || phone.length < 10) { setError("Enter a valid phone number."); return; }
         setError(""); setLoading(true);
         try {
             const result = await linkPhoneToAccount("+" + phone, recaptchaId);
             setConfirmResult(result);
             setStep("otp");
         } catch (err: unknown) {
-            console.error("Phone change OTP error:", err);
-            const msg = err instanceof Error ? err.message : String(err);
+            console.error(err);
             const code = (err as { code?: string })?.code;
-            if (code === "auth/credential-already-in-use") {
-                setError("This phone number is already linked to another account.");
-            } else if (code === "auth/too-many-requests") {
-                setError("Too many attempts. Please wait a few minutes.");
-            } else if (code === "auth/invalid-phone-number") {
-                setError("The phone number is invalid. Check the country code.");
-            } else if (code === "auth/provider-already-linked") {
-                // ... same as before but with better logging
-                await updateUserProfile({ phoneNumber: "+" + phone, phoneVerified: true });
-                await logSecurityActivity("PHONE_CHANGE", oldPhone, "+" + phone, {
-                    notifiedOld: true,
-                    message: `Security alert sent to ${oldPhone}`
-                });
-                await refreshUser();
-                setStep("done");
-                onSuccess(`Phone number updated! Alert sent to ${oldPhone}.`);
-                setTimeout(onClose, 1500);
-                return;
-            } else {
-                setError(`Failed to send code: ${msg}`);
+            if (code === "auth/provider-already-linked") {
+                 await updateUserProfile({ phoneNumber: "+" + phone, phoneVerified: true });
+                 setStep("done");
+                 onSuccess(t("account.msgPhoneUpdated"));
+                 return;
             }
+            setError(t("account.errUpdateFailed"));
         } finally { setLoading(false); }
     };
 
@@ -506,107 +429,48 @@ function ChangePhoneModal({ onClose, onSuccess }: { onClose: () => void; onSucce
         try {
             await confirmResult.confirm(otp);
             await updateUserProfile({ phoneNumber: "+" + phone, phoneVerified: true });
-            await logSecurityActivity("PHONE_CHANGE", oldPhone, "+" + phone, {
-                notifiedOld: true,
-                message: `Security alert sent to ${oldPhone}`
-            });
+            await logSecurityActivity("PHONE_CHANGE", oldPhone, "+" + phone, { notifiedOld: true });
             await refreshUser();
             setStep("done");
-            onSuccess(`Phone number updated & verified! Alert sent to ${oldPhone}.`);
-            setTimeout(onClose, 1500);
+            onSuccess(t("account.msgPhoneUpdated"));
         } catch (err: unknown) {
-            const code = (err as { code?: string })?.code;
-            if (code === "auth/invalid-verification-code") {
-                setError("Invalid code. Please try again.");
-            } else if (code === "auth/credential-already-in-use") {
-                setError("This phone number is already linked to another account.");
-            } else {
-                setError("Verification failed. Try again.");
-            }
+            setError(t("account.errInvalidCode"));
         } finally { setLoading(false); }
     };
 
     return (
         <div className="fixed inset-0 z-50 bg-black/40 flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
             <div className="w-full max-w-lg glass-card border border-white/50 backdrop-blur-xl rounded-t-[2rem] sm:rounded-[2rem] p-6 space-y-4 max-h-[90vh] overflow-y-auto shadow-2xl relative z-10" onClick={e => e.stopPropagation()}>
-                <div className="absolute top-0 right-0 size-32 bg-primary/10 rounded-full blur-3xl pointer-events-none -z-10"></div>
-                <div className="absolute bottom-0 left-0 size-32 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none -z-10"></div>
                 <div className="flex items-center justify-between">
-                    <h2 className="font-bold">Change Phone Number</h2>
+                    <h2 className="font-bold">{t("account.changePhone")}</h2>
                     <button onClick={onClose}><X size={18} /></button>
                 </div>
-
                 <div id={recaptchaId}></div>
-
+                {error && (
+                    <div className="bg-rose-50 text-rose-600 p-3 rounded-xl text-[12px] font-bold border border-rose-100 flex items-center gap-2 animate-in fade-in slide-in-from-top-2 duration-200">
+                        <AlertCircle size={14} />
+                        {error}
+                    </div>
+                )}
                 {step === "done" ? (
-                    <div className="text-center py-6 space-y-4">
-                        <div className="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-2">
-                            <Check size={32} className="text-emerald-600" />
-                        </div>
-                        <div className="space-y-1">
-                            <p className="font-bold text-lg">Phone Number Updated!</p>
-                            <p className="text-sm text-muted-foreground px-4">
-                                Your login phone number has been updated to <strong>+{phone}</strong>.
-                            </p>
-                        </div>
-                        <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-3 mx-4">
-                            <p className="text-xs text-emerald-800 leading-relaxed">
-                                A security warning was sent to your previous number <strong>{oldPhone}</strong>.
-                            </p>
-                        </div>
-                        <button onClick={onClose} className="w-full mt-4 py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-medium">
-                            Done
-                        </button>
+                    <div className="text-center py-6">
+                        <div className="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-2"><Check size={32} className="text-emerald-600" /></div>
+                        <p className="font-bold text-lg">{t("account.done")}</p>
+                        <button onClick={onClose} className="w-full mt-4 py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-medium">{t("common.ok")}</button>
                     </div>
                 ) : step === "input" ? (
                     <form onSubmit={handleSendOtp} className="space-y-3">
-                        {error && <div className="bg-destructive/10 text-destructive text-xs rounded-lg p-2.5 flex items-center gap-2"><AlertTriangle size={13} />{error}</div>}
-                        <div className="bg-amber-50 border border-amber-200 rounded-xl p-3">
-                            <p className="text-xs text-amber-800">⚠️ When you update your phone number, a security alert will be sent to your current number below.</p>
-                        </div>
-                        {userProfile?.phoneNumber && (
-                            <div>
-                                <label className="block text-xs font-medium mb-1">Current login phone <span className="text-muted-foreground font-normal">(security warnings go here)</span></label>
-                                <p className="text-sm text-muted-foreground px-3 py-2.5 rounded-xl border border-border bg-secondary">{userProfile.phoneNumber}</p>
-                            </div>
-                        )}
-                        <div>
-                            <label className="block text-xs font-medium mb-1">New phone number</label>
-                            <PhoneInput
-                                country={'in'} value={phone}
-                                onChange={p => setPhone(p)}
-                                inputClass="!w-full !py-2.5 !h-auto !text-sm !rounded-xl !border-input !bg-background"
-                                containerClass="!w-full"
-                                buttonClass="!rounded-l-xl !border-input !bg-muted/30"
-                            />
-                        </div>
-                        <p className="text-xs text-muted-foreground">We'll send a verification code to this new number.</p>
-                        <button type="submit" disabled={loading}
-                            className="w-full py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-medium flex items-center justify-center gap-2 disabled:opacity-60">
-                            {loading ? <Loader2 size={14} className="animate-spin" /> : <ArrowRight size={14} />}
-                            {loading ? "Sending code..." : "Send Verification Code"}
+                        <PhoneInput country={'in'} value={phone} onChange={p => setPhone(p)} inputClass="!w-full !py-2.5 !h-auto !text-sm !rounded-xl !border-input !bg-background" containerClass="!w-full" buttonClass="!rounded-l-xl" />
+                        <button type="submit" disabled={loading} className="w-full py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-medium flex items-center justify-center gap-2">
+                             {loading ? <Loader2 className="animate-spin" size={14} /> : <ArrowRight size={14} />} {t("account.sendCode")}
                         </button>
                     </form>
                 ) : (
                     <form onSubmit={handleVerifyOtp} className="space-y-3">
-                        {error && <div className="bg-destructive/10 text-destructive text-xs rounded-lg p-2.5 flex items-center gap-2"><AlertTriangle size={13} />{error}</div>}
-                        <div className="bg-muted/50 rounded-xl p-3 border border-border">
-                            <p className="text-xs text-muted-foreground">Code sent to <strong>+{phone}</strong></p>
-                        </div>
-                        <div>
-                            <label className="block text-xs font-medium mb-1">6-digit Code</label>
-                            <input type="text" value={otp}
-                                onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
-                                required placeholder="000000" maxLength={6}
-                                className="w-full px-3 py-2.5 rounded-xl border border-input bg-background text-sm text-center tracking-widest text-lg font-semibold placeholder:font-normal placeholder:tracking-normal focus:outline-none focus:ring-2 focus:ring-ring" />
-                        </div>
-                        <button type="submit" disabled={loading || otp.length < 6}
-                            className="w-full py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-medium flex items-center justify-center gap-2 disabled:opacity-60">
-                            {loading ? <Loader2 size={14} className="animate-spin" /> : "Verify & Update Phone"}
-                        </button>
-                        <button type="button" onClick={() => { setStep("input"); setOtp(""); setError(""); }}
-                            className="w-full text-center text-xs text-muted-foreground hover:text-foreground transition-colors">
-                            ← Change number
+                        <input type="text" value={otp} onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))} required placeholder="000000" maxLength={6}
+                           className="w-full px-3 py-2.5 rounded-xl border border-input bg-background text-sm text-center tracking-widest text-lg font-semibold" />
+                        <button type="submit" disabled={loading || otp.length < 6} className="w-full py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-medium">
+                            {t("account.verifyBtn")}
                         </button>
                     </form>
                 )}
@@ -618,152 +482,65 @@ function ChangePhoneModal({ onClose, onSuccess }: { onClose: () => void; onSucce
 // ─── Toggle ───────────────────────────────────────────────────────────────────
 function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
     return (
-        <button
-            type="button"
-            onClick={() => onChange(!checked)}
-            className={cn(
-                "relative w-11 h-6 rounded-full transition-colors duration-200 flex-shrink-0",
-                checked ? "bg-primary" : "bg-muted"
-            )}
-        >
-            <span className={cn(
-                "absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform duration-200",
-                checked ? "translate-x-5" : "translate-x-0"
-            )} />
+        <button type="button" onClick={() => onChange(!checked)}
+            className={cn("relative w-11 h-6 rounded-full transition-colors duration-200 flex-shrink-0", checked ? "bg-primary" : "bg-muted")}>
+            <span className={cn("absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform duration-200", checked ? "translate-x-5" : "translate-x-0")} />
         </button>
     );
 }
 
 // ─── SettingsSection ──────────────────────────────────────────────────────────
-function SettingsSection({
-    userId, initialSettings, navigate, logout, user,
-}: {
-    userId?: string;
-    initialSettings?: UserSettings;
-    navigate: (path: string) => void;
-    logout: () => Promise<void>;
-    user: import("firebase/auth").User | null;
-}) {
+function SettingsSection({ userId, initialSettings }: { userId?: string; initialSettings?: UserSettings }) {
     const { t } = useTranslation();
-    const defaults: UserSettings = {
-        notifAppointments: true,
-        notifHealthTips: true,
-        notifAIInsights: false,
-        privacyShowProfile: true,
-        privacyDataSharing: false,
-    };
+    const defaults: UserSettings = { notifAppointments: true, notifHealthTips: true, notifAIInsights: false, privacyShowProfile: true, privacyDataSharing: false };
     const [settings, setSettings] = useState<UserSettings>({ ...defaults, ...initialSettings });
     const [saving, setSaving] = useState<string | null>(null);
-    const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
 
     const handleToggle = async (key: keyof UserSettings, value: boolean) => {
         const next = { ...settings, [key]: value };
         setSettings(next);
         if (!userId) return;
         setSaving(key);
-        try {
-            await updateDoc(doc(db, "users", userId), { settings: next });
-        } catch (err: unknown) {
-            // Revert on error
-            setSettings(settings);
-            setToast({ message: "Failed to save setting. Check Firestore rules.", type: "error" });
-            console.error("Settings toggle error:", err);
-        } finally {
-            setSaving(null);
-        }
+        try { await updateDoc(doc(db, "users", userId), { settings: next }); } catch (err) { setSettings(settings); } finally { setSaving(null); }
     };
 
-    const notifToggles = [
-        { key: "notifHealthTips" as const, icon: Sparkles, label: t("account.healthTips"), sub: t("account.healthTipsSub"), color: "bg-amber-50 text-amber-600" },
-        { key: "notifAIInsights" as const, icon: Bell, label: t("account.aiInsights"), sub: t("account.aiInsightsSub"), color: "bg-violet-50 text-violet-600" },
-    ];
-
-    const privacyToggles = [
-        { key: "privacyDataSharing" as const, icon: Share2, label: t("account.dataSharing"), sub: t("account.dataSharingSub"), color: "bg-rose-50 text-rose-600" },
-    ];
-
     return (
-        <div className="space-y-4">
-            {toast && <Toast message={toast.message} type={toast.type} onDismiss={() => setToast(null)} />}
-
-            {/* Quick nav */}
-            <div className="bg-card border border-border rounded-2xl overflow-hidden">
-                <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-4 pt-3 pb-1">{t("account.quickAccess")}</p>
+        <div className="space-y-6">
+            <div className="glass-card rounded-[1.5rem] divide-y divide-white/40 overflow-hidden shadow-sm border border-white/50">
+                <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest p-4 pb-2">{t("account.notifications")}</p>
                 {[
-                    { label: t("account.managePatients"), sub: t("account.managePatientsSub"), path: "/patients", colorBg: "bg-violet-50", colorText: "text-violet-600" },
-                    { label: t("account.myDocs"), sub: t("account.myDocsSub"), path: "/documents", colorBg: "bg-blue-50", colorText: "text-blue-600" },
-                ].map(({ label, sub, path, colorBg, colorText }) => (
-                    <button key={path} onClick={() => navigate(path)}
-                        className="w-full flex items-center gap-3 p-4 hover:bg-accent/50 transition-colors border-t border-border first:border-t-0">
-                        <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center", colorBg, colorText)}>
-                            <ChevronRight size={17} />
+                    { key: "notifHealthTips" as const, icon: Sparkles, label: t("account.healthTips"), sub: t("account.healthTipsSub"), color: "bg-amber-50 text-amber-600" },
+                    { key: "notifAIInsights" as const, icon: Bell, label: t("account.aiInsights"), sub: t("account.aiInsightsSub"), color: "bg-violet-50 text-violet-600" },
+                ].map(({ key, icon: Icon, label, sub, color }) => (
+                    <div key={key} className="flex items-center gap-3 p-4">
+                        <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center", color)}><Icon size={17} /></div>
+                        <div className="flex-1">
+                            <p className="text-sm font-bold text-slate-900">{label}</p>
+                            <p className="text-[10px] text-slate-500 font-bold leading-tight">{sub}</p>
                         </div>
-                        <div className="flex-1 text-left">
-                            <p className="text-sm font-semibold">{label}</p>
-                            <p className="text-xs text-muted-foreground">{sub}</p>
-                        </div>
-                        <ChevronRight size={16} className="text-muted-foreground" />
-                    </button>
-                ))}
-            </div>
-
-            {/* Notifications */}
-            <div className="glass-card rounded-[1.5rem] shadow-sm border border-white/50 overflow-hidden divide-y divide-white/40 mx-5 mt-2">
-                <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-4 pt-3 pb-1">{t("account.notifications")}</p>
-                {notifToggles.map(({ key, icon: Icon, label, sub, color }) => (
-                    <div key={key} className="flex items-center gap-3 p-4 border-t border-border first:border-t-0">
-                        <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center", color)}>
-                            <Icon size={17} />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold">{label}</p>
-                            <p className="text-xs text-muted-foreground leading-snug">{sub}</p>
-                        </div>
-                        {saving === key
-                            ? <Loader2 size={18} className="animate-spin text-muted-foreground flex-shrink-0" />
-                            : <Toggle checked={settings[key]} onChange={v => handleToggle(key, v)} />
-                        }
+                        {saving === key ? <Loader2 size={18} className="animate-spin text-slate-400" /> : <Toggle checked={settings[key]} onChange={v => handleToggle(key, v)} />}
                     </div>
                 ))}
             </div>
-
-            {/* Privacy */}
-            <div className="glass-card rounded-[1.5rem] shadow-sm border border-white/50 overflow-hidden divide-y divide-white/40 mx-5 mb-5">
-                <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-4 pt-3 pb-1">{t("account.privacy")}</p>
-                {privacyToggles.map(({ key, icon: Icon, label, sub, color }) => (
-                    <div key={key} className="flex items-center gap-3 p-4 border-t border-border first:border-t-0">
-                        <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center", color)}>
-                            <Icon size={17} />
+            <div className="glass-card rounded-[1.5rem] divide-y divide-white/40 overflow-hidden shadow-sm border border-white/50">
+                <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest p-4 pb-2">{t("account.privacy")}</p>
+                {[
+                    { key: "privacyDataSharing" as const, icon: Share2, label: t("account.dataSharing"), sub: t("account.dataSharingSub"), color: "bg-rose-50 text-rose-600" },
+                ].map(({ key, icon: Icon, label, sub, color }) => (
+                    <div key={key} className="flex items-center gap-3 p-4">
+                        <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center", color)}><Icon size={17} /></div>
+                        <div className="flex-1">
+                            <p className="text-sm font-bold text-slate-900">{label}</p>
+                            <p className="text-[10px] text-slate-500 font-bold leading-tight">{sub}</p>
                         </div>
-                        <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold">{label}</p>
-                            <p className="text-xs text-muted-foreground leading-snug">{sub}</p>
-                        </div>
-                        {saving === key
-                            ? <Loader2 size={18} className="animate-spin text-muted-foreground flex-shrink-0" />
-                            : <Toggle checked={settings[key]} onChange={v => handleToggle(key, v)} />
-                        }
+                        {saving === key ? <Loader2 size={18} className="animate-spin text-slate-400" /> : <Toggle checked={settings[key]} onChange={v => handleToggle(key, v)} />}
                     </div>
                 ))}
             </div>
-
-            {/* Account info */}
-            <div className="glass-card rounded-[1.5rem] p-5 space-y-2 shadow-sm border border-white/50 mx-5">
-                <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-3">{t("account.accountInfo")}</p>
-                <div className="flex justify-between text-sm"><span className="text-muted-foreground">{t("account.uid")}</span><span className="font-mono text-xs text-muted-foreground">{user?.uid?.slice(0, 12)}…</span></div>
-                <div className="flex justify-between text-sm"><span className="text-muted-foreground">{t("account.emailVerified")}</span><span className={user?.emailVerified ? "text-green-600 font-medium" : "text-amber-600 font-medium"}>{user?.emailVerified ? t("account.verified") : t("account.notVerified")}</span></div>
-            </div>
-
-            {/* Sign out */}
-            <button onClick={async () => { await logout(); navigate("/login"); }}
-                className="w-full flex items-center justify-center gap-2 py-3 bg-destructive/10 text-destructive rounded-2xl text-sm font-semibold hover:bg-destructive/20 transition-colors">
-                <LogOut size={16} /> {t("account.signOut")}
-            </button>
         </div>
     );
 }
 
-// ─── AccountPage ──────────────────────────────────────────────────────────────
 // ─── SecurityHistory ──────────────────────────────────────────────────────────
 function SecurityHistory({ userId }: { userId: string }) {
     const { t } = useTranslation();
@@ -773,381 +550,198 @@ function SecurityHistory({ userId }: { userId: string }) {
     const fetchLogs = async () => {
         try {
             setLoading(true);
-            console.log("Fetching security logs for UID:", userId);
-            // Just fetch logs. The main AccountPage component handles syncing on mount/visibility.
             const colRef = collection(db, "users", userId, "securityLogs");
             const snap = await getDocs(colRef);
-            console.log(`Fetched ${snap.size} security logs for user ${userId}`);
-
-            // 3. Sort manually in memory for now to avoid needing a composite index immediately
             const rawLogs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-            const sorted = rawLogs.sort((a: any, b: any) => {
-                const ta = a.timestamp?.seconds || 0;
-                const tb = b.timestamp?.seconds || 0;
-                return tb - ta;
-            });
-            setLogs(sorted);
-        } catch (err) {
-            console.error("Error fetching security logs:", err);
-        } finally {
-            setLoading(false);
-        }
+            setLogs(rawLogs.sort((a: any, b: any) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0)));
+        } catch (err) { console.error(err); } finally { setLoading(false); }
     };
 
-    useEffect(() => {
-        fetchLogs();
-    }, [userId]);
+    useEffect(() => { fetchLogs(); }, [userId]);
 
-    if (loading) return <div className="p-4 flex justify-center"><Loader2 size={16} className="animate-spin text-muted-foreground" /></div>;
-
-    // Don't return null, show at least a header if it's the security section
-    if (logs.length === 0) {
-        return (
-            <div className="glass-card rounded-[1.5rem] p-5 space-y-3 shadow-sm border border-white/50">
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-xl bg-slate-50 flex items-center justify-center">
-                            <ShieldCheck size={17} className="text-slate-600" />
-                        </div>
-                        <p className="text-sm font-semibold">{t("account.recentActivity")}</p>
-                    </div>
-                    <button onClick={() => { setLoading(true); fetchLogs(); }} className="p-1.5 hover:bg-secondary rounded-lg transition-colors">
-                        <RefreshCw size={14} className={cn("text-muted-foreground", loading && "animate-spin")} />
-                    </button>
-                </div>
-                <div className="text-center py-4">
-                    <ShieldCheck size={24} className="mx-auto text-muted-foreground/30 mb-2" />
-                    <p className="text-sm text-muted-foreground">{t("account.noActivity")}</p>
-                    <p className="text-[10px] text-muted-foreground mt-1">{t("account.refreshHint")}</p>
-                </div>
-            </div>
-        );
-    }
+    if (loading) return <div className="p-4 flex justify-center"><Loader2 className="animate-spin" size={16} /></div>;
 
     return (
-        <div className="glass-card rounded-[1.5rem] p-5 space-y-3 shadow-sm border border-white/50">
+        <div className="glass-card rounded-[1.5rem] p-5 shadow-sm border border-white/50 space-y-4">
             <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-slate-50 flex items-center justify-center">
-                        <ShieldCheck size={17} className="text-slate-600" />
-                    </div>
-                    <p className="text-sm font-semibold">{t("account.recentActivity")}</p>
-                </div>
-                <button onClick={() => { setLoading(true); fetchLogs(); }} className="p-1.5 hover:bg-secondary rounded-lg transition-colors">
-                    <RefreshCw size={14} className={cn("text-muted-foreground", loading && "animate-spin")} />
-                </button>
+                <div className="flex items-center gap-2 text-[11px] font-black text-slate-400 uppercase tracking-widest"><ShieldCheck size={14} /> {t("account.recentActivity")}</div>
+                <button onClick={fetchLogs}><RefreshCw size={12} className="text-slate-400" /></button>
             </div>
-            <div className="space-y-3 pt-1">
-                {logs.map((log: any) => (
-                    <div key={log.id} className="flex gap-3 pl-12 border-l-2 border-muted py-0.5">
-                        <div className="flex-1">
-                            <div className="flex justify-between items-start">
-                                <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                                    {log.type.replace("_", " ")}
-                                </p>
-                            <p className="text-[10px] text-muted-foreground">
-                                    {log.timestamp?.toDate ? new Date(log.timestamp.toDate()).toLocaleDateString() : "Just now"}
-                                </p>
-                            </div>
-                            <p className="text-xs mt-1 text-foreground">
-                                {t("account.changedFrom")} <span className="font-mono text-muted-foreground">{log.oldValue}</span> {t("account.to")} <span className="font-mono">{log.newValue}</span>
-                            </p>
-                            {log.notifiedOld && (
-                                <p className="text-[10px] text-green-600 font-medium mt-1 flex items-center gap-1">
-                                    <CheckCircle2 size={10} /> {log.message}
-                                </p>
-                            )}
+            {logs.length === 0 ? <p className="text-xs text-slate-400 text-center py-4">{t("account.noActivity")}</p> : (
+                <div className="space-y-3">
+                    {logs.map(log => (
+                        <div key={log.id} className="border-l-2 border-slate-100 pl-4 py-0.5">
+                            <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">{log.type.replace("_", " ")}</p>
+                            <p className="text-xs font-bold text-slate-700 mt-1">{log.newValue}</p>
+                            <p className="text-[9px] text-slate-400 mt-0.5 uppercase font-bold">{log.timestamp?.toDate ? new Date(log.timestamp.toDate()).toLocaleDateString() : ""}</p>
                         </div>
-                    </div>
-                ))}
-            </div>
+                    ))}
+                </div>
+            )}
         </div>
     );
 }
 
 // ─── AccountPage ──────────────────────────────────────────────────────────────
 export function AccountPage() {
-    const {
-        user, userProfile, logout, refreshUser,
-        updateUserProfile, uploadProfilePhoto
-    } = useAuth();
+    const { user, userProfile, logout, refreshUser, updateUserProfile, uploadProfilePhoto } = useAuth();
     const { t } = useTranslation();
     const navigate = useNavigate();
     const [section, setSection] = useState<Section>("info");
     const [photoUploading, setPhotoUploading] = useState(false);
-    const [photoProgress, setPhotoProgress] = useState(0);
     const [showPwModal, setShowPwModal] = useState(false);
     const [showEmailModal, setShowEmailModal] = useState(false);
     const [showPhoneModal, setShowPhoneModal] = useState(false);
     const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
     const fileRef = useRef<HTMLInputElement>(null);
 
-    // CRITICAL: Refresh user data on mount and whenever the tab becomes visible
-    // This ensures we catch email verification completion from other tabs.
     useEffect(() => {
-        const handleVisibilityAndRefresh = async () => {
-            if (document.visibilityState === "visible" && user?.uid) {
-                console.log("Tab visible: Refreshing user state for UID:", user.uid);
-                await refreshUser().catch(err => console.error("Refresh error:", err));
-            }
-        };
-
-        handleVisibilityAndRefresh(); // Initial on mount
-        document.addEventListener("visibilitychange", handleVisibilityAndRefresh);
-        return () => document.removeEventListener("visibilitychange", handleVisibilityAndRefresh);
-    }, [user?.uid]); // Only depend on UID string, not the whole user object
-
-    const showToast = (message: string, type: "success" | "error") => {
-        setToast({ message, type });
-    };
+        const h = async () => { if (document.visibilityState === "visible" && user?.uid) await refreshUser().catch(e => console.error(e)); };
+        h(); document.addEventListener("visibilitychange", h);
+        return () => document.removeEventListener("visibilitychange", h);
+    }, [user?.uid]);
 
     const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-        // Reset the file input so the same file can be selected again
-        e.target.value = "";
+        const file = e.target.files?.[0]; if (!file) return;
         setPhotoUploading(true);
-        setPhotoProgress(0);
         try {
-            const url = await uploadProfilePhoto(file, setPhotoProgress);
+            const url = await uploadProfilePhoto(file);
             await updateUserProfile({ photoURL: url });
-            showToast("Profile photo updated!", "success");
-        } catch (err: unknown) {
-            console.error("Photo upload error:", err);
-            const code = (err as { code?: string })?.code;
-            if (code === "storage/unauthorized") {
-                showToast("Upload blocked by Firebase Storage rules. See settings.", "error");
-            } else {
-                showToast("Photo upload failed. Please try again.", "error");
-            }
-        } finally {
-            setPhotoUploading(false);
-            setPhotoProgress(0);
-        }
+            setToast({ message: t("account.msgPhotoUpdated"), type: "success" });
+        } catch (err) { setToast({ message: t("account.errUpdateFailed"), type: "error" }); } finally { setPhotoUploading(false); }
     };
 
-    const handleProfileSave = async (data: Parameters<typeof updateUserProfile>[0]) => {
-        try {
-            await updateUserProfile(data);
-            showToast("Saved successfully!", "success");
-        } catch (err: unknown) {
-            console.error("Profile save error:", err);
-            const code = (err as { code?: string })?.code;
-            throw new Error(
-                code === "permission-denied"
-                    ? "Permission denied. Firestore rules may need updating."
-                    : err instanceof Error
-                        ? err.message
-                        : "Save failed. Please try again."
-            );
-        }
+    const handleProfileSave = async (data: any) => {
+        try { await updateUserProfile(data); setToast({ message: t("account.msgSaved"), type: "success" }); }
+        catch (err) { throw new Error(t("account.errUpdateFailed")); }
     };
 
-    const tabs: { id: Section; label: string }[] = [
-        { id: "info", label: t("account.personalInfo") },
-        { id: "security", label: t("account.security") },
-        { id: "settings", label: t("account.settings") },
-    ];
+    const handleSignOut = async () => { await logout(); navigate("/login"); };
 
     return (
-        <div className="pb-6 w-full max-w-lg mx-auto overflow-x-hidden space-y-5">
-            <div className="absolute top-0 left-0 right-0 h-[50vh] soft-gradient-bg -z-10 pointer-events-none"></div>
+        <div className="min-h-screen bg-slate-50 pb-32">
             {toast && <Toast message={toast.message} type={toast.type} onDismiss={() => setToast(null)} />}
 
-            {/* Profile Header */}
-            <div className="glass-card rounded-[2rem] p-6 shadow-xl shadow-primary/10 mt-6 border border-white/40 relative overflow-hidden">
-                <div className="absolute -top-12 -right-12 size-32 bg-primary/10 rounded-full blur-3xl pointer-events-none"></div>
-                <div className="flex flex-col items-center text-center gap-3">
-                    <div className="relative">
-                        <Avatar photoURL={userProfile?.photoURL} displayName={userProfile?.displayName} size="lg" onClick={() => fileRef.current?.click()} />
-                        <button
-                            onClick={() => fileRef.current?.click()}
-                            disabled={photoUploading}
-                            className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-md border-2 border-card disabled:opacity-70"
-                        >
-                            {photoUploading ? <Loader2 size={13} className="animate-spin" /> : <Camera size={13} />}
-                        </button>
-                        <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handlePhotoChange} />
+            {/* Header / Profile Info */}
+            <header className="bg-white border-b border-slate-100 px-6 pt-10 pb-24 relative overflow-hidden">
+                 <div className="absolute top-0 right-0 size-64 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+                 
+                 <div className="flex items-center justify-between mb-8 relative z-10">
+                    <div>
+                        <h1 className="text-3xl font-black text-slate-900 tracking-tight leading-none">{t("account.title")}</h1>
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-2">{t("account.subtitle")}</p>
                     </div>
-                    {photoUploading && (
-                        <div className="w-full space-y-1">
-                            <div className="w-full h-1.5 bg-secondary rounded-full overflow-hidden">
-                                <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${photoProgress}%` }} />
+                    <button onClick={handleSignOut} className="p-2 rounded-xl bg-slate-50 text-slate-400 border border-slate-100"><LogOut size={18} /></button>
+                 </div>
+
+                 <div className="flex items-center gap-6 relative z-10">
+                    <div className="relative">
+                        <Avatar photoURL={userProfile?.photoURL} displayName={userProfile?.displayName} size="lg" />
+                        <label className="absolute -bottom-1 -right-1 size-8 bg-slate-900 text-white rounded-xl flex items-center justify-center cursor-pointer shadow-lg active:scale-90 transition-transform">
+                            {photoUploading ? <Loader2 size={13} className="animate-spin" /> : <Camera size={13} />}
+                            <input type="file" accept="image/*" className="hidden" ref={fileRef} onChange={handlePhotoChange} disabled={photoUploading} />
+                        </label>
+                    </div>
+                    <div className="flex-1">
+                        <h2 className="text-2xl font-black text-slate-900 leading-tight mb-1">{userProfile?.displayName || t("dashboard.guest")}</h2>
+                        <p className="text-xs font-bold text-slate-400">{user?.email}</p>
+                        <div className="mt-4 flex items-center gap-3">
+                            <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                <div className="h-full bg-emerald-500 rounded-full" style={{ width: "65%" }} />
                             </div>
-                            <p className="text-xs text-muted-foreground">Uploading… {photoProgress}%</p>
+                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{t("account.profileComplete")}</span>
+                        </div>
+                    </div>
+                 </div>
+            </header>
+
+            <main className="px-6 -mt-12 relative z-20 space-y-8">
+                {/* Global Actions */}
+                <div className="grid grid-cols-2 gap-4">
+                    <button onClick={() => navigate("/patients")} className="bg-slate-900 text-white p-6 rounded-[2.5rem] flex flex-col items-center justify-center gap-2 shadow-xl shadow-slate-900/20 active:scale-95 transition-transform">
+                        <UserCircle size={28} />
+                        <span className="text-[10px] font-black uppercase tracking-widest">{t("account.managePatients")}</span>
+                    </button>
+                    <button onClick={() => navigate("/docs")} className="bg-white text-slate-900 p-6 rounded-[2.5rem] border border-slate-100 flex flex-col items-center justify-center gap-2 shadow-sm active:scale-95 transition-transform">
+                        <RefreshCw size={28} className="text-slate-400" />
+                        <span className="text-[10px] font-black uppercase tracking-widest">{t("account.myDocs")}</span>
+                    </button>
+                </div>
+
+                {/* Section Nav */}
+                <div className="flex bg-slate-200/50 p-1 rounded-2xl">
+                    {[
+                        { id: "info", label: t("account.personalInfo"), icon: User },
+                        { id: "security", label: t("account.security"), icon: Lock },
+                        { id: "settings", label: t("account.settings"), icon: Bell },
+                    ].map(s => (
+                        <button key={s.id} onClick={() => setSection(s.id as Section)}
+                            className={cn("flex-1 flex flex-col items-center gap-1.5 py-3 rounded-xl transition-all",
+                                section === s.id ? "bg-white text-slate-900 shadow-sm" : "text-slate-400")}>
+                            <s.icon size={18} strokeWidth={section === s.id ? 2.5 : 2} />
+                            <span className="text-[9px] font-black uppercase tracking-widest">{s.label}</span>
+                        </button>
+                    ))}
+                </div>
+
+                {/* Content */}
+                <div className="pb-10">
+                    {section === "info" && (
+                        <div className="bg-white rounded-[2rem] p-6 shadow-sm border border-slate-100 space-y-1">
+                            <EditableField label={t("account.fullName")} icon={User} value={userProfile?.displayName ?? ""} onSave={v => handleProfileSave({ displayName: v })} />
+                            <EditableField label={t("account.dob")} icon={Calendar} value={userProfile?.dob ?? ""} type="date" onSave={v => handleProfileSave({ dob: v })} />
+                            <EditableField label={t("account.bloodGroup")} icon={Droplets} value={userProfile?.bloodGroup ?? ""} onSave={v => handleProfileSave({ bloodGroup: v })} />
+                            <GenderSelect value={userProfile?.gender ?? ""} onSave={v => handleProfileSave({ gender: v })} />
                         </div>
                     )}
-                    <div>
-                        <h2 className="text-xl font-bold">{userProfile?.displayName ?? "User"}</h2>
-                        <p className="text-sm text-muted-foreground">{user?.email || userProfile?.email}</p>
-                        {(userProfile as any)?.pendingEmail && (
-                            <p className="text-[10px] text-orange-600 mt-0.5">⏳ Pending change to {(userProfile as any).pendingEmail} — verify to complete</p>
-                        )}
-                        {userProfile?.role === "admin" && (
-                            <span className="text-xs px-2 py-0.5 rounded-full font-medium mt-1 inline-block bg-primary/10 text-primary">
-                                Admin
-                            </span>
-                        )}
-                    </div>
-                </div>
-            </div>
 
-            {/* Tabs */}
-            <div className="flex bg-white/40 backdrop-blur-md rounded-2xl p-1.5 gap-1 shadow-sm border border-white/50">
-                {tabs.map(t => (
-                    <button key={t.id} onClick={() => setSection(t.id)}
-                        className={cn("flex-1 py-2.5 text-[13px] font-bold rounded-xl transition-all",
-                            section === t.id ? "bg-white shadow-md text-primary" : "text-slate-500 hover:text-slate-700 hover:bg-white/50")}>
-                        {t.label}
-                    </button>
-                ))}
-            </div>
-
-            {/* PERSONAL INFO */}
-            {section === "info" && (
-                <div className="glass-card rounded-[1.5rem] p-5 space-y-1 shadow-sm border border-white/50">
-                    <EditableField
-                        label={t("account.fullName")}
-                        icon={User}
-                        value={userProfile?.displayName ?? ""}
-                        onSave={v => handleProfileSave({ displayName: v })}
-                    />
-                    {/* Phone — opens secure change modal */}
-                    <div className="py-3 border-b border-border">
-                        <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center flex-shrink-0">
-                                <Phone size={15} className="text-muted-foreground" />
+                    {section === "security" && (
+                        <div className="space-y-6">
+                            <div className="bg-white rounded-[2rem] overflow-hidden divide-y divide-slate-50 shadow-sm border border-slate-100">
+                                <button onClick={() => setShowEmailModal(true)} className="w-full flex items-center justify-between p-5 hover:bg-slate-50 transition-colors">
+                                    <div className="flex items-center gap-4">
+                                        <div className="size-11 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center"><Mail size={18} /></div>
+                                        <div className="text-left font-lexend">
+                                            <p className="text-sm font-black uppercase tracking-tight text-slate-900">{t("account.changeEmail")}</p>
+                                            <p className="text-[10px] font-bold text-slate-400 mt-1">{user?.email}</p>
+                                        </div>
+                                    </div>
+                                    <ChevronRight size={16} className="text-slate-300" />
+                                </button>
+                                <button onClick={() => setShowPhoneModal(true)} className="w-full flex items-center justify-between p-5 hover:bg-slate-50 transition-colors">
+                                    <div className="flex items-center gap-4">
+                                        <div className="size-11 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center"><Phone size={18} /></div>
+                                        <div className="text-left font-lexend">
+                                            <p className="text-sm font-black uppercase tracking-tight text-slate-900">{t("account.changePhone")}</p>
+                                            <p className="text-[10px] font-bold text-slate-400 mt-1">{userProfile?.phoneNumber || t("common.notSet")}</p>
+                                        </div>
+                                    </div>
+                                    <ChevronRight size={16} className="text-slate-300" />
+                                </button>
+                                <button onClick={() => setShowPwModal(true)} className="w-full flex items-center justify-between p-5 hover:bg-slate-50 transition-colors">
+                                    <div className="flex items-center gap-4">
+                                        <div className="size-11 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center"><Lock size={18} /></div>
+                                        <div className="text-left font-lexend">
+                                            <p className="text-sm font-black uppercase tracking-tight text-slate-900">{t("account.changePassword")}</p>
+                                            <p className="text-[10px] font-bold text-slate-400 mt-1">••••••••</p>
+                                        </div>
+                                    </div>
+                                    <ChevronRight size={16} className="text-slate-300" />
+                                </button>
                             </div>
-                            <div className="flex-1 min-w-0">
-                                <p className="text-[11px] text-muted-foreground">{t("account.phoneNum")}</p>
-                                <p className="text-sm font-medium truncate">
-                                    {userProfile?.phoneNumber || <span className="text-muted-foreground italic">Not set</span>}
-                                    {userProfile?.phoneVerified && (
-                                        <span className="ml-2 text-xs text-green-600 font-normal">✓ Verified</span>
-                                    )}
-                                </p>
-                            </div>
-                            <button onClick={() => setShowPhoneModal(true)} className="flex-shrink-0 text-muted-foreground hover:text-primary transition-colors">
-                                <Pencil size={14} />
-                            </button>
+                            {user?.uid && <SecurityHistory userId={user.uid} />}
                         </div>
-                    </div>
-                    <EditableField
-                        label="Bio"
-                        icon={UserCircle}
-                        value={userProfile?.bio ?? ""}
-                        placeholder="Tell us a bit about yourself"
-                        onSave={v => handleProfileSave({ bio: v })}
-                    />
-                    <EditableField
-                        label="Date of Birth"
-                        icon={Calendar}
-                        value={userProfile?.dob ?? ""}
-                        type="date"
-                        onSave={v => handleProfileSave({ dob: v })}
-                    />
-                    <EditableField
-                        label="Blood Group"
-                        icon={Droplets}
-                        value={userProfile?.bloodGroup ?? ""}
-                        placeholder="e.g. O+"
-                        onSave={v => handleProfileSave({ bloodGroup: v })}
-                    />
-                    <GenderSelect
-                        value={userProfile?.gender ?? ""}
-                        onSave={v => handleProfileSave({ gender: v })}
-                    />
+                    )}
+
+                    {section === "settings" && (
+                        <SettingsSection userId={user?.uid} initialSettings={(userProfile as any)?.settings} />
+                    )}
                 </div>
-            )}
+            </main>
 
-            {/* SECURITY */}
-            {section === "security" && (
-                <div className="space-y-4">
-                    <div className="glass-card rounded-[1.5rem] shadow-sm border border-white/50 overflow-hidden divide-y divide-white/40">
-                        <button onClick={() => setShowEmailModal(true)}
-                            className="w-full flex items-center gap-3 p-4 hover:bg-accent/50 transition-colors">
-                            <div className="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center">
-                                <Mail size={17} className="text-blue-600" />
-                            </div>
-                            <div className="flex-1 text-left">
-                                <p className="text-sm font-semibold">{t("account.changeEmail")}</p>
-                                <p className="text-xs text-muted-foreground truncate">{user?.email || userProfile?.email}</p>
-                                {(userProfile as any)?.pendingEmail && (
-                                    <p className="text-[10px] text-orange-600">⏳ Pending: {(userProfile as any).pendingEmail}</p>
-                                )}
-                            </div>
-                            <ChevronRight size={16} className="text-muted-foreground" />
-                        </button>
-                        <div className="h-px bg-border mx-4" />
-                        <button onClick={() => setShowPhoneModal(true)}
-                            className="w-full flex items-center gap-3 p-4 hover:bg-accent/50 transition-colors">
-                            <div className="w-9 h-9 rounded-xl bg-emerald-50 flex items-center justify-center">
-                                <Phone size={17} className="text-emerald-600" />
-                            </div>
-                            <div className="flex-1 text-left">
-                                <p className="text-sm font-semibold">{t("account.changePhone")}</p>
-                                <p className="text-xs text-muted-foreground truncate">{userProfile?.phoneNumber || "Not set"}</p>
-                            </div>
-                            <ChevronRight size={16} className="text-muted-foreground" />
-                        </button>
-                        <div className="h-px bg-border mx-4" />
-                        <button onClick={() => setShowPwModal(true)}
-                            className="w-full flex items-center gap-3 p-4 hover:bg-accent/50 transition-colors">
-                            <div className="w-9 h-9 rounded-xl bg-orange-50 flex items-center justify-center">
-                                <Lock size={17} className="text-orange-600" />
-                            </div>
-                            <div className="flex-1 text-left">
-                                <p className="text-sm font-semibold">{t("account.changePassword")}</p>
-                                <p className="text-xs text-muted-foreground">••••••••</p>
-                            </div>
-                            <ChevronRight size={16} className="text-muted-foreground" />
-                        </button>
-                    </div>
-
-                    {/* Verification Status Card */}
-                    <div className="glass-card rounded-[1.5rem] p-5 space-y-3 shadow-sm border border-white/50">
-                        <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-xl bg-green-50 flex items-center justify-center">
-                                <ShieldCheck size={17} className="text-green-600" />
-                            </div>
-                            <p className="text-sm font-semibold">{t("account.verificationStatus")}</p>
-                        </div>
-                        <div className="space-y-2 ml-12">
-                            <div className="flex items-center justify-between">
-                                <span className="text-xs text-muted-foreground">{t("account.email")}</span>
-                                <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${userProfile?.emailVerified ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"}`}>
-                                    {userProfile?.emailVerified ? t("account.verified") : t("account.notVerified")}
-                                </span>
-                            </div>
-                            <div className="flex items-center justify-between">
-                                <span className="text-xs text-muted-foreground">{t("account.phone")}</span>
-                                <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${userProfile?.phoneVerified ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"}`}>
-                                    {userProfile?.phoneVerified ? t("account.verified") : t("account.notVerified")}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* SECURITY LOGS */}
-                    {user?.uid && <SecurityHistory userId={user.uid} />}
-                </div>
-            )}
-
-            {/* SETTINGS */}
-            {section === "settings" && (
-                <SettingsSection
-                    userId={user?.uid}
-                    initialSettings={(userProfile as unknown as { settings?: UserSettings })?.settings}
-                    navigate={navigate}
-                    logout={logout}
-                    user={user}
-                />
-            )}
-
-            {/* Modals */}
             {showPwModal && <ChangePasswordModal onClose={() => setShowPwModal(false)} />}
-            {showEmailModal && <ChangeEmailModal onClose={() => setShowEmailModal(false)} onSuccess={(msg) => showToast(msg, "success")} />}
-            {showPhoneModal && <ChangePhoneModal onClose={() => setShowPhoneModal(false)} onSuccess={(msg) => showToast(msg, "success")} />}
+            {showEmailModal && <ChangeEmailModal onClose={() => setShowEmailModal(false)} onSuccess={(m) => setToast({ message: m, type: "success" })} />}
+            {showPhoneModal && <ChangePhoneModal onClose={() => setShowPhoneModal(false)} onSuccess={(m) => setToast({ message: m, type: "success" })} />}
         </div>
     );
 }

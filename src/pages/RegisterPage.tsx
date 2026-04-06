@@ -29,7 +29,7 @@ export function RegisterPage() {
     // ── Email registration ──
     const handleEmailSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (password.length < 6) { setError("Password must be at least 6 characters."); return; }
+        if (password.length < 6) { setError(t("auth.invalidPassword")); return; }
         setError(""); setLoading(true);
         try {
             await registerWithEmail(email, password, name);
@@ -37,11 +37,11 @@ export function RegisterPage() {
         } catch (err: unknown) {
             const code = (err as { code?: string })?.code;
             if (code === "auth/email-already-in-use") {
-                setError("An account with this email already exists. Try signing in.");
+                setError(t("account.errEmailUsed"));
             } else if (code === "auth/invalid-email") {
-                setError("Please enter a valid email address.");
+                setError(t("auth.invalidEmail"));
             } else {
-                setError(err instanceof Error ? err.message : "Registration failed.");
+                setError(err instanceof Error ? err.message : t("auth.errorTitle"));
             }
         } finally { setLoading(false); }
     };
@@ -49,7 +49,7 @@ export function RegisterPage() {
     // ── Phone registration: send OTP ──
     const handlePhoneSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!phone || phone.length < 10) { setError("Please enter a valid phone number."); return; }
+        if (!phone || phone.length < 10) { setError(t("auth.invalidPhone")); return; }
         setError(""); setLoading(true);
         try {
             const result = await sendPhoneOtp("+" + phone, "recaptcha-container");
@@ -59,9 +59,9 @@ export function RegisterPage() {
             console.error("Phone register error:", err);
             const code = (err as { code?: string })?.code;
             if (code === "auth/invalid-phone-number") {
-                setError("Invalid phone number format.");
+                setError(t("auth.invalidPhone"));
             } else {
-                setError("Error: " + (err instanceof Error ? err.message : "Failed to send code."));
+                setError(t("auth.errorTitle") + ": " + (err instanceof Error ? err.message : "Failed to send code."));
             }
         } finally { setLoading(false); }
     };
@@ -78,9 +78,9 @@ export function RegisterPage() {
         } catch (err: unknown) {
             const code = (err as { code?: string })?.code;
             if (code === "auth/invalid-verification-code") {
-                setError("Invalid OTP code. Please try again.");
+                setError(t("account.errInvalidCode"));
             } else {
-                setError("Verification failed. Please try again.");
+                setError(t("auth.errorTitle"));
             }
         } finally { setLoading(false); }
     };
@@ -165,7 +165,7 @@ export function RegisterPage() {
                             <button type="submit" disabled={loading}
                                 className="w-full py-2.5 bg-primary text-primary-foreground rounded-lg font-medium text-sm hover:bg-primary/90 transition-colors disabled:opacity-60 flex items-center justify-center gap-2">
                                 {loading && <Loader2 size={16} className="animate-spin" />}
-                                {loading ? "Creating account..." : t("auth.registerTitle")}
+                                {loading ? t("common.loading") : t("auth.registerBtn")}
                             </button>
                         </form>
                     )}
@@ -186,7 +186,7 @@ export function RegisterPage() {
                             <button type="submit" disabled={loading}
                                 className="w-full py-2.5 bg-primary text-primary-foreground rounded-lg font-medium text-sm hover:bg-primary/90 transition-colors disabled:opacity-60 flex items-center justify-center gap-2">
                                 {loading && <Loader2 size={16} className="animate-spin" />}
-                                {loading ? "Sending code..." : t("auth.sendCode")}
+                                {loading ? t("common.loading") : t("auth.sendCode")}
                             </button>
                         </form>
                     )}
@@ -195,9 +195,9 @@ export function RegisterPage() {
                     {method === "otp" && (
                         <form onSubmit={handleOtpSubmit} className="space-y-4">
                             <div className="bg-muted/50 p-4 rounded-xl border border-border">
-                                <p className="text-sm font-medium mb-1">Verify Phone Number</p>
+                                <p className="text-sm font-medium mb-1">{t("auth.verifyPhoneTitle")}</p>
                                 <p className="text-xs text-muted-foreground">
-                                    We sent an SMS code to <strong>+{phone}</strong>.
+                                    {t("auth.smsSent", { phone })}
                                 </p>
                             </div>
                             <div>
@@ -213,7 +213,7 @@ export function RegisterPage() {
                             </button>
                             <button type="button" onClick={() => { setMethod("phone"); setOtp(""); setError(""); }}
                                 className="w-full text-center text-sm flex items-center justify-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors mt-2">
-                                <ArrowLeft size={14} /> Back
+                                <ArrowLeft size={14} /> {t("common.back")}
                             </button>
                         </form>
                     )}

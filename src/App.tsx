@@ -17,6 +17,7 @@ import { GlobalTimelinePage } from "@/pages/GlobalTimelinePage";
 import { EmergencyPage } from "@/pages/EmergencyPage";
 import { PulsePage } from "@/pages/PulsePage";
 import { VitalsPage } from "@/pages/VitalsPage";
+import { NotificationsPage } from "@/pages/NotificationsPage";
 
 const queryClient = new QueryClient();
 
@@ -49,6 +50,7 @@ function App() {
               <Route path="/timeline" element={<GlobalTimelinePage />} />
               <Route path="/documents" element={<DocumentsPage />} />
               <Route path="/vitals" element={<VitalsPage />} />
+              <Route path="/notifications" element={<NotificationsPage />} />
               <Route path="/ai-chat" element={<ChatListPage />} />
               <Route path="/ai-chat/new" element={<AIChatPage />} />
               <Route path="/ai-chat/:chatId" element={<AIChatPage />} />

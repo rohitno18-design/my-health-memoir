@@ -281,54 +281,55 @@ const TOOL_DECLARATIONS = [
 
 // ─── System prompt ────────────────────────────────────────────────────────────
 
-const SYSTEM_PROMPT = `You are a smart health data assistant for "My Health Memoir", a personal health records app for Indian users.
+const SYSTEM_PROMPT = `You are a world-class health intelligence assistant for "My Health Memoir", a personal health records platform for Indian users.
 
-You have access to the user's health data through tools. Use them to help users manage their records.
+Your mission is to provide personalized, professional, and accessible health insights by analyzing the user's uploaded medical records and timeline events.
 
 CAPABILITIES:
-- Search documents by medical condition, symptom, doctor, hospital, date (use search_documents)
-- Fetch recent uploads (use get_recent_documents)
-- View patient profiles and timeline events (use list_patients, list_life_events)
-- Link documents to timeline events (use link_document_to_event — requires confirmation)
-- Create new timeline events (use create_life_event — requires confirmation)
-- Update event or document details (use update_life_event, update_document_metadata — requires confirmation)
-- Summarize multiple reports into one (use summarize_documents)
-- Prepare a package for a doctor visit by gathering relevant context (use prepare_doctor_visit)
+- Search documents by condition, symptom, doctor, hospital, or date.
+- Retrieve recent uploads and health timeline events.
+- Perform longitudinal analysis: Compare multiple reports over time (e.g., HbA1c trends, BP patterns).
+- Create or link documents to timeline events (requires user confirmation).
+- Summarize complex reports into simple, actionable summaries.
+- Prepare a comprehensive context package for doctor visits.
+- Generate health report PDFs.
 
-RULES:
-1. DELETION: You NEVER have the authority to delete any document, event, or patient. If a user asks to delete something, you MUST say: "I don't have the authority to delete documents. You can do this yourself by following these steps: 1. Go to Documents page 2. Find the file 3. Click the Edit icon 4. Click Delete."
-2. Write operations (link, create, update) always go through a confirmation dialog. Always use the appropriate tool — do not ask the user "shall I proceed?" before calling the tool.
-3. Automatically organize: If a user tells you they have documents and want them saved/organized, identify the patient, date, and event, then use create_life_event and update_document_metadata to organize them.
-4. When linking documents to events by date: first call list_patients and list_life_events to see existing events, then call get_recent_documents or search_documents to get the docs, then propose linkings using link_document_to_event or create_life_event.
-5. Always call list_patients first when you need patient IDs.
-6. Be concise. Avoid long preambles. Get to the answer quickly.
-7. For medical questions, always add: ⚠️ *Please consult a qualified doctor — this is not medical advice.*
-8. You are NOT a substitute for professional medical advice.
+TONE & STYLE (CONSTITUTION):
+1. MODERN HINGLISH: Use a natural, helpful, and professional Hinglish tone (Hindi grammar with English medical terms). Example: "नमस्ते! मैं आपके पिछले 3 ब्लड रिपोर्ट्स को एनालाइज कर रहा हूँ।"
+2. NO BACKEND LEAKAGE: Never output raw JSON, function names, IDs (documentId, patientId), or internal backend logic.
+3. CONCISE & EMPATHETIC: Be direct but empathetic. Avoid robotic or long repetitive preambles.
+4. MEDICAL DISCLAIMER: For all health-related queries, add: ⚠️ *Please consult a doctor — this is not medical advice.*
+
+OPERATIONAL RULES:
+1. Always call 'list_patients' first if you need to know who the records belong to.
+2. Deletion: You NEVER have authority to delete. Direct the user to the UI if they ask.
+3. Confirmations: All write operations (link, update, create) must be proposed via the appropriate tool.
+4. Data Integrity: If a user mentions a new report, offer to organize it into their timeline accurately.
 
 DOCUMENT CATEGORIES: Lab Report, Prescription, Scan/Imaging, Doctor's Note, Discharge Summary, Insurance, Other
 EVENT CATEGORIES: visit, diagnosis, procedure, milestone, note`;
 
 // ─── Helper: describe a write action in human-readable terms ─────────────────
 
-function describeAction(toolName: string, args: Record<string, unknown>): string {
+function describeAction(toolName: string, args: Record<string, unknown>, t: any): string {
     switch (toolName) {
         case "link_document_to_event":
-            return `Link "${args.documentName}" → event "${args.eventTitle}"`;
+            return t("chat.actLink", { doc: args.documentName, event: args.eventTitle });
         case "create_life_event":
-            return `Create new ${args.category} event: "${args.title}" on ${args.date}`;
+            return t("chat.actCreateEvent", { cat: args.category, title: args.title, date: args.date });
         case "update_life_event": {
             const u = args.updates as Record<string, string>;
             const parts = Object.entries(u)
                 .map(([k, v]) => `${k} → "${v}"`)
                 .join(", ");
-            return `Update event "${args.eventTitle}": ${parts}`;
+            return t("chat.actUpdateEvent", { title: args.eventTitle, parts });
         }
         case "update_document_metadata": {
             const u = args.updates as Record<string, string>;
             const parts = Object.entries(u)
                 .map(([k, v]) => `${k} → "${v}"`)
                 .join(", ");
-            return `Update document "${args.documentName}": ${parts}`;
+            return t("chat.actUpdateDoc", { name: args.documentName, parts });
         }
         default:
             return `Execute ${toolName}`;
@@ -345,9 +346,10 @@ function DocumentCard({
 }: { 
     card: DocumentResultCard; 
     onView: (url: string, name: string, mimeType?: string) => void;
-    onDownload: (url: string, title: string) => void;
+    onDownload: (url: string, title: string, id: string) => void;
     isDownloading?: boolean;
 }) {
+    const { t } = useTranslation();
     const [expanded, setExpanded] = useState(false);
     const snippet = card.summarySnippet || "";
     const truncated = snippet.length > 150;
@@ -398,15 +400,15 @@ function DocumentCard({
                         onClick={() => onView(card.url, card.name, card.mimeType || "")}
                         className="flex-1 inline-flex items-center justify-center gap-1.5 text-[11px] font-bold text-primary bg-primary/10 px-3 py-2 rounded-xl hover:bg-primary/20 transition-colors"
                     >
-                        <Eye size={13} /> View
+                        <Eye size={13} /> {t("common.view")}
                     </button>
                     <button
-                        onClick={() => onDownload(card.url, card.name)}
+                        onClick={() => onDownload(card.url, card.name, card.id)}
                         disabled={isDownloading}
                         className="flex-1 inline-flex items-center justify-center gap-1.5 text-[11px] font-bold text-slate-600 bg-slate-100 px-3 py-2 rounded-xl hover:bg-slate-200 transition-colors disabled:opacity-50"
                     >
                         {isDownloading ? <Loader2 size={13} className="animate-spin" /> : <Download size={13} />}
-                        {isDownloading ? "Downloading..." : "Download"}
+                        {isDownloading ? t("common.downloading") : t("common.download")}
                     </button>
                 </div>
             </div>
@@ -427,6 +429,7 @@ function ConfirmationPanel({
     onCancel: () => void;
     isExecuting: boolean;
 }) {
+    const { t } = useTranslation();
     return (
         <div className="flex gap-3 items-start">
             <div className="w-8 h-8 rounded-xl bg-violet-100 text-violet-600 flex items-center justify-center flex-shrink-0">
@@ -434,7 +437,7 @@ function ConfirmationPanel({
             </div>
             <div className="max-w-[85%] glass-card border border-amber-200/60 bg-amber-50/40 rounded-[1.25rem] rounded-tl-sm px-5 py-4 shadow-sm">
                 <p className="text-[13px] font-semibold text-slate-700 mb-3">
-                    I'd like to make these changes:
+                    {t("chat.actTitle")}
                 </p>
                 <div className="space-y-2 mb-4">
                     {actions.map((action, i) => (
@@ -459,14 +462,14 @@ function ConfirmationPanel({
                         ) : (
                             <Check size={13} />
                         )}
-                        {isExecuting ? "Applying..." : "Confirm All"}
+                        {isExecuting ? t("common.applying") : t("chat.confirmBtn")}
                     </button>
                     <button
                         onClick={onCancel}
                         disabled={isExecuting}
                         className="flex items-center gap-1.5 border border-slate-200 text-slate-600 px-4 py-2 rounded-xl text-[12px] font-semibold hover:bg-slate-50 disabled:opacity-50 transition-all"
                     >
-                        <X size={13} /> Cancel
+                        <X size={13} /> {t("common.cancel")}
                     </button>
                 </div>
             </div>
@@ -993,11 +996,10 @@ export function AIChatPage() {
                 geminiHistoryRef.current.push({ role: "user", parts: functionResponses });
             }
 
-            // Write tools — show confirmation
             if (writeCalls.length > 0) {
                 const actions: PendingAction[] = writeCalls.map((p) => ({
                     toolName: p.functionCall!.name,
-                    description: describeAction(p.functionCall!.name, p.functionCall!.args),
+                    description: describeAction(p.functionCall!.name, p.functionCall!.args, t),
                     args: p.functionCall!.args,
                 }));
                 setConfirmation({
@@ -1242,27 +1244,53 @@ export function AIChatPage() {
                 )}
 
                 {!loadingHistory && messages.length === 0 && !isLoading && (
-                    <div className="text-center p-8 glass-card rounded-[2rem] border border-white/40 shadow-sm mt-8">
-                        <div className="w-14 h-14 rounded-2xl bg-violet-100 flex items-center justify-center mx-auto mb-3">
-                            <Bot size={24} className="text-violet-600" />
+                    <div className="flex flex-col items-center justify-center min-h-[60vh] px-6 text-center">
+                        <div className="relative mb-8">
+                            <div className="absolute inset-0 bg-violet-200 blur-2xl rounded-full opacity-50 animate-pulse" />
+                            <div className="relative w-20 h-20 rounded-[2.5rem] bg-gradient-to-tr from-violet-600 to-indigo-500 shadow-xl shadow-violet-200 flex items-center justify-center">
+                                <Bot size={36} className="text-white" />
+                            </div>
+                            <div className="absolute -bottom-1 -right-1 w-8 h-8 rounded-2xl bg-white border-4 border-slate-50 flex items-center justify-center shadow-lg">
+                                <Sparkles size={16} className="text-amber-500" />
+                            </div>
                         </div>
-                        <p className="text-sm font-semibold">{t("aiChat.howCanIHelp")}</p>
-                        <p className="text-xs text-muted-foreground mt-1 mb-4">
+
+                        <h2 className="text-2xl font-bold tracking-tight text-slate-800">
+                            {t("aiChat.howCanIHelp")}
+                        </h2>
+                        <p className="text-sm text-slate-500 mt-2 max-w-xs mx-auto leading-relaxed">
                             {t("aiChat.helpDesc")}
                         </p>
-                        <div className="flex flex-col gap-2">
+
+                        <div className="grid grid-cols-1 gap-3 w-full mt-10">
                             {[
-                                { text: t("aiChat.prompts.blood"), val: "Show all my blood sugar reports" },
-                                { text: t("aiChat.prompts.records"), val: "Link my last 5 documents to events by date" },
-                                { text: t("aiChat.prompts.hba1c"), val: "What does HbA1c level mean?" },
+                                { 
+                                    text: t("aiChat.prompts.blood"), 
+                                    val: "मेरे पिछले 3 ब्लड शुगर रिपोर्ट्स चेक करके बताओ कि क्या ट्रेंड है?",
+                                    icon: "analytics"
+                                },
+                                { 
+                                    text: t("aiChat.prompts.records"), 
+                                    val: "मेने जो आज रिपोर्ट्स अपलोड की हैं उन्हें टाइमलाइन में ऑर्गनाइज़ कर दो।",
+                                    icon: "auto_awesome"
+                                },
+                                { 
+                                    text: t("aiChat.prompts.hba1c"), 
+                                    val: "HbA1c लेवल 7.2 का क्या मतलब होता है?",
+                                    icon: "help" 
+                                },
                             ].map((s) => (
                                 <button
                                     key={s.val}
                                     onClick={() => setInput(s.val)}
-                                    className="flex items-center gap-2 text-[12px] text-left px-3 py-2 rounded-xl bg-violet-50 text-violet-700 hover:bg-violet-100 transition-colors font-medium"
+                                    className="group relative flex items-center gap-3 p-4 rounded-3xl bg-white/60 border border-white/80 hover:bg-white hover:border-violet-200 transition-all text-left shadow-sm active:scale-[0.98]"
                                 >
-                                    <Sparkles size={11} className="flex-shrink-0" />
-                                    {s.text}
+                                    <div className="w-10 h-10 rounded-2xl bg-violet-50 text-violet-600 flex items-center justify-center group-hover:bg-violet-600 group-hover:text-white transition-colors">
+                                        <span className="material-symbols-outlined text-[20px]">{s.icon}</span>
+                                    </div>
+                                    <span className="text-[13px] font-bold text-slate-700 leading-tight">
+                                        {s.val}
+                                    </span>
                                 </button>
                             ))}
                         </div>
@@ -1305,7 +1333,7 @@ export function AIChatPage() {
                             {msg.documentResults && msg.documentResults.length > 0 && (
                                 <div className="mt-3 space-y-2 max-w-[90%]">
                                     <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide px-1">
-                                        {msg.documentResults.length} document{msg.documentResults.length !== 1 ? "s" : ""} found
+                                        {msg.documentResults.length} {t("chat.docsFound")}
                                     </p>
                                     {msg.documentResults.map((card) => (
                                         <DocumentCard 
@@ -1352,7 +1380,7 @@ export function AIChatPage() {
                                         className="flex items-center gap-2 bg-emerald-600 text-white px-4 py-2.5 rounded-xl text-xs font-bold shadow-lg shadow-emerald-600/20 hover:bg-emerald-700 transition-all active:scale-95 disabled:opacity-50"
                                     >
                                         {isDownloadingPdf ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
-                                        {isDownloadingPdf ? "Compiling PDF..." : "Download Health Report PDF"}
+                                        {isDownloadingPdf ? t("chat.compilingPdf") : t("chat.downloadReport")}
                                     </button>
                                 </div>
                             )}
@@ -1379,7 +1407,7 @@ export function AIChatPage() {
                         <div className="glass-card border border-white/50 rounded-[1.25rem] rounded-tl-sm px-5 py-3.5 shadow-sm">
                             <div className="flex items-center gap-2 text-[13px] text-slate-500">
                                 <Loader2 size={14} className="animate-spin text-violet-500" />
-                                <span>Thinking...</span>
+                                <span>{t("chat.thinking")}</span>
                             </div>
                         </div>
                     </div>
@@ -1413,7 +1441,7 @@ export function AIChatPage() {
                             onClick={() => setSelectedDocIds(new Set())}
                             className="text-[10px] text-slate-400 font-bold hover:text-slate-600 uppercase tracking-wider px-1"
                         >
-                            Clear All
+                            {t("chat.clearAll")}
                         </button>
                     </div>
                 )}
@@ -1431,7 +1459,7 @@ export function AIChatPage() {
                                 <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
                                     <Search size={16} />
                                 </div>
-                                Select Existing
+                                {t("chat.selectExisting")}
                             </button>
                             <button 
                                 onClick={() => { fileInputRef.current?.click(); setShowAttachMenu(false); }}
@@ -1440,7 +1468,7 @@ export function AIChatPage() {
                                 <div className="w-8 h-8 rounded-lg bg-violet-50 text-violet-600 flex items-center justify-center">
                                     <Plus size={16} />
                                 </div>
-                                Upload New
+                                {t("chat.uploadNew")}
                             </button>
                         </div>
                     )}
@@ -1506,7 +1534,7 @@ export function AIChatPage() {
                             <div className="flex items-center justify-between mb-4">
                                 <h2 className="text-xl font-bold flex items-center gap-2">
                                     <FileText className="text-primary" />
-                                    Select Documents
+                                    {t("chat.selectDocs")}
                                 </h2>
                                 <button onClick={() => setShowDocSelector(false)} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
                                     <X size={20} className="text-slate-400" />
@@ -1518,7 +1546,7 @@ export function AIChatPage() {
                                     <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                                     <input 
                                         type="text"
-                                        placeholder="Search documents..."
+                                        placeholder={t("chat.searchDocs")}
                                         value={selectorSearch}
                                         onChange={(e) => setSelectorSearch(e.target.value)}
                                         className="w-full bg-slate-50 border-none rounded-xl pl-9 pr-3 py-2 text-sm focus:ring-2 focus:ring-primary/20 outline-none"
@@ -1529,7 +1557,7 @@ export function AIChatPage() {
                                     onChange={(e) => setPatientFilter(e.target.value)}
                                     className="bg-slate-50 border-none rounded-xl px-3 py-2 text-xs font-semibold focus:ring-2 focus:ring-primary/20 outline-none"
                                 >
-                                    <option value="all">All Patients</option>
+                                    <option value="all">{t("chat.allPatients")}</option>
                                     {patients.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                                 </select>
                             </div>
@@ -1539,13 +1567,13 @@ export function AIChatPage() {
                             {selectorLoading ? (
                                 <div className="flex flex-col items-center justify-center py-20 gap-3">
                                     <Loader2 size={24} className="animate-spin text-primary" />
-                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Loading records...</p>
+                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t("chat.loadingRecords")}</p>
                                 </div>
                             ) : availableDocs.length === 0 ? (
                                 <div className="text-center py-20 px-10">
                                     <Bot size={32} className="mx-auto text-slate-200 mb-3" />
-                                    <p className="text-sm font-semibold text-slate-600">No documents found</p>
-                                    <p className="text-xs text-slate-400 mt-1">Try uploading your medical reports first.</p>
+                                    <p className="text-sm font-semibold text-slate-600">{t("chat.noDocs")}</p>
+                                    <p className="text-xs text-slate-400 mt-1">{t("chat.noDocsDesc")}</p>
                                 </div>
                             ) : (
                                 availableDocs

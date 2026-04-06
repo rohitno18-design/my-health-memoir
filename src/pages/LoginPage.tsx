@@ -41,18 +41,18 @@ export function LoginPage() {
                 code === "auth/user-not-found" ||
                 code === "auth/invalid-credential"
             ) {
-                setError("Incorrect email or password. Please try again.");
+                setError(t("auth.incorrectCreds"));
             } else if (code === "auth/too-many-requests") {
-                setError("Too many failed attempts. Please try again later.");
+                setError(t("auth.tooManyRequests"));
             } else {
-                setError((err instanceof Error ? err.message : null) ?? "Sign in failed.");
+                setError((err instanceof Error ? err.message : null) ?? t("auth.errorTitle"));
             }
         } finally { setLoading(false); }
     };
 
     const handlePhoneSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!phone || phone.length < 10) { setError("Please enter a valid phone number."); return; }
+        if (!phone || phone.length < 10) { setError(t("auth.invalidPhone")); return; }
         setError(""); setLoading(true);
         try {
             const result = await sendPhoneOtp("+" + phone, "recaptcha-container");
@@ -62,9 +62,9 @@ export function LoginPage() {
             console.error("Phone Auth Error:", err);
             const code = (err as { code?: string })?.code;
             if (code === "auth/invalid-phone-number") {
-                setError("Invalid phone number format.");
+                setError(t("auth.invalidPhone"));
             } else {
-                setError("Error: " + (err instanceof Error ? err.message : "Failed to send code"));
+                setError(t("auth.errorTitle") + ": " + (err instanceof Error ? err.message : "Failed to send code"));
             }
         } finally { setLoading(false); }
     };
@@ -79,9 +79,9 @@ export function LoginPage() {
         } catch (err: unknown) {
             const code = (err as { code?: string })?.code;
             if (code === "auth/invalid-verification-code") {
-                setError("Invalid OTP code. Please check and try again.");
+                setError(t("account.errInvalidCode"));
             } else {
-                setError("Verification failed. Please try again.");
+                setError(t("auth.errorTitle"));
             }
         } finally { setLoading(false); }
     };
@@ -167,7 +167,7 @@ export function LoginPage() {
                             <button type="submit" disabled={loading}
                                 className="w-full py-3 bg-primary text-primary-foreground rounded-xl font-bold text-sm hover:bg-primary/90 transition-all shadow-md disabled:opacity-60 flex items-center justify-center gap-2 active:scale-95">
                                 {loading && <Loader2 size={16} className="animate-spin" />}
-                                {loading ? "Signing in..." : t("auth.loginTitle")}
+                                {loading ? t("common.loading") : t("auth.loginBtn")}
                             </button>
                         </form>
                     )}
@@ -188,7 +188,7 @@ export function LoginPage() {
                             <button type="submit" disabled={loading}
                                 className="w-full py-2.5 bg-primary text-primary-foreground rounded-lg font-medium text-sm hover:bg-primary/90 transition-colors disabled:opacity-60 flex items-center justify-center gap-2">
                                 {loading && <Loader2 size={16} className="animate-spin" />}
-                                {loading ? "Sending code..." : t("auth.sendCode")}
+                                {loading ? t("common.loading") : t("auth.sendCode")}
                             </button>
                         </form>
                     )}
@@ -197,13 +197,13 @@ export function LoginPage() {
                     {method === "otp" && (
                         <form onSubmit={handleOtpSubmit} className="space-y-4">
                             <div className="bg-muted/50 p-4 rounded-xl border border-border">
-                                <p className="text-sm font-medium mb-1">Verify Phone Number</p>
+                                <p className="text-sm font-medium mb-1">{t("auth.verifyPhoneTitle")}</p>
                                 <p className="text-xs text-muted-foreground">
-                                    We sent an SMS code to <strong>+{phone}</strong>.
+                                    {t("auth.smsSent", { phone })}
                                 </p>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium mb-1.5">6-digit Code</label>
+                                <label className="block text-sm font-medium mb-1.5">{t("auth.otpLabel")}</label>
                                 <input
                                     type="text" value={otp}
                                     onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
@@ -217,7 +217,7 @@ export function LoginPage() {
                             </button>
                             <button type="button" onClick={() => { setMethod("phone"); setOtp(""); setError(""); }}
                                 className="w-full text-center text-sm flex items-center justify-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors mt-2">
-                                <ArrowLeft size={14} /> Back
+                                <ArrowLeft size={14} /> {t("common.back")}
                             </button>
                         </form>
                     )}

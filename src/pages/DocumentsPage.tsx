@@ -22,12 +22,12 @@ USE MARKDOWN FORMATTING: Translate section headers to '### ' and keep bullet poi
 const languages = ["English", "Hindi", "Hinglish", "Marathi", "Gujarati", "Tamil", "Telugu", "Bengali"];
 
 const CATEGORIES = [
-    { name: "Prescription", icon: "pill", color: "text-purple-600 bg-purple-50" },
-    { name: "Lab Report", icon: "water_drop", color: "text-red-600 bg-red-50" },
-    { name: "Imaging (X-ray/MRI)", icon: "personal_injury", color: "text-teal-600 bg-teal-50" },
-    { name: "Clinical Note", icon: "stethoscope", color: "text-blue-600 bg-blue-50" },
-    { name: "Billing/Insurance", icon: "receipt_long", color: "text-amber-600 bg-amber-50" },
-    { name: "Other", icon: "folder", color: "text-slate-600 bg-slate-50" },
+    { name: "Prescription", key: "documents.cat_prescription", icon: "pill", color: "text-purple-600 bg-purple-50" },
+    { name: "Lab Report", key: "documents.cat_labreport", icon: "water_drop", color: "text-red-600 bg-red-50" },
+    { name: "Imaging (X-ray/MRI)", key: "documents.cat_imagingxraymri", icon: "personal_injury", color: "text-teal-600 bg-teal-50" },
+    { name: "Clinical Note", key: "documents.cat_clinicalnote", icon: "stethoscope", color: "text-blue-600 bg-blue-50" },
+    { name: "Billing/Insurance", key: "documents.cat_billinginsurance", icon: "receipt_long", color: "text-amber-600 bg-amber-50" },
+    { name: "Other", key: "documents.cat_other", icon: "folder", color: "text-slate-600 bg-slate-50" },
 ];
 
 interface Document {
@@ -195,7 +195,7 @@ export function DocumentsPage() {
             setEditingDoc(null);
         } catch (e) {
             console.error("Failed to update doc:", e);
-            alert("Failed to save changes.");
+            alert(t("documents.saveError"));
         } finally {
             setIsSavingDocEdit(false);
         }
@@ -216,7 +216,7 @@ export function DocumentsPage() {
             setGlobalLifeEvents(prev => prev.map(e => e.id === eventId ? { ...e, documentIds: newDocIds } : e));
         } catch (e) {
             console.error("Failed to unlink document:", e);
-            alert("Failed to unlink document.");
+            alert(t("documents.unlinkError"));
         } finally {
             setIsUnlinking(false);
         }
@@ -224,7 +224,7 @@ export function DocumentsPage() {
 
     const handleDeleteDoc = async () => {
         if (!editingDoc || !user) return;
-        if (!confirm("Are you sure you want to permanently delete this document? This cannot be undone.")) return;
+        if (!confirm(t("documents.deleteConfirm"))) return;
         setIsDeletingDoc(true);
         try {
             // Delete from storage
@@ -238,7 +238,7 @@ export function DocumentsPage() {
             setEditingDoc(null);
         } catch (e) {
             console.error("Failed to delete doc:", e);
-            alert("Failed to delete document.");
+            alert(t("documents.deleteError"));
         } finally {
             setIsDeletingDoc(false);
         }
@@ -345,7 +345,7 @@ export function DocumentsPage() {
                 if (!existingIds.includes(addToTimelineDoc.id)) {
                     await updateDoc(eventRef, { documentIds: [...existingIds, addToTimelineDoc.id] });
                 }
-                setAddToTimelineDone("Document linked to existing event!");
+                setAddToTimelineDone(t("documents.linkSuccess"));
             } else {
                 // Create a new event with this doc linked
                 await addDoc(collection(db, "life_events"), {
@@ -358,11 +358,11 @@ export function DocumentsPage() {
                     documentIds: [addToTimelineDoc.id],
                     createdAt: serverTimestamp()
                 });
-                setAddToTimelineDone("New event created and document linked!");
+                setAddToTimelineDone(t("documents.createSuccess"));
             }
         } catch (e) {
             console.error(e);
-            alert("Failed to add to timeline.");
+            alert(t("documents.addTimelineError"));
         } finally {
             setAddingToTimeline(false);
         }
@@ -375,7 +375,7 @@ export function DocumentsPage() {
 
         setShowLanguageModalForDoc(null);
         setSummarizingDocId(docObj.id);
-        setGenerationProgress("Preparing translation...");
+        setGenerationProgress(t("documents.preparingTranslation"));
 
         try {
             const sourceText = (docObj.aiSummaries && Object.values(docObj.aiSummaries)[0]) || docObj.aiSummary;
@@ -383,7 +383,7 @@ export function DocumentsPage() {
                 throw new Error("No existing summary found to translate. Please ensure an English summary exists first.");
             }
 
-            setGenerationProgress(`Translating summary to ${lang}...`);
+            setGenerationProgress(t("documents.translatingSummary", { lang }));
             const res = await fetch(API_URL, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -427,7 +427,7 @@ export function DocumentsPage() {
                             const text = data?.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
                             if (text) {
                                 newSummary += text;
-                                setGenerationProgress("Typing translation...");
+                                setGenerationProgress(t("documents.typingTranslation"));
                             }
                         } catch (e) {
                             // Ignore partial JSON errors within a line if any
@@ -452,9 +452,9 @@ export function DocumentsPage() {
 
                 // Update UI instantly
                 setDocs(docs => docs.map(d => d.id === docObj.id ? { ...d, aiSummaries: newSummariesMap } : d));
-                alert(`Successfully generated an additional summary in ${lang}!`);
+                alert(t("documents.generateSuccess", { lang }));
             } else {
-                throw new Error("AI returned an empty summary. Please try again.");
+                throw new Error(t("documents.emptySummaryError"));
             }
 
         } catch (e: any) {
@@ -462,7 +462,7 @@ export function DocumentsPage() {
             if (e.message?.includes("CORS_ERROR")) {
                 alert("Translation Error: Browser blocked the document download. This is a security setting (CORS) on Firebase Storage that needs to be configured by the administrator for 'localhost'.");
             } else {
-                alert(`Failed to generate the additional summary: ${e.message || "Unknown error"}`);
+                alert(t("documents.translationError"));
             }
         } finally {
             setSummarizingDocId(null);
@@ -500,13 +500,13 @@ export function DocumentsPage() {
 
                 {patients.length > 0 && (
                     <div>
-                        <label className="block text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-2 ml-1">Filter by Patient</label>
+                        <label className="block text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-2 ml-1">{t("documents.filterByPatient")}</label>
                         <select
                             value={selectedPatientId}
                             onChange={e => handlePatientChange(e.target.value)}
                             className="w-full px-4 py-3.5 rounded-[1.5rem] border border-white/40 bg-white/40 backdrop-blur-md focus:bg-white/80 focus:ring-2 focus:ring-primary/20 transition-all font-semibold text-slate-700 shadow-sm outline-none cursor-pointer"
                         >
-                            <option value="all">All Patients</option>
+                            <option value="all">{t("documents.allPatients")}</option>
                             {patients.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                         </select>
                     </div>
@@ -520,19 +520,19 @@ export function DocumentsPage() {
                         onClick={() => { setViewMode("dashboard"); setTimelineFilterCategory(null); setTimelineFilterEpisode(null); }}
                         className={`flex-1 py-2 text-sm font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 ${viewMode === "dashboard" ? "bg-white text-primary shadow-sm" : "text-slate-500 hover:text-slate-700 hover:bg-white/20"}`}
                     >
-                        <span className="material-symbols-outlined text-[18px]">grid_view</span> Dashboard
+                        <span className="material-symbols-outlined text-[18px]">grid_view</span> {t("documents.viewDashboard")}
                     </button>
                     <button
                         onClick={() => { setViewMode("timeline"); setTimelineFilterCategory(null); setTimelineFilterEpisode(null); }}
                         className={`flex-1 py-2 text-sm font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 ${viewMode === "timeline" ? "bg-white text-primary shadow-sm" : "text-slate-500 hover:text-slate-700 hover:bg-white/20"}`}
                     >
-                        <span className="material-symbols-outlined text-[18px]">timeline</span> Timeline
+                        <span className="material-symbols-outlined text-[18px]">timeline</span> {t("documents.viewTimeline")}
                     </button>
                     <button
                         onClick={() => { setViewMode("list"); setTimelineFilterCategory(null); setTimelineFilterEpisode(null); }}
                         className={`flex-1 py-2 text-sm font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 ${viewMode === "list" ? "bg-white text-primary shadow-sm" : "text-slate-500 hover:text-slate-700 hover:bg-white/20"}`}
                     >
-                        <span className="material-symbols-outlined text-[18px]">list</span> All Files
+                        <span className="material-symbols-outlined text-[18px]">list</span> {t("documents.viewList")}
                     </button>
                 </div>
             )}
@@ -541,7 +541,7 @@ export function DocumentsPage() {
             {viewMode === "dashboard" && selectedPatientId !== "all" && !loading && (
                 <div className="space-y-6">
                     <div className="space-y-4">
-                        <h2 className="text-[17px] font-extrabold text-slate-900 ml-1">Smart Categories</h2>
+                        <h2 className="text-[17px] font-extrabold text-slate-900 ml-1">{t("documents.smartCategories")}</h2>
                         <div className="grid grid-cols-2 gap-3">
                             {CATEGORIES.map(cat => {
                                 const count = docs.filter(d => (d.category === cat.name || d.docType === cat.name)).length;
@@ -555,8 +555,8 @@ export function DocumentsPage() {
                                             <span className="material-symbols-outlined text-[24px]">{cat.icon}</span>
                                         </div>
                                         <div>
-                                            <span className="text-[14px] font-extrabold text-slate-800 block line-clamp-1">{cat.name}</span>
-                                            <span className="text-[12px] font-bold text-slate-500">{count} {count === 1 ? 'file' : 'files'}</span>
+                                            <span className="text-[14px] font-extrabold text-slate-800 block line-clamp-1">{t(cat.key)}</span>
+                                            <span className="text-[12px] font-bold text-slate-500">{t("documents.fileCount", { count })}</span>
                                         </div>
                                     </button>
                                 )
@@ -566,7 +566,7 @@ export function DocumentsPage() {
 
                     {episodes.length > 0 && (
                         <div className="space-y-4 pt-2 border-t border-slate-200/50">
-                            <h2 className="text-[17px] font-extrabold text-slate-900 ml-1">Episodes of Care</h2>
+                            <h2 className="text-[17px] font-extrabold text-slate-900 ml-1">{t("documents.episodesOfCare")}</h2>
                             <div className="grid gap-3">
                                 {episodes.map(ep => {
                                     const count = docs.filter(d => d.episodeId === ep.id).length;
@@ -582,7 +582,7 @@ export function DocumentsPage() {
                                                 </div>
                                                 <div>
                                                     <span className="text-[15px] font-extrabold text-slate-800 block">{ep.name}</span>
-                                                    <span className="text-[12px] font-bold text-slate-500">{count} {count === 1 ? 'file' : 'files'}</span>
+                                                    <span className="text-[12px] font-bold text-slate-500">{t("documents.fileCount", { count })}</span>
                                                 </div>
                                             </div>
                                             <span className="material-symbols-outlined text-slate-300 group-hover:text-emerald-500 transition-colors">chevron_right</span>
@@ -601,7 +601,7 @@ export function DocumentsPage() {
                     {(timelineFilterCategory || timelineFilterEpisode) && (
                         <div className="flex items-center gap-2 text-sm font-bold text-slate-600 bg-white/40 backdrop-blur-md px-4 py-3 rounded-[1rem] border border-white/60 shadow-sm w-fit mb-4">
                             <span className="material-symbols-outlined text-[18px]">filter_list</span>
-                            Filtering by: <span className="text-primary">{timelineFilterCategory || episodes.find(e => e.id === timelineFilterEpisode)?.name}</span>
+                            {t("documents.filteringBy")} <span className="text-primary">{timelineFilterCategory ? t(`documents.cat_${timelineFilterCategory.toLowerCase().replace(/[^a-z]/g, '')}`) : episodes.find(e => e.id === timelineFilterEpisode)?.name}</span>
                             <button onClick={() => { setTimelineFilterCategory(null); setTimelineFilterEpisode(null); }} className="ml-2 hover:text-slate-900"><X size={16} /></button>
                         </div>
                     )}
@@ -610,12 +610,12 @@ export function DocumentsPage() {
                         <div className="glass-card text-center p-12 text-slate-500 rounded-[2rem] border border-white/40 shadow-sm mt-4">
                             <span className="material-symbols-outlined text-4xl opacity-30 block mb-3">timeline</span>
                             <p className="font-bold text-foreground">{t("documents.noDocs")}</p>
-                            <p className="text-sm mt-1 max-w-xs mx-auto">Upload documents to build your health timeline.</p>
+                            <p className="text-sm mt-1 max-w-xs mx-auto">{t("documents.noDocsSubtitle")}</p>
                         </div>
                     ) : (
                         <div className="relative pl-6 sm:pl-8 border-l-2 border-slate-200/60 pb-10 space-y-10">
                             {filteredDocs.sort((a, b) => new Date(b.eventDate || b.docDate || 0).getTime() - new Date(a.eventDate || a.docDate || 0).getTime()).map(doc => {
-                                const renderDate = new Date(doc.eventDate || doc.docDate || Date.now()).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                                const renderDate = new Date(doc.eventDate || doc.docDate || Date.now()).toLocaleDateString(t("common.localeCode"), { month: 'short', day: 'numeric', year: 'numeric' });
                                 return (
                                     <div key={doc.id} className="relative group">
                                         <div className="absolute -left-[30px] sm:-left-[38px] top-1/2 -translate-y-1/2 size-4 rounded-full bg-white border-4 border-primary shadow-sm group-hover:scale-125 transition-transform z-10"></div>
@@ -634,7 +634,7 @@ export function DocumentsPage() {
                                                     <FileText size={32} className="text-primary/50" />
                                                 )}
                                                 <div className="absolute bottom-0 left-0 right-0 bg-black/60 backdrop-blur-md px-2 py-1 text-[10px] text-white font-bold text-center truncate">
-                                                    {doc.category || doc.docType || "Document"}
+                                                    {doc.category ? t(`documents.cat_${doc.category.toLowerCase().replace(/[^a-z]/g, '')}`) : (doc.docType || t("documents.unknownType"))}
                                                 </div>
                                             </button>
 
@@ -656,7 +656,7 @@ export function DocumentsPage() {
 
                                                 {doc.episodeId && (
                                                     <span className="inline-block text-[11px] font-bold text-emerald-700 bg-emerald-100/50 border border-emerald-200 px-2 py-1 rounded-md mt-2">
-                                                        Episode: {episodes.find(e => e.id === doc.episodeId)?.name || 'General'}
+                                                        {t("documents.episodeLabel")}: {episodes.find(e => e.id === doc.episodeId)?.name || t("common.general")}
                                                     </span>
                                                 )}
 
@@ -689,13 +689,13 @@ export function DocumentsPage() {
             {/* List View Container */}
             {viewMode === "list" && (
                 <div className="space-y-4 mt-2">
-                    {!loading && <p className="text-[11px] font-extrabold text-slate-500 uppercase tracking-wider">Showing {filteredDocs.length} {filteredDocs.length === 1 ? "Result" : "Results"}</p>}
+                    {!loading && <p className="text-[11px] font-extrabold text-slate-500 uppercase tracking-wider">{t("documents.showingResults", { count: filteredDocs.length })}</p>}
 
                     {!loading && filteredDocs.length === 0 && (
                         <div className="glass-card text-center p-12 text-slate-500 rounded-[2rem] border border-white/40 shadow-sm mt-4">
                             <FileText size={40} className="mx-auto mb-3 opacity-30" />
                             <p className="font-bold text-foreground">{t("documents.noDocs")}</p>
-                            <p className="text-sm mt-1 max-w-xs mx-auto">Try adjusting your search terms or patient filter.</p>
+                            <p className="text-sm mt-1 max-w-xs mx-auto">{t("documents.searchAdjust")}</p>
                         </div>
                     )}
 
@@ -747,7 +747,7 @@ export function DocumentsPage() {
                                                                 className="text-[11px] font-bold text-violet-700 bg-violet-50 border border-violet-100 uppercase tracking-wider px-2 py-0.5 rounded-md flex items-center gap-1 hover:bg-violet-100 transition-colors shadow-sm"
                                                                 title={`Linked to ${linkCount} timeline events. Click to manage.`}
                                                             >
-                                                                <Activity size={10} /> {linkCount} {linkCount === 1 ? 'Event' : 'Events'}
+                                                                <Activity size={10} /> {t("documents.eventCount", { count: linkCount })}
                                                             </button>
                                                         );
                                                     }
@@ -762,7 +762,7 @@ export function DocumentsPage() {
                                                             onClick={() => setViewSummary({ text, lang: l })}
                                                             className="text-[11px] font-bold text-violet-700 bg-violet-100 hover:bg-violet-200 px-2.5 py-1.5 flex items-center gap-1.5 rounded-lg transition-colors"
                                                         >
-                                                            <Bot size={13} /> {l} Summary
+                                                            <Bot size={13} /> {t("documents.langSummary", { lang: l })}
                                                         </button>
                                                     ))
                                                 ) : doc.aiSummary && typeof doc.aiSummary === 'string' && doc.aiSummary.length > 0 && !doc.aiSummary.includes("failed") ? (
@@ -770,10 +770,10 @@ export function DocumentsPage() {
                                                         onClick={() => setViewSummary({ text: doc.aiSummary || "", lang: "English" })}
                                                         className="text-[11px] font-bold text-violet-700 bg-violet-100 hover:bg-violet-200 px-2.5 py-1.5 flex items-center gap-1.5 rounded-lg transition-colors"
                                                     >
-                                                        <Bot size={13} /> AI Summary (En)
+                                                        <Bot size={13} /> {t("documents.enSummary")}
                                                     </button>
                                                 ) : doc.aiSummary && doc.aiSummary.includes("failed") ? (
-                                                    <span className="text-xs font-bold text-destructive bg-destructive/10 px-2 py-1 rounded-md flex items-center gap-1">Analysis Failed</span>
+                                                    <span className="text-xs font-bold text-destructive bg-destructive/10 px-2 py-1 rounded-md flex items-center gap-1">{t("documents.analysisFailed")}</span>
                                                 ) : null}
 
                                                 {!doc.aiSummary?.includes("failed") && (
@@ -785,7 +785,7 @@ export function DocumentsPage() {
                                                         {summarizingDocId === doc.id ? (
                                                             <><Loader2 size={14} className="animate-spin" /> {generationProgress || "Working..."}</>
                                                         ) : (
-                                                            <><Globe size={13} /> Translate</>
+                                                            <><Globe size={13} /> {t("common.translate")}</>
                                                         )}
                                                     </button>
                                                 )}
@@ -822,8 +822,8 @@ export function DocumentsPage() {
                         <div className="p-6 border-b border-white/30 flex justify-between items-center bg-violet-50/50 rounded-t-[2.5rem] text-violet-900 flex-shrink-0 relative overflow-hidden">
                             <div className="absolute top-0 right-0 size-32 bg-violet-500/10 rounded-full blur-3xl pointer-events-none -z-10"></div>
                             <div className="relative z-10">
-                                <h2 className="text-xl font-bold flex items-center gap-2"><Bot size={24} className="text-violet-600" /> AI {viewSummary.lang} Summary</h2>
-                                <p className="text-xs font-medium text-violet-700/70 mt-1">Translated securely using Gemini</p>
+                                <h2 className="text-xl font-bold flex items-center gap-2"><Bot size={24} className="text-violet-600" /> {t("documents.aiSummaryTitle", { lang: viewSummary.lang })}</h2>
+                                <p className="text-xs font-medium text-violet-700/70 mt-1">{t("documents.aiSummarySubtitle")}</p>
                             </div>
                             <button onClick={() => setViewSummary(null)} className="w-9 h-9 flex items-center justify-center rounded-full bg-violet-100 hover:bg-violet-200 transition-colors">
                                 <X size={18} />
@@ -848,7 +848,7 @@ export function DocumentsPage() {
                         </div>
                         <div className="p-4 border-t border-white/30 bg-primary/5 rounded-b-[2.5rem] flex-shrink-0">
                             <button onClick={() => setViewSummary(null)} className="w-full py-3.5 bg-primary text-primary-foreground hover:bg-primary/90 font-extrabold rounded-[1rem] transition-colors text-[15px] shadow-sm">
-                                Close Summary
+                                {t("common.close")}
                             </button>
                         </div>
                     </div>
@@ -863,10 +863,10 @@ export function DocumentsPage() {
                         <div className="w-full max-w-sm glass-card border border-white/50 rounded-t-[2.5rem] sm:rounded-3xl p-6 shadow-2xl animate-in slide-in-from-bottom-5 sm:zoom-in-95 duration-200 relative overflow-hidden">
                             <div className="absolute top-0 right-0 size-32 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none -z-10"></div>
                             <div className="flex justify-between items-center mb-5 relative z-10">
-                                <h3 className="font-extrabold text-[19px] text-slate-900 flex items-center gap-2"><Globe size={22} className="text-emerald-500 mb-0.5" /> Choose Language</h3>
+                                <h3 className="font-extrabold text-[19px] text-slate-900 flex items-center gap-2"><Globe size={22} className="text-emerald-500 mb-0.5" /> {t("documents.chooseLanguage")}</h3>
                                 <button onClick={() => setShowLanguageModalForDoc(null)} className="text-slate-400 hover:text-slate-600 hover:bg-white/50 p-1.5 rounded-full transition-colors"><X size={20} /></button>
                             </div>
-                            <p className="text-[13px] text-slate-500 font-semibold mb-5 leading-relaxed relative z-10">We will securely generate and append a localized AI translation to your document.</p>
+                            <p className="text-[13px] text-slate-500 font-semibold mb-5 leading-relaxed relative z-10">{t("documents.chooseLanguageDesc")}</p>
                             <select
                                 value={summaryLanguage}
                                 onChange={(e) => setSummaryLanguage(e.target.value)}
@@ -882,7 +882,7 @@ export function DocumentsPage() {
                                 className="w-full py-3.5 bg-emerald-500 text-white hover:bg-emerald-600 font-extrabold rounded-[1.25rem] transition-colors flex items-center justify-center gap-2 shadow-md relative z-10 disabled:opacity-70 disabled:hover:bg-emerald-500"
                             >
                                 {summarizingDocId !== null ? <Loader2 size={18} className="animate-spin" /> : <Bot size={18} />}
-                                Generate Translation
+                                {t("documents.generateTranslation")}
                             </button>
                         </div>
                     </div>
@@ -895,10 +895,10 @@ export function DocumentsPage() {
                     <div className="fixed inset-0 z-[70] bg-black/50 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={() => setAddToTimelineDoc(null)}>
                         <div className="w-full max-w-sm bg-white rounded-t-[2.5rem] sm:rounded-[2.5rem] p-6 shadow-2xl animate-in slide-in-from-bottom-5 duration-200" onClick={e => e.stopPropagation()}>
                             <div className="flex items-center justify-between mb-1">
-                                <h3 className="font-extrabold text-lg text-slate-900 flex items-center gap-2"><Activity size={20} className="text-emerald-500" /> Add to Timeline</h3>
+                                <h3 className="font-extrabold text-lg text-slate-900 flex items-center gap-2"><Activity size={20} className="text-emerald-500" /> {t("documents.addToTimeline")}</h3>
                                 <button onClick={() => setAddToTimelineDoc(null)} className="size-9 rounded-full bg-slate-100 flex items-center justify-center hover:bg-slate-200"><X size={18} /></button>
                             </div>
-                            <p className="text-[13px] text-slate-500 font-semibold mb-5">Link <strong className="text-slate-700">{addToTimelineDoc.name}</strong> to a timeline event.</p>
+                            <p className="text-[13px] text-slate-500 font-semibold mb-5">{t("documents.linkDocToEvent", { name: addToTimelineDoc.name })}</p>
 
                             {addToTimelineDone ? (
                                 <div className="flex items-center gap-3 p-4 bg-emerald-50 border border-emerald-200 rounded-2xl text-emerald-800 font-bold text-sm">
@@ -908,9 +908,9 @@ export function DocumentsPage() {
                             ) : (
                                 <>
                                     <div className="mb-4">
-                                        <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 block">Link to existing event (optional)</label>
+                                        <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 block">{t("documents.linkExisting")}</label>
                                         <select value={selectedEventId} onChange={e => setSelectedEventId(e.target.value)} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold text-slate-700 outline-none">
-                                            <option value="">— Create new event from this document —</option>
+                                            <option value="">{t("documents.linkNew")}</option>
                                             {lifeEvents.map(ev => <option key={ev.id} value={ev.id}>{ev.title} ({ev.date})</option>)}
                                         </select>
                                     </div>
@@ -920,7 +920,7 @@ export function DocumentsPage() {
                                         className="w-full py-3.5 bg-emerald-600 text-white font-bold rounded-2xl flex items-center justify-center gap-2 hover:bg-emerald-700 disabled:opacity-70 transition-colors"
                                     >
                                         {addingToTimeline ? <Loader2 size={16} className="animate-spin" /> : <Activity size={16} />}
-                                        {selectedEventId ? "Link to Event" : "Create Timeline Event"}
+                                        {selectedEventId ? t("documents.linkToExisting") : t("documents.createNewEvent")}
                                     </button>
                                 </>
                             )}
@@ -935,23 +935,23 @@ export function DocumentsPage() {
                     <div className="w-full max-w-xl bg-white rounded-t-[2.5rem] sm:rounded-[2.5rem] flex flex-col shadow-2xl max-h-[88vh]" onClick={e => e.stopPropagation()}>
                         <div className="p-6 border-b flex justify-between items-center bg-slate-50 rounded-t-[2.5rem] flex-shrink-0">
                             <div>
-                                <h3 className="font-bold text-slate-900 flex items-center gap-2"><Edit2 size={18} className="text-emerald-600" /> Edit Document Info</h3>
+                                <h3 className="font-bold text-slate-900 flex items-center gap-2"><Edit2 size={18} className="text-emerald-600" /> {t("documents.editTitle")}</h3>
                             </div>
                             <button onClick={() => setEditingDoc(null)} className="size-9 rounded-full bg-slate-200 flex items-center justify-center hover:bg-slate-300 text-slate-600"><X size={18} /></button>
                         </div>
 
                         <div className="overflow-y-auto p-6 flex-1 space-y-4">
                             <div>
-                                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">Document Name</label>
+                                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">{t("documents.editName")}</label>
                                 <input type="text" value={editDocDraft.name} onChange={e => setEditDocDraft({ ...editDocDraft, name: e.target.value })} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-semibold outline-none focus:border-emerald-500" />
                             </div>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
-                                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">Primary Date</label>
+                                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">{t("documents.editDate")}</label>
                                     <input type="date" value={editDocDraft.docDate} onChange={e => setEditDocDraft({ ...editDocDraft, docDate: e.target.value })} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-semibold outline-none focus:border-emerald-500" />
                                 </div>
                                 <div>
-                                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">Patient</label>
+                                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">{t("documents.editPatient")}</label>
                                     <select value={editDocDraft.patientId} onChange={e => setEditDocDraft({ ...editDocDraft, patientId: e.target.value })} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-semibold outline-none focus:border-emerald-500">
                                         {patients.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                                     </select>
@@ -959,15 +959,15 @@ export function DocumentsPage() {
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div>
-                                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">Doctor Name</label>
+                                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">{t("documents.editDoctor")}</label>
                                     <input type="text" value={editDocDraft.doctorName} onChange={e => setEditDocDraft({ ...editDocDraft, doctorName: e.target.value })} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-semibold outline-none focus:border-emerald-500" />
                                 </div>
                                 <div>
-                                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">Hospital / Clinic</label>
+                                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">{t("documents.editHospital")}</label>
                                     <input type="text" value={editDocDraft.hospital} onChange={e => setEditDocDraft({ ...editDocDraft, hospital: e.target.value })} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-semibold outline-none focus:border-emerald-500" />
                                 </div>
                                 <div>
-                                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">Lab Name</label>
+                                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">{t("documents.editLab")}</label>
                                     <input type="text" value={editDocDraft.lab} onChange={e => setEditDocDraft({ ...editDocDraft, lab: e.target.value })} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-semibold outline-none focus:border-emerald-500" />
                                 </div>
                             </div>
@@ -977,16 +977,16 @@ export function DocumentsPage() {
                                     disabled={downloadingDocId === editingDoc.id}
                                     className="flex-1 flex justify-center items-center gap-2 px-4 py-2.5 bg-blue-50 text-blue-700 font-bold rounded-xl text-sm hover:bg-blue-100 transition-colors disabled:opacity-60"
                                 >
-                                    {downloadingDocId === editingDoc.id ? <><Loader2 size={16} className="animate-spin" /> Downloading...</> : <><Download size={16} /> Secure Download Original</>}
+                                    {downloadingDocId === editingDoc.id ? <><Loader2 size={16} className="animate-spin" /> {t("common.downloading")}...</> : <><Download size={16} /> {t("documents.downloadOriginal")}</>}
                                 </button>
                             </div>
 
                             {/* Linked events management in Edit Modal */}
                             <div className="pt-4 border-t border-slate-100">
-                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Linked Timeline Events</p>
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">{t("documents.linkedTimeline")}</p>
                                 {(() => {
                                     const linked = globalLifeEvents.filter(e => e.documentIds?.includes(editingDoc.id));
-                                    if (linked.length === 0) return <p className="text-xs text-slate-500 font-medium italic">Not linked to any timeline events.</p>;
+                                    if (linked.length === 0) return <p className="text-xs text-slate-500 font-medium italic">{t("documents.noLinkedEvents")}</p>;
                                     return (
                                         <div className="space-y-2">
                                             {linked.map(ev => (
@@ -999,7 +999,7 @@ export function DocumentsPage() {
                                                         onClick={() => handleUnlinkDocFromEvent(editingDoc.id, ev.id)}
                                                         disabled={isUnlinking}
                                                         className="size-8 rounded-lg bg-red-50 text-red-600 flex items-center justify-center hover:bg-red-100 disabled:opacity-50 transition-colors"
-                                                        title="Unlink"
+                                                        title={t("common.unlink")}
                                                     >
                                                         {isUnlinking ? <Loader2 size={14} className="animate-spin" /> : <X size={14} />}
                                                     </button>
@@ -1015,7 +1015,7 @@ export function DocumentsPage() {
                                     }}
                                     className="mt-3 w-full py-2.5 border-2 border-dashed border-slate-200 rounded-xl text-xs font-bold text-slate-500 hover:border-emerald-300 hover:text-emerald-600 hover:bg-emerald-50/30 transition-all flex items-center justify-center gap-2"
                                 >
-                                    <Activity size={14} /> Link to another event
+                                    <Activity size={14} /> {t("documents.linkAnother")}
                                 </button>
                             </div>
                         </div>
@@ -1027,7 +1027,7 @@ export function DocumentsPage() {
                                 className="px-4 py-2.5 bg-red-50 text-red-600 font-bold rounded-xl text-sm hover:bg-red-100 transition-colors flex items-center gap-2"
                             >
                                 {isDeletingDoc ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
-                                <span className="hidden sm:inline">Permanently Delete</span>
+                                <span className="hidden sm:inline">{t("common.delete")}</span>
                             </button>
 
                             <button
@@ -1036,7 +1036,7 @@ export function DocumentsPage() {
                                 className="px-6 py-2.5 bg-emerald-600 text-white font-bold rounded-xl text-sm hover:bg-emerald-700 transition-colors flex items-center gap-2 shadow-sm"
                             >
                                 {isSavingDocEdit ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
-                                Save Changes
+                                {t("common.saveChanges")}
                             </button>
                         </div>
                     </div>
@@ -1048,15 +1048,15 @@ export function DocumentsPage() {
                     <div className="w-full max-w-sm bg-white rounded-t-[2.5rem] sm:rounded-[2rem] p-6 shadow-2xl animate-in slide-in-from-bottom-5 duration-200 relative overflow-hidden" onClick={e => e.stopPropagation()}>
                         <div className="absolute top-0 right-0 size-32 bg-violet-500/10 rounded-full blur-3xl pointer-events-none -z-10"></div>
                         <div className="flex items-center justify-between mb-2">
-                            <h3 className="font-extrabold text-lg text-slate-900 flex items-center gap-2"><Activity size={20} className="text-violet-500" /> Linked Events</h3>
+                            <h3 className="font-extrabold text-lg text-slate-900 flex items-center gap-2"><Activity size={20} className="text-violet-500" /> {t("documents.linkedEvents")}</h3>
                             <button onClick={() => setViewingLinksDoc(null)} className="size-9 rounded-full bg-slate-100 flex items-center justify-center hover:bg-slate-200 text-slate-600"><X size={18} /></button>
                         </div>
-                        <p className="text-[13px] text-slate-500 font-semibold mb-5">Manage timeline events linked to <strong className="text-slate-700">{viewingLinksDoc.name}</strong></p>
+                        <p className="text-[13px] text-slate-500 font-semibold mb-5">{t("documents.manageLinked", { name: viewingLinksDoc.name })}</p>
 
                         <div className="space-y-3 max-h-[40vh] overflow-y-auto pr-1">
                             {(() => {
                                 const linked = globalLifeEvents.filter(e => e.documentIds?.includes(viewingLinksDoc.id));
-                                if (linked.length === 0) return <p className="text-center py-8 text-slate-400 font-bold text-sm">No linked events.</p>;
+                                if (linked.length === 0) return <p className="text-center py-8 text-slate-400 font-bold text-sm">{t("documents.noLinkedEvents")}</p>;
                                 return linked.map(ev => (
                                     <div key={ev.id} className="flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-2xl group hover:border-violet-200 transition-colors">
                                         <div className="flex-1 min-w-0">
@@ -1083,7 +1083,7 @@ export function DocumentsPage() {
                             }}
                             className="w-full mt-6 py-3.5 bg-emerald-600 text-white font-bold rounded-2xl flex items-center justify-center gap-2 hover:bg-emerald-700 transition-colors shadow-lg active:scale-95"
                         >
-                            <Activity size={16} /> Link to another event
+                            <Activity size={16} /> {t("documents.linkAnother")}
                         </button>
                     </div>
                 </div>

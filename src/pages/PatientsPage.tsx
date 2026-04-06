@@ -63,6 +63,12 @@ export interface Patient {
     vaccinations: string;
     // Emergency / SOS
     organDonor: string;
+    ice1Name: string;
+    ice1Phone: string;
+    ice2Name: string;
+    ice2Phone: string;
+    ice3Name: string;
+    ice3Phone: string;
     // Lifestyle & Insurance
     smoking: string;
     alcohol: string;
@@ -81,6 +87,9 @@ const emptyForm: Omit<Patient, "id"> = {
     spouseName: "", spousePhone: "", spouseEmail: "",
     bloodGroup: "", allergies: "", conditions: "", medications: "", familyHistory: "", surgicalHistory: "", vaccinations: "",
     organDonor: "No",
+    ice1Name: "", ice1Phone: "",
+    ice2Name: "", ice2Phone: "",
+    ice3Name: "", ice3Phone: "",
     smoking: "No", alcohol: "No", tobacco: "No",
     insuranceProvider: "", policyNumber: "",
 };
@@ -166,6 +175,9 @@ export function PatientsPage() {
             spouseName: p.spouseName || "", spousePhone: p.spousePhone || "", spouseEmail: p.spouseEmail || "",
             bloodGroup: p.bloodGroup || "", allergies: p.allergies || "", conditions: p.conditions || "", medications: p.medications || "", familyHistory: p.familyHistory || "", surgicalHistory: p.surgicalHistory || "", vaccinations: p.vaccinations || "",
             organDonor: p.organDonor || "No",
+            ice1Name: p.ice1Name || "", ice1Phone: p.ice1Phone || "",
+            ice2Name: p.ice2Name || "", ice2Phone: p.ice2Phone || "",
+            ice3Name: p.ice3Name || "", ice3Phone: p.ice3Phone || "",
             smoking: p.smoking || "No", alcohol: p.alcohol || "No", tobacco: p.tobacco || "No",
             insuranceProvider: p.insuranceProvider || "", policyNumber: p.policyNumber || "",
         });
@@ -198,39 +210,62 @@ export function PatientsPage() {
         e.preventDefault();
         if (!user) return;
         setSaving(true);
+        let patientIdToUse = editingId;
         try {
-            let patientIdToUse = editingId;
+            // Step 1: Save patient profile
             if (editingId) {
-                await updateDoc(doc(db, "patients", editingId), { ...form });
-                showToast("Patient updated successfully!");
+                await updateDoc(doc(db, "patients", editingId), { ...form, userId: user.uid });
+                patientIdToUse = editingId;
             } else {
-                const newDoc = await addDoc(collection(db, "patients"), { ...form, userId: user.uid, createdAt: serverTimestamp() });
+                const newDoc = await addDoc(collection(db, "patients"), {
+                    ...form,
+                    userId: user.uid,
+                    createdAt: serverTimestamp()
+                });
                 patientIdToUse = newDoc.id;
-                showToast("Patient added successfully!");
             }
-            
-            // Sync Emergency Profile 
+        } catch (err: any) {
+            console.error("Patient save error:", err);
+            alert(`Failed to save patient profile: ${err?.message || "Permission denied. Please try logging out and back in."}`);
+            setSaving(false);
+            return;
+        }
+
+        // Step 2: Sync emergency info (non-blocking — if this fails, patient is still saved)
+        try {
             if (patientIdToUse) {
+                // Build ICE contacts from 3 separate fields
+                const iceContacts = [
+                    { name: form.ice1Name, phone: form.ice1Phone, relation: "Emergency Contact 1" },
+                    { name: form.ice2Name, phone: form.ice2Phone, relation: "Emergency Contact 2" },
+                    { name: form.ice3Name, phone: form.ice3Phone, relation: "Emergency Contact 3" },
+                ].filter(c => c.name.trim() !== "");
+
                 await setDoc(doc(db, "emergency_info", patientIdToUse), {
-                    bloodType: form.bloodGroup,
+                    patientName: form.name || "Patient",
+                    photoURL: form.photoURL || "",
+                    gender: form.gender || "",
+                    dob: form.dob || "",
+                    bloodType: form.bloodGroup || "",
                     organDonor: form.organDonor === "Yes",
                     allergies: form.allergies ? form.allergies.split(",").map(s => s.trim()).filter(Boolean) : [],
                     conditions: form.conditions ? form.conditions.split(",").map(s => s.trim()).filter(Boolean) : [],
                     medications: form.medications ? form.medications.split(",").map(s => s.trim()).filter(Boolean) : [],
+                    iceContacts,
                     notifiedOnSOS: true,
                     userId: user.uid,
                     lastUpdated: serverTimestamp(),
                 }, { merge: true });
             }
-
-            await fetchPatients();
-            setShowModal(false);
-        } catch (err) {
-            console.error(err);
-            alert("Failed to save patient. Please check your connection and try again.");
-        } finally {
-            setSaving(false);
+        } catch (err: any) {
+            // Emergency sync failed but patient was saved — warn but don't block
+            console.warn("Emergency info sync failed (patient was still saved):", err);
         }
+
+        await fetchPatients();
+        setShowModal(false);
+        showToast(editingId ? t("patients.msgUpdated") : t("patients.msgAdded"));
+        setSaving(false);
     };
 
     const confirmDelete = async () => {
@@ -254,25 +289,25 @@ export function PatientsPage() {
     // Form builder helper
     const renderInput = (label: string, key: keyof typeof form, placeholder?: string, type: string = "text", required: boolean = false) => (
         <div key={key}>
-            <label className="block text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-1.5 ml-1">{label} {required && <span className="text-destructive">*</span>}</label>
+            <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 ml-1">{label} {required && <span className="text-rose-500">*</span>}</label>
             <input
                 type={type}
                 value={form[key]}
                 onChange={e => setForm(prev => ({ ...prev, [key]: e.target.value }))}
                 placeholder={placeholder}
                 required={required}
-                className="w-full px-4 py-3.5 rounded-[1.25rem] border border-white/40 bg-white/40 backdrop-blur-md text-slate-800 placeholder:text-slate-400 focus:outline-none focus:bg-white/80 focus:ring-2 focus:ring-primary/20 transition-all font-semibold shadow-sm"
+                className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-slate-800 placeholder:text-slate-300 focus:outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 transition-all font-medium text-sm"
             />
         </div>
     );
 
     const renderSelect = (label: string, key: keyof typeof form, options: string[]) => (
         <div key={key}>
-            <label className="block text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-1.5 ml-1">{label}</label>
+            <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 ml-1">{label}</label>
             <select
                 value={form[key]}
                 onChange={e => setForm(prev => ({ ...prev, [key]: e.target.value }))}
-                className="w-full px-4 py-3.5 rounded-[1.25rem] border border-white/40 bg-white/40 backdrop-blur-md text-slate-800 focus:outline-none focus:bg-white/80 focus:ring-2 focus:ring-primary/20 transition-all font-semibold shadow-sm cursor-pointer"
+                className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 transition-all font-medium text-sm cursor-pointer"
             >
                 {options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
             </select>
@@ -281,20 +316,19 @@ export function PatientsPage() {
 
     const renderTextarea = (label: string, key: keyof typeof form, placeholder?: string) => (
         <div key={key} className="col-span-full">
-            <label className="block text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-1.5 ml-1">{label}</label>
+            <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 ml-1">{label}</label>
             <textarea
                 value={form[key]}
                 onChange={e => setForm(prev => ({ ...prev, [key]: e.target.value }))}
                 placeholder={placeholder}
                 rows={2}
-                className="w-full px-4 py-3.5 rounded-[1.25rem] border border-white/40 bg-white/40 backdrop-blur-md text-slate-800 placeholder:text-slate-400 focus:outline-none focus:bg-white/80 focus:ring-2 focus:ring-primary/20 transition-all font-semibold shadow-sm resize-none"
+                className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-slate-800 placeholder:text-slate-300 focus:outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 transition-all font-medium text-sm resize-none"
             />
         </div>
     );
 
     return (
-        <div className="pb-6 w-full max-w-lg mx-auto overflow-x-hidden space-y-6">
-            <div className="fixed top-0 left-0 right-0 h-[50vh] soft-gradient-bg -z-10 pointer-events-none"></div>
+        <div className="pb-6 w-full max-w-lg mx-auto overflow-x-hidden space-y-6 px-5 pt-5">
             {toastMessage && <Toast message={toastMessage} />}
 
             <div className="flex items-center justify-between pt-6">
@@ -355,21 +389,21 @@ export function PatientsPage() {
                                 <div
                                     onClick={(e) => { e.stopPropagation(); openEdit(p); }}
                                     className="w-9 h-9 rounded-full bg-secondary flex items-center justify-center text-muted-foreground hover:bg-primary hover:text-primary-foreground transition-all shadow-sm"
-                                    title="Edit Patient"
+                                    title={t("common.edit")}
                                 >
                                     <Pencil size={15} />
                                 </div>
                                 <div
                                     onClick={(e) => { e.stopPropagation(); navigate(`/documents?patientId=${p.id}`); }}
                                     className="w-9 h-9 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 hover:bg-blue-600 hover:text-white transition-all shadow-sm"
-                                    title="View Documents"
+                                    title={t("account.myDocs")}
                                 >
                                     <FileText size={15} />
                                 </div>
                                 <div
                                     onClick={(e) => { e.stopPropagation(); setTimelinePatient(p); }}
                                     className="w-9 h-9 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 hover:bg-emerald-600 hover:text-white transition-all shadow-sm"
-                                    title="Life Timeline"
+                                    title={t("patients.lifeTimeline")}
                                 >
                                     <Activity size={15} />
                                 </div>
@@ -381,45 +415,43 @@ export function PatientsPage() {
 
             {/* Create / Edit Modal */}
             {showModal && (
-                <div className="fixed inset-0 z-[60] bg-black/40 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={() => setShowModal(false)}>
+                <div className="fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={() => setShowModal(false)}>
                     <div
-                        className="w-full max-w-2xl glass-card rounded-t-[2.5rem] sm:rounded-[2.5rem] flex flex-col max-h-[92vh] sm:max-h-[85vh] shadow-2xl animate-in slide-in-from-bottom-5 sm:zoom-in-95 duration-300 border border-white/50 relative overflow-hidden"
+                        className="w-full max-w-2xl bg-white rounded-t-[2rem] sm:rounded-[2rem] flex flex-col max-h-[92vh] sm:max-h-[85vh] shadow-2xl animate-in slide-in-from-bottom-5 sm:zoom-in-95 duration-300 overflow-hidden"
                         onClick={e => e.stopPropagation()}
                     >
-                        <div className="absolute top-0 right-0 size-48 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none -z-10"></div>
-                        <div className="absolute bottom-0 left-0 size-48 bg-primary/10 rounded-full blur-3xl pointer-events-none -z-10"></div>
 
                         {/* Header & Tabs Container */}
-                        <div className="relative z-10 w-full border-b border-white/40 bg-white/40 backdrop-blur-xl">
-                            <div className="flex items-center justify-between p-6 pb-2">
+                        <div className="w-full border-b border-slate-100 bg-white">
+                            <div className="flex items-center justify-between px-5 pt-5 pb-3">
                                 <div>
-                                    <h2 className="text-2xl font-bold text-slate-800 tracking-tight">{editingId ? t("patients.editProfile") : t("patients.newProfile")}</h2>
-                                    <p className="text-sm font-semibold text-slate-500 mt-1">{t("patients.formRecord")}</p>
+                                    <h2 className="text-xl font-black text-slate-900 tracking-tight">{editingId ? t("patients.editProfile") : t("patients.newProfile")}</h2>
+                                    <p className="text-xs font-medium text-slate-400 mt-0.5">{t("patients.formRecord")}</p>
                                 </div>
-                                <button onClick={() => setShowModal(false)} className="size-10 rounded-full bg-white/50 flex items-center justify-center text-slate-500 hover:bg-white hover:text-slate-800 hover:shadow-sm transition-all border border-white/60">
-                                    <X size={20} />
+                                <button onClick={() => setShowModal(false)} className="size-9 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 hover:text-slate-800 transition-all active:scale-95">
+                                    <X size={18} />
                                 </button>
                             </div>
 
                             {/* Tabs */}
-                            <div className="flex px-6 overflow-x-auto hide-scrollbar scroll-smooth gap-6">
+                            <div className="flex px-5 overflow-x-auto no-scrollbar gap-1">
                                 {(["Basic", "Contact", "Medical", "SOS", "Misc"] as const).map(tab => (
                                     <button
                                         key={tab}
                                         onClick={() => setActiveTab(tab)}
                                         className={cn(
-                                            "py-3 text-[15px] font-bold whitespace-nowrap transition-all border-b-[3px]",
-                                            activeTab === tab ? "border-primary text-primary" : "border-transparent text-slate-400 hover:text-slate-700 hover:border-slate-300"
+                                            "py-3 px-3 text-sm font-bold whitespace-nowrap transition-all border-b-2",
+                                            activeTab === tab ? "border-emerald-500 text-emerald-600" : "border-transparent text-slate-400 hover:text-slate-700"
                                         )}
                                     >
-                                        {tab === "Misc" ? t("patients.tabs.misc") : tab === "SOS" ? "Emergency" : tab === "Basic" ? t("patients.tabs.basic") : tab === "Contact" ? t("patients.tabs.contact") : t("patients.tabs.medical")}
+                                        {tab === "Misc" ? t("patients.tabMisc") : tab === "SOS" ? "🆘 " + t("patients.tabSOS") : tab === "Basic" ? t("patients.tabBasic") : tab === "Contact" ? t("patients.tabContact") : t("patients.tabMedical")}
                                     </button>
                                 ))}
                             </div>
                         </div>
 
                         {/* Form scrollable area */}
-                        <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
+                        <div className="flex-1 overflow-y-auto px-5 py-5 bg-slate-50 custom-scrollbar">
                             <form id="patient-form" onSubmit={handleSave} className="space-y-6">
 
                                 {/* BASIC INTERFACE */}
@@ -448,19 +480,19 @@ export function PatientsPage() {
                                     </div>
 
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                        {renderInput("Full Name", "name", "e.g. Priya Sharma", "text", true)}
-                                        {renderInput("Date of Birth", "dob", "", "date", true)}
-                                        {renderSelect("Gender", "gender", ["Male", "Female", "Other"])}
-                                        {renderSelect("Relationship", "relationship", ["Self", "Spouse", "Child", "Parent", "Sibling", "Other"])}
-                                        {renderSelect("Marital Status", "maritalStatus", ["Single", "Married", "Divorced", "Widowed"])}
-                                        {renderInput("Occupation", "occupation", "e.g. Teacher, Engineer")}
-                                        {renderSelect("Preferred Language", "language", ["English", "Hindi", "Marathi", "Gujarati", "Tamil", "Telugu", "Bengali", "Other"])}
+                                        {renderInput(t("account.fullName"), "name", "e.g. Priya Sharma", "text", true)}
+                                        {renderInput(t("account.dob"), "dob", "", "date", true)}
+                                        {renderSelect(t("account.gender"), "gender", ["Male", "Female", "Other"])}
+                                        {renderSelect(t("patients.relationship"), "relationship", ["Self", "Spouse", "Child", "Parent", "Sibling", "Other"])}
+                                        {renderSelect(t("patients.maritalStatus"), "maritalStatus", ["Single", "Married", "Divorced", "Widowed"])}
+                                        {renderInput(t("patients.occupation"), "occupation", "e.g. Teacher, Engineer")}
+                                        {renderSelect(t("patients.prefLang"), "language", ["English", "Hindi", "Marathi", "Gujarati", "Tamil", "Telugu", "Bengali", "Other"])}
                                     </div>
 
                                     <div className="pt-2 border-t border-border/50">
-                                        <h3 className="text-sm font-bold mb-4">Identification</h3>
+                                        <h3 className="text-sm font-bold mb-4">{t("patients.identification")}</h3>
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                            {renderInput("Aadhaar Number", "aadhaar", "12-digit Aadhaar")}
+                                            {renderInput(t("patients.aadhaar"), "aadhaar", "12-digit Aadhaar")}
                                             {renderInput("ABHA Health ID", "abha", "e.g. 91-0000-0000-0000")}
                                         </div>
                                     </div>
@@ -469,26 +501,26 @@ export function PatientsPage() {
                                 {/* CONTACT & MEASUREMENTS */}
                                 <div className={cn("space-y-6", activeTab !== "Contact" && "hidden")}>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                        {renderInput("Phone Number", "phone", "Primary phone")}
-                                        {renderInput("Secondary Phone", "secondaryPhone", "Alternate phone")}
-                                        {renderInput("Emergency Contact", "emergencyContact", "Name & Phone")}
+                                        {renderInput(t("account.phoneNum"), "phone", "Primary phone")}
+                                        {renderInput(t("patients.secondaryPhone"), "secondaryPhone", "Alternate phone")}
+                                        {renderInput(t("patients.emergencyContact"), "emergencyContact", "Name & Phone")}
                                     </div>
                                     <div className="pt-2 border-t border-border/50">
-                                        <h3 className="text-sm font-bold mb-4">Address</h3>
+                                        <h3 className="text-sm font-bold mb-4">{t("patients.address")}</h3>
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                             <div className="col-span-1 sm:col-span-2">
-                                                {renderInput("House/Street Address", "address", "")}
+                                                {renderInput(t("patients.streetAddr"), "address", "")}
                                             </div>
-                                            {renderInput("City / District", "city", "e.g. Bhopal")}
-                                            {renderInput("State", "state", "e.g. MP")}
-                                            {renderInput("PIN Code", "pin", "6-digit PIN")}
+                                            {renderInput(t("patients.city"), "city", "e.g. Bhopal")}
+                                            {renderInput(t("patients.state"), "state", "e.g. MP")}
+                                            {renderInput(t("patients.pin"), "pin", "6-digit PIN")}
                                         </div>
                                     </div>
                                     <div className="pt-2 border-t border-border/50">
-                                        <h3 className="text-sm font-bold mb-4">Physical Measurements</h3>
+                                        <h3 className="text-sm font-bold mb-4">{t("patients.physical")}</h3>
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                            {renderInput("Height (cm)", "height", "e.g. 175")}
-                                            {renderInput("Weight (kg)", "weight", "e.g. 70")}
+                                            {renderInput(t("patients.height"), "height", "e.g. 175")}
+                                            {renderInput(t("patients.weight"), "weight", "e.g. 70")}
                                         </div>
                                     </div>
                                 </div>
@@ -496,23 +528,60 @@ export function PatientsPage() {
                                 {/* MEDICAL INFO */}
                                 <div className={cn("space-y-6", activeTab !== "Medical" && "hidden")}>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                        {renderSelect("Blood Group", "bloodGroup", ["", "A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"])}
-                                        {renderInput("Allergies", "allergies", "e.g. Penicillin, Peanuts")}
-                                        {renderTextarea("Chronic Conditions", "conditions", "e.g. Diabetes, Hypertension")}
-                                        {renderTextarea("Current Medications", "medications", "e.g. Metformin 500mg, Amlodipine 5mg")}
-                                        {renderTextarea("Medical History / Past Illnesses", "familyHistory", "Include family history if relevant (e.g. Father - Diabetes)")}
-                                        {renderTextarea("Surgical History", "surgicalHistory", "e.g. Appendectomy 2018")}
-                                        {renderTextarea("Vaccination Records", "vaccinations", "e.g. COVID-19 (Covaxin), Hep B")}
+                                        {renderSelect(t("account.bloodGroup"), "bloodGroup", ["", "A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"])}
+                                        {renderInput(t("emergency.allergies"), "allergies", "e.g. Penicillin, Peanuts")}
+                                        {renderTextarea(t("emergency.conditions"), "conditions", "e.g. Diabetes, Hypertension")}
+                                        {renderTextarea(t("emergency.medications"), "medications", "e.g. Metformin 500mg, Amlodipine 5mg")}
+                                        {renderTextarea(t("patients.medHistory"), "familyHistory", "Include family history if relevant (e.g. Father - Diabetes)")}
+                                        {renderTextarea(t("patients.surgicalHistory"), "surgicalHistory", "e.g. Appendectomy 2018")}
+                                        {renderTextarea(t("patients.vaccination"), "vaccinations", "e.g. COVID-19 (Covaxin), Hep B")}
+                                    </div>
+                                </div>
+
+                                {/* EMERGENCY / SOS */}
+                                <div className={cn("space-y-5", activeTab !== "SOS" && "hidden")}>
+                                    <div className="bg-rose-50 border border-rose-100 rounded-2xl p-4 flex gap-3">
+                                        <span className="text-rose-500 text-lg">🆘</span>
+                                        <p className="text-xs text-rose-600 font-medium leading-relaxed">
+                                            {t("patients.emergencyNotice")}
+                                        </p>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        {renderSelect(t("account.bloodGroup"), "bloodGroup", ["", "A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"])}
+                                        {renderSelect(t("emergency.organDonor"), "organDonor", ["No", "Yes"])}
+                                    </div>
+                                    <div className="space-y-4">
+                                        {renderInput(t("emergency.allergies"), "allergies", "e.g. Penicillin, Peanuts (comma separated)")}
+                                        {renderTextarea(t("emergency.conditions"), "conditions", "e.g. Diabetes Type 2, Hypertension")}
+                                        {renderTextarea(t("emergency.medications"), "medications", "e.g. Metformin 500mg, Amlodipine 5mg")}
+                                    </div>
+
+                                    {/* ICE Contacts — 3 rows */}
+                                    <div className="pt-2 border-t border-slate-200">
+                                        <h3 className="text-sm font-black text-slate-800 mb-1">ICE Contacts (In Case of Emergency)</h3>
+                                        <p className="text-xs text-slate-400 mb-4">Add up to 3 people. Paramedics can tap the number to call them directly.</p>
+                                        <div className="space-y-3">
+                                            {([1, 2, 3] as const).map((n) => (
+                                                <div key={n} className="bg-slate-50 border border-slate-200 rounded-2xl p-4">
+                                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Contact {n}</p>
+                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                                        {renderInput(`Full Name`, `ice${n}Name` as keyof typeof form, "e.g. Suresh Thakur")}
+                                                        {renderInput(`Phone Number`, `ice${n}Phone` as keyof typeof form, "e.g. 9876543210", "tel")}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
                                     </div>
                                 </div>
 
                                 {/* MISC / FAMILY / LIFESTYLE */}
                                 <div className={cn("space-y-6", activeTab !== "Misc" && "hidden")}>
-                                    <h3 className="text-sm font-bold">Lifestyle Habits</h3>
+                                    <h3 className="text-sm font-bold">{t("patients.lifestyle")}</h3>
                                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                                        {renderSelect("Smoking", "smoking", ["No", "Occasionally", "Regularly", "Former"])}
-                                        {renderSelect("Alcohol", "alcohol", ["No", "Occasionally", "Regularly", "Former"])}
-                                        {renderSelect("Tobacco/Pan", "tobacco", ["No", "Occasionally", "Regularly", "Former"])}
+                                        {renderSelect(t("patients.smoking"), "smoking", ["No", "Occasionally", "Regularly", "Former"])}
+                                        {renderSelect(t("patients.alcohol"), "alcohol", ["No", "Occasionally", "Regularly", "Former"])}
+                                        {renderSelect(t("patients.tobacco"), "tobacco", ["No", "Occasionally", "Regularly", "Former"])}
                                     </div>
 
                                     <div className="pt-4 border-t border-border/50">
@@ -547,23 +616,23 @@ export function PatientsPage() {
                         </div>
 
                         {/* Footer actions */}
-                        <div className="p-4 border-t border-white/30 bg-primary/5 rounded-b-[2.5rem] flex items-center justify-between gap-3 relative z-10">
+                        <div className="px-5 py-4 border-t border-slate-100 bg-white flex items-center justify-between gap-3">
                             {editingId ? (
                                 <button
                                     type="button"
                                     onClick={() => setDeleteModal(editingId)}
-                                    className="py-3 px-4 bg-destructive/10 text-destructive rounded-xl text-sm font-bold flex items-center justify-center gap-2 hover:bg-destructive/20 transition-colors"
+                                    className="flex items-center gap-1.5 py-2.5 px-4 bg-rose-50 text-rose-600 rounded-xl text-sm font-bold hover:bg-rose-100 transition-colors active:scale-95"
                                 >
-                                    <Trash2 size={18} /> {t("patients.delete")}
+                                    <Trash2 size={15} /> {t("patients.delete")}
                                 </button>
                             ) : <div></div>}
                             <button
                                 type="submit"
                                 form="patient-form"
                                 disabled={saving}
-                                className="px-8 py-3 bg-primary text-primary-foreground rounded-xl text-sm font-bold flex items-center justify-center gap-2 shadow-lg disabled:opacity-70 active:scale-95 transition-all"
+                                className="flex-1 max-w-[200px] py-3 bg-emerald-500 text-white rounded-xl text-sm font-black flex items-center justify-center gap-2 shadow-sm disabled:opacity-70 active:scale-[0.98] transition-all"
                             >
-                                {saving ? <Loader2 size={18} className="animate-spin" /> : <CheckCircle2 size={18} />}
+                                {saving ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle2 size={16} />}
                                 {editingId ? t("patients.save") : t("patients.create")}
                             </button>
                         </div>
@@ -573,9 +642,8 @@ export function PatientsPage() {
 
             {/* Delete Confirmation Modal */}
             {deleteModal && (
-                <div className="fixed inset-0 z-[60] bg-black/40 backdrop-blur-md flex items-center justify-center p-4">
-                    <div className="w-full max-w-sm glass-card rounded-3xl p-6 shadow-2xl animate-in zoom-in-95 duration-200 border border-white/50 relative overflow-hidden">
-                        <div className="absolute top-0 right-0 size-32 bg-red-500/10 rounded-full blur-3xl pointer-events-none -z-10"></div>
+                <div className="fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+                    <div className="w-full max-w-sm bg-white rounded-3xl p-6 shadow-2xl animate-in zoom-in-95 duration-200">
                         <div className="w-16 h-16 bg-red-100/80 rounded-[1rem] border border-red-200 flex items-center justify-center mx-auto mb-5 shadow-sm">
                             <AlertTriangle size={28} className="text-destructive" />
                         </div>

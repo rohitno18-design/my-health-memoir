@@ -47,7 +47,7 @@ export function GlobalTimelinePage() {
             let allEvents = eSnap.docs.map(d => {
                 const data = d.data() as LifeEvent;
                 const p = pts.find(pt => pt.id === data.patientId);
-                return { ...data, id: d.id, patientName: p?.name || t("timeline.unknown"), patientPhoto: (p as any)?.photoURL };
+                return { ...data, id: d.id, patientName: p?.name || t("common.unknown"), patientPhoto: (p as any)?.photoURL };
             });
             allEvents.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
             setEvents(allEvents);
@@ -87,7 +87,7 @@ export function GlobalTimelinePage() {
             refetchData();
         } catch (e) {
             console.error(e);
-            alert("Failed to update event.");
+            alert(t("timeline.addError"));
         } finally {
             setIsSavingEdit(false);
         }
@@ -123,8 +123,8 @@ export function GlobalTimelinePage() {
                         <Activity size={24} />
                     </div>
                     <div>
-                        <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">{t("timeline.title")}</h2>
-                        <p className="text-xs font-semibold text-slate-500">{t("timeline.subtitle")}</p>
+                        <h3 className="font-extrabold text-xl text-slate-900">{t("timeline.addEvent")}</h3>
+                        <p className="text-xs font-semibold text-slate-500 mt-0.5">{t("timeline.addEventDesc")}</p>
                     </div>
                 </div>
             </section>
@@ -142,7 +142,7 @@ export function GlobalTimelinePage() {
                     <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 block">{t("timeline.eventType")}</label>
                     <select value={filterCategory || ""} onChange={e => setFilterCategory(e.target.value || null)} className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 outline-none">
                         <option value="">{t("timeline.allEvents")}</option>
-                        {EVENT_CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+                        {EVENT_CATEGORIES.map(c => <option key={c.value} value={c.value}>{t(`timeline.cat_${c.value}`)}</option>)}
                     </select>
                 </div>
             </div>
@@ -154,7 +154,7 @@ export function GlobalTimelinePage() {
                 <div className="text-center py-16 bg-white/50 rounded-[2rem] border border-white shadow-sm">
                     <Activity size={48} className="mx-auto mb-4 text-emerald-200" />
                     <p className="font-bold text-lg text-slate-800">{t("timeline.noEvents")}</p>
-                    <p className="text-sm max-w-xs mx-auto mt-2 text-slate-500">{t("timeline.noEventsDesc")}</p>
+                    <p className="text-sm max-w-sm mx-auto mt-2 text-slate-500">{t("timeline.noEventsDesc")}</p>
                 </div>
             ) : (
                 <div className="relative pl-6 border-l-2 border-slate-200/60 pb-12 space-y-6">
@@ -165,7 +165,7 @@ export function GlobalTimelinePage() {
                         const colorBg = cat.color.split(' ')[1];
                         const colorText = cat.color.split(' ')[0];
                         const linkedDocs = allDocs.filter(d => event.documentIds?.includes(d.id));
-                        const renderDate = new Date(event.date).toLocaleDateString('en-US', { weekday: 'short', month: 'long', day: 'numeric', year: 'numeric' });
+                        const renderDate = new Date(event.date).toLocaleDateString(t("common.localeCode"), { month: 'short', day: 'numeric', year: 'numeric' });
 
                         return (
                             <div key={event.id} className="relative group">
@@ -197,7 +197,7 @@ export function GlobalTimelinePage() {
                                                 </button>
                                             )}
                                             <div className={`shrink-0 px-2.5 py-1 rounded-xl flex items-center gap-1.5 text-[11px] font-bold border border-current/20 bg-white ${colorText}`}>
-                                                {cat.icon} <span className="hidden sm:inline">{cat.label}</span>
+                                                {cat.icon} <span className="hidden sm:inline">{t(`timeline.cat_${cat.value}`)}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -239,7 +239,7 @@ export function GlobalTimelinePage() {
                                                                         <button
                                                                             onClick={async (e) => {
                                                                                 e.stopPropagation();
-                                                                                if (!confirm(`Unlink "${doc.name}" from this event?`)) return;
+                                                                                if (!confirm(t("timeline.confirmUnlink", { name: doc.name }))) return;
                                                                                 const eventRef = fsDoc(db, "life_events", event.id);
                                                                                 const newIds = (event.documentIds || []).filter(id => id !== doc.id);
                                                                                 await updateDoc(eventRef, { documentIds: newIds });
@@ -331,8 +331,8 @@ export function GlobalTimelinePage() {
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">{t("timeline.editDescription")}</label>
-                                    <textarea value={editDraft.description} onChange={e => setEditDraft({ ...editDraft, description: e.target.value })} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-medium outline-none focus:border-emerald-500 min-h-[40px] resize-none" />
+                                    <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">{t("timeline.editDescription")}</label>
+                                    <textarea value={editDraft.description} onChange={e => setEditDraft({ ...editDraft, description: e.target.value })} placeholder={t("timeline.editDescriptionPlace")} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-slate-900/20 font-medium text-sm transition-all shadow-sm min-h-[100px] resize-none" />
                                 </div>
                             </div>
 

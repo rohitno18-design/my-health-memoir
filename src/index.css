@@ -4,32 +4,33 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --background: 210 20% 98%;
+    --foreground: 215 28% 17%;
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 215 28% 17%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --popover-foreground: 215 28% 17%;
+    --primary: 160 84% 39%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 20% 96%;
+    --secondary-foreground: 215 28% 17%;
+    --muted: 210 20% 96%;
+    --muted-foreground: 215 16% 47%;
+    --accent: 160 60% 96%;
+    --accent-foreground: 160 84% 28%;
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 210 20% 91%;
+    --input: 210 20% 91%;
+    --ring: 160 84% 39%;
     --radius: 0.75rem;
 
-    /* Premium Health OS Tokens */
-    --health-primary: 215 25% 27%; /* Slate Navy #334155 approx */
-    --health-emerald: 161 94% 30%; /* Emerald #059669 */
-    --health-rose: 341 81% 45%; /* Rose #BE123C */
-    --health-amber: 38 92% 50%; /* Amber #D97706 */
+    /* Health Brand Tokens */
+    --health-emerald: 160 84% 39%;
+    --health-teal: 186 80% 38%;
+    --health-rose: 349 89% 60%;
+    --health-amber: 38 92% 52%;
+    --health-blue: 213 94% 58%;
   }
 
   .dark {

@@ -1,5 +1,7 @@
 import { Area, AreaChart, ResponsiveContainer } from "recharts";
-import { Activity, Heart, Droplet } from "lucide-react";
+import { Activity, Heart, Droplets } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { cn } from "@/lib/utils";
 
 interface VitalsQuickViewProps {
   type: "BP" | "Sugar" | "Pulse";
@@ -11,7 +13,9 @@ interface VitalsQuickViewProps {
 }
 
 export function VitalsQuickView({ type, value, unit, trend, data, color }: VitalsQuickViewProps) {
-  const Icon = type === "BP" ? Activity : type === "Sugar" ? Droplet : Heart;
+  const { t } = useTranslation();
+  const Icon = type === "BP" ? Activity : type === "Sugar" ? Droplets : Heart;
+  const tType = type === "BP" ? "bp" : type === "Sugar" ? "sugar" : "heartRate";
 
   return (
     <div className="flex flex-col h-full overflow-hidden group">
@@ -20,10 +24,12 @@ export function VitalsQuickView({ type, value, unit, trend, data, color }: Vital
           <div className="p-1.5 rounded-lg" style={{ backgroundColor: `${color}15`, color: color }}>
             <Icon size={14} />
           </div>
-          <span className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">{type}</span>
+          <span className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">{t(`vitals.${tType}`)}</span>
         </div>
-        <div className={`text-[10px] font-black uppercase tracking-tighter ${trend === 'up' ? 'text-rose-500' : trend === 'down' ? 'text-emerald-500' : 'text-slate-400'}`}>
-          {trend === 'up' ? '↗' : trend === 'down' ? '↘' : '→'} {trend}
+        <div className={`text-[10px] font-black uppercase tracking-tighter ${trend === 'up' ? 'text-rose-50' : trend === 'down' ? 'text-emerald-50' : 'text-slate-400'}`}>
+          <div className={cn("px-2 py-0.5 rounded-md flex items-center gap-1", trend === 'up' ? 'bg-rose-500' : trend === 'down' ? 'bg-emerald-500' : 'bg-slate-100')}>
+            {trend === 'up' ? '↗' : trend === 'down' ? '↘' : '→'} {t(`vitals.${trend}`)}
+          </div>
         </div>
       </div>
 

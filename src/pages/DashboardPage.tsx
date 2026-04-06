@@ -3,9 +3,10 @@ import ReactMarkdown from "react-markdown";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { 
-  Bot, UploadCloud, Loader2, X, ShieldCheck, 
-  ChevronRight, Zap, UserCircle 
+  Bot, UploadCloud, Loader2, X,
+  ChevronRight, Zap
 } from "lucide-react";
+
 import { useNavigate } from "react-router-dom";
 import { db, storage } from "@/lib/firebase";
 import { 
@@ -211,41 +212,16 @@ export function DashboardPage() {
     }
 
     return (
-        <div className="pb-24 w-full max-w-lg mx-auto relative min-h-screen bg-slate-50/50">
-            {/* Background */}
-            <div className="fixed inset-0 -z-10 pointer-events-none overflow-hidden">
-                <div className="absolute top-[-10%] left-[-20%] w-full h-[60%] bg-emerald-500/5 blur-[120px] animate-pulse" />
-                <div className="absolute bottom-0 right-0 w-full h-[40%] bg-primary/5 blur-[100px]" />
-            </div>
+        <div className="pb-24 w-full max-w-lg mx-auto relative">
 
-            {/* Header */}
-            <header className="sticky top-0 z-40 px-6 py-4 flex items-center justify-between bg-white/60 backdrop-blur-xl border-b border-white/40">
-                <div className="flex items-center gap-3">
-                    <div className="size-10 rounded-2xl bg-gradient-to-br from-emerald-600 to-emerald-400 flex items-center justify-center shadow-lg shadow-emerald-500/20">
-                         <ShieldCheck className="text-white" size={20} />
-                    </div>
-                    <div>
-                        <h1 className="text-base font-black text-slate-800 tracking-tight">Health OS</h1>
-                        <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest leading-none">Universal Profile</p>
-                    </div>
-                </div>
-                <button onClick={() => navigate("/profile")} className="size-10 rounded-full bg-white border border-slate-200 overflow-hidden shadow-sm flex items-center justify-center">
-                    {userProfile?.photoURL ? (
-                      <img src={userProfile.photoURL} alt="Profile" className="size-full object-cover" />
-                    ) : (
-                      <UserCircle className="text-slate-300" size={24} />
-                    )}
-                </button>
-            </header>
-
-            <main className="px-6 pt-6 space-y-8">
+            <main className="px-5 pt-5 space-y-6">
                 {/* Greeting */}
                 <section>
                     <motion.p initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">
                         {formatGreeting()}, {userProfile?.displayName?.split(' ')[0] || "Guest"}
                     </motion.p>
                     <motion.h2 initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="text-3xl font-black text-slate-900 leading-tight tracking-tighter">
-                        Your Health <br /> <span className="text-emerald-600">at a Glance.</span>
+                        {t("dashboard.healthAtAGlance1")} <br /> <span className="text-emerald-600">{t("dashboard.healthAtAGlance2")}</span>
                     </motion.h2>
                 </section>
 
@@ -292,8 +268,8 @@ export function DashboardPage() {
                                 <Zap size={24} />
                             </div>
                             <div className="text-left">
-                                <h3 className="font-black text-slate-800 text-lg">Emergency Pulse</h3>
-                                <p className="text-xs font-bold text-rose-600/70 uppercase tracking-widest">Medical QR & SOS</p>
+                                <h3 className="font-black text-slate-800 text-lg">{t("emergency.title")}</h3>
+                                <p className="text-xs font-bold text-rose-600/70 uppercase tracking-widest">{t("emergency.subtitle")}</p>
                             </div>
                         </div>
                         <ChevronRight className="text-slate-400 group-hover:translate-x-1 transition-transform" />
@@ -312,11 +288,11 @@ export function DashboardPage() {
                     <div className="size-20 bg-emerald-100 rounded-full flex items-center justify-center mx-auto animate-pulse">
                       <UploadCloud className="text-emerald-600" size={32} />
                     </div>
-                    <h3 className="font-black text-slate-900 text-lg">Uploading Securely...</h3>
+                    <h3 className="font-black text-slate-900 text-lg">{t("dashboard.uploading")}</h3>
                     <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
                       <div className="h-full bg-emerald-500 transition-all duration-300" style={{ width: `${progress}%` }} />
                     </div>
-                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{progress}% Complete</p>
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{progress}% {t("common.complete")}</p>
                   </div>
                 </motion.div>
               )}
@@ -325,24 +301,24 @@ export function DashboardPage() {
                 <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
                   <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="w-full max-w-sm bg-white rounded-[2rem] p-6 shadow-2xl space-y-4">
                     <div className="flex items-center justify-between">
-                      <h3 className="text-xl font-black text-slate-900">Document Scan</h3>
+                      <h3 className="text-xl font-black text-slate-900">{t("dashboard.docScan")}</h3>
                       <button onClick={resetUpload} className="p-2 bg-slate-100 rounded-full"><X size={16} /></button>
                     </div>
                     <form onSubmit={processUploadAndAnalyze} className="space-y-4">
                       <div className="space-y-1">
-                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Select Patient</label>
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">{t("patients.label")}</label>
                         <select required value={form.patientId} onChange={e => setForm({...form, patientId: e.target.value})} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold text-slate-700">
                           {patients.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                         </select>
                       </div>
                       <div className="space-y-1">
-                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Document Category</label>
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">{t("dashboard.category")}</label>
                         <select required value={form.category} onChange={e => setForm({...form, category: e.target.value})} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold text-slate-700">
                           {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
                         </select>
                       </div>
                       <button type="submit" className="w-full py-4 bg-emerald-600 text-white rounded-xl font-black shadow-lg shadow-emerald-500/20 active:scale-95 transition-all">
-                        Begin AI Analysis
+                        {t("dashboard.beginAnalysis")}
                       </button>
                     </form>
                   </motion.div>
@@ -353,8 +329,8 @@ export function DashboardPage() {
                 <div className="fixed inset-0 z-50 bg-white flex flex-col p-6 overflow-y-auto">
                   <header className="flex items-center justify-between mb-8 flex-shrink-0">
                     <div className="flex items-center gap-2">
-                      <Bot className="text-violet-600" />
-                      <h2 className="text-xl font-black">AI Audit Results</h2>
+                       <Bot className="text-violet-600" />
+                       <h2 className="text-xl font-black">{t("dashboard.auditResults")}</h2>
                     </div>
                     <button onClick={resetUpload} className="size-10 bg-slate-100 rounded-full flex items-center justify-center"><X size={20} /></button>
                   </header>
@@ -362,7 +338,7 @@ export function DashboardPage() {
                     <ReactMarkdown>{aiSummary}</ReactMarkdown>
                   </div>
                   <button onClick={() => navigate("/documents")} className="mt-8 w-full py-4 bg-slate-900 text-white rounded-xl font-black flex-shrink-0">
-                    Close and View in Vault
+                    {t("dashboard.viewInVault")}
                   </button>
                 </div>
               )}
