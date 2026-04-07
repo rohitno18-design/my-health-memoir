@@ -7,7 +7,7 @@ import { Bot, Plus, MessageSquare, Clock, Trash2, Edit2, CheckCircle2, Circle, X
 import type { Chat } from "@/types/chat";
 import { useTranslation } from "react-i18next";
 
-function formatRelativeTime(timestamp: unknown): string {
+function formatRelativeTime(timestamp: unknown, t: any): string {
     if (!timestamp) return "";
     const date =
         typeof (timestamp as { toDate?: () => Date }).toDate === "function"
@@ -16,13 +16,13 @@ function formatRelativeTime(timestamp: unknown): string {
     const now = new Date();
     const diff = now.getTime() - date.getTime();
     const minutes = Math.floor(diff / 60000);
-    if (minutes < 1) return "just now";
-    if (minutes < 60) return `${minutes}m ago`;
+    if (minutes < 1) return t("aiChatList.timeJustNow");
+    if (minutes < 60) return t("aiChatList.timeMinsAgo", { count: minutes });
     const hours = Math.floor(minutes / 60);
-    if (hours < 24) return `${hours}h ago`;
+    if (hours < 24) return t("aiChatList.timeHoursAgo", { count: hours });
     const days = Math.floor(hours / 24);
-    if (days < 7) return `${days}d ago`;
-    return date.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+    if (days < 7) return t("aiChatList.timeDaysAgo", { count: days });
+    return date.toLocaleDateString(t("common.localeCode"), { day: "numeric", month: "short", year: "numeric" });
 }
 
 export function ChatListPage() {
@@ -243,7 +243,7 @@ export function ChatListPage() {
                                 )}
                                 <div className="flex items-center gap-1 mt-0.5 text-xs text-muted-foreground">
                                     <Clock size={11} />
-                                    <span>{formatRelativeTime(chat.updatedAt)}</span>
+                                    <span>{formatRelativeTime(chat.updatedAt, t)}</span>
                                     {chat.messageCount > 0 && <span className="ml-1 text-slate-400">· {chat.messageCount} msg</span>}
                                 </div>
                             </div>

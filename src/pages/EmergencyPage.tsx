@@ -194,7 +194,7 @@ export function EmergencyPage() {
                 </div>
                 <div className="space-y-2">
                   <h2 className="font-black text-slate-900 text-2xl leading-tight tracking-tight">
-                    {selectedPatient?.name || t("patients.profile")}
+                    {selectedPatient?.name || t("patients.label")}
                   </h2>
                   <div className="flex items-center justify-center gap-2">
                     {selectedPatient?.bloodGroup && (

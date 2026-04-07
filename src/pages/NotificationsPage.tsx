@@ -103,14 +103,14 @@ export function NotificationsPage() {
                         >
                             <ArrowLeft size={18} className="text-slate-600" />
                         </button>
-                        <h1 className="text-xl font-bold tracking-tight">{t("account.notifications")}</h1>
+                        <h1 className="text-xl font-bold tracking-tight">{t("notifications.title")}</h1>
                     </div>
                     {unreadCount > 0 && (
                         <button 
                             onClick={markAllRead}
                             className="text-[11px] font-bold text-primary bg-primary/10 px-3 py-1.5 rounded-lg hover:bg-primary/20 transition-colors"
                         >
-                            Mark all as read
+                            {t("notifications.markAllRead")}
                         </button>
                     )}
                 </div>
@@ -124,7 +124,7 @@ export function NotificationsPage() {
                             filter === "all" ? "bg-white text-slate-900 shadow-sm" : "text-slate-400 hover:text-slate-600"
                         )}
                     >
-                        All
+                        {t("notifications.filterAll")}
                     </button>
                     <button
                         onClick={() => setFilter("unread")}
@@ -133,7 +133,7 @@ export function NotificationsPage() {
                             filter === "unread" ? "bg-white text-slate-900 shadow-sm" : "text-slate-400 hover:text-slate-600"
                         )}
                     >
-                        Unread
+                        {t("notifications.filterUnread")}
                         {unreadCount > 0 && (
                             <span className="bg-primary text-primary-foreground text-[9px] px-1.5 py-0.5 rounded-full">
                                 {unreadCount}
@@ -150,8 +150,8 @@ export function NotificationsPage() {
                         <div className="w-16 h-16 rounded-3xl bg-slate-100 flex items-center justify-center mb-4 text-slate-300">
                             <Bell size={32} />
                         </div>
-                        <p className="text-sm font-semibold text-slate-800">All caught up!</p>
-                        <p className="text-xs text-slate-400 mt-1">No new notifications here.</p>
+                        <p className="text-sm font-semibold text-slate-800">{t("notifications.emptyTitle")}</p>
+                        <p className="text-xs text-slate-400 mt-1">{t("notifications.emptyDesc")}</p>
                     </div>
                 ) : (
                     filtered.map((n) => (
@@ -219,7 +219,7 @@ export function NotificationsPage() {
             <div className="px-6 py-4 bg-white/20 backdrop-blur-md border-t border-white/40">
                 <div className="flex items-center gap-2 text-[11px] text-slate-500 font-medium">
                     <CheckCircle2 size={13} className="text-emerald-500" />
-                    Notifications are encrypted and only stored on your device.
+                    {t("notifications.secureNote")}
                 </div>
             </div>
         </div>

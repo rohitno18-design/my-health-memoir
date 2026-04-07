@@ -35,7 +35,7 @@ export function QuickActions({ onUpload, onCamera }: QuickActionsProps) {
         <div className="p-1.5 bg-slate-100 rounded-lg group-hover:bg-primary/10 group-hover:text-primary transition-colors">
           <Camera size={18} />
         </div>
-        <span>Open Camera</span>
+        <span>{t("dashboard.docScan")}</span>
       </motion.button>
     </div>
   );

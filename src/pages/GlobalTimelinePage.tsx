@@ -95,7 +95,7 @@ export function GlobalTimelinePage() {
 
     const handleDeleteEvent = async () => {
         if (!editingEvent) return;
-        if (!confirm("Are you sure you want to delete this event? The attached documents will NOT be deleted.")) return;
+        if (!confirm(t("timeline.deleteConfirm"))) return;
         setIsDeletingEvent(true);
         try {
             await deleteDoc(fsDoc(db, "life_events", editingEvent.id));
@@ -103,7 +103,7 @@ export function GlobalTimelinePage() {
             refetchData();
         } catch (e) {
             console.error(e);
-            alert("Failed to delete event.");
+            alert(t("timeline.deleteError"));
         } finally {
             setIsDeletingEvent(false);
         }
@@ -117,6 +117,17 @@ export function GlobalTimelinePage() {
             <div className="absolute top-0 right-0 h-[60vh] w-full bg-emerald-500/10 blur-3xl pointer-events-none -z-10 rounded-full"></div>
 
             {/* Header */}
+            <header className="flex items-center justify-between gap-4 pt-8">
+                <div className="flex-1 text-center">
+                    <h1 className="text-3xl font-black text-slate-900 leading-tight">{t("timeline.title1")} <br /> <span className="text-emerald-600">{t("timeline.title2")}</span></h1>
+                </div>
+            </header>
+
+            {/* Subtitle */}
+            <p className="text-center text-sm font-bold text-slate-400 mt-2">
+                {t("timeline.subtitle")}
+            </p>
+
             <section className="pt-8 pb-4">
                 <div className="flex items-center gap-3 mb-1">
                     <div className="size-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center shadow-inner border border-emerald-100">
@@ -209,7 +220,7 @@ export function GlobalTimelinePage() {
 
                                     {/* Expand/collapse indicator */}
                                     <div className={`flex items-center justify-between mt-3 text-xs font-bold ${colorText}`}>
-                                        <span>{linkedDocs.length > 0 ? `${linkedDocs.length} ${linkedDocs.length > 1 ? t("timeline.documentsAttached") : t("timeline.documentAttached")}` : t("timeline.noDocuments")}</span>
+                                        <span>{linkedDocs.length > 0 ? `${linkedDocs.length} ${t(`timeline.documentAttached${linkedDocs.length > 1 ? '_other' : '_one'}`)}` : t("timeline.noDocuments")}</span>
                                         {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                                     </div>
 
@@ -320,7 +331,7 @@ export function GlobalTimelinePage() {
                             <div>
                                 <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">{t("timeline.editCategory")}</label>
                                 <select value={editDraft.category} onChange={e => setEditDraft({ ...editDraft, category: e.target.value })} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-semibold outline-none focus:border-emerald-500">
-                                    {EVENT_CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+                                    {EVENT_CATEGORIES.map(c => <option key={c.value} value={c.value}>{t(c.label)}</option>)}
                                 </select>
                             </div>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

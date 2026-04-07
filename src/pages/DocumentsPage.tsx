@@ -19,7 +19,16 @@ const TRANSLATION_PROMPT = (lang: string) => `You are a medical & general AI ass
 Maintain the exact same structure, bullet points, and emojis. Keep the tone simple, clear, and reassuring so a non-medical person can easily understand.
 USE MARKDOWN FORMATTING: Translate section headers to '### ' and keep bullet points as '- '. Do not use asterisks (** or *) for bolding.`;
 
-const languages = ["English", "Hindi", "Hinglish", "Marathi", "Gujarati", "Tamil", "Telugu", "Bengali"];
+const languages = [
+  { id: "English", tKey: "common.language_en" },
+  { id: "Hindi", tKey: "common.language_hi" },
+  { id: "Hinglish", tKey: "common.language_hinglish" },
+  { id: "Marathi", tKey: "common.language_mr" },
+  { id: "Gujarati", tKey: "common.language_gu" },
+  { id: "Tamil", tKey: "common.language_ta" },
+  { id: "Telugu", tKey: "common.language_te" },
+  { id: "Bengali", tKey: "common.language_bn" }
+];
 
 const CATEGORIES = [
     { name: "Prescription", key: "documents.cat_prescription", icon: "pill", color: "text-purple-600 bg-purple-50" },
@@ -80,7 +89,7 @@ export function DocumentsPage() {
     // Modals state
     const [viewSummary, setViewSummary] = useState<{ text: string, lang: string } | null>(null);
     const [showLanguageModalForDoc, setShowLanguageModalForDoc] = useState<Document | null>(null);
-    const [summaryLanguage, setSummaryLanguage] = useState("English");
+    const [summaryLanguage, setSummaryLanguage] = useState(t("common.localeCode") === "hi-IN" ? "Hindi" : "English");
     const [summarizingDocId, setSummarizingDocId] = useState<string | null>(null);
     const [generationProgress, setGenerationProgress] = useState<string>("");
 
@@ -873,7 +882,7 @@ export function DocumentsPage() {
                                 className="w-full px-4 py-3.5 rounded-[1.5rem] border border-white/40 bg-white/40 backdrop-blur-md focus:bg-white/80 focus:ring-2 focus:ring-emerald-500/30 font-bold outline-none mb-6 cursor-pointer text-slate-800 transition-colors shadow-sm relative z-10"
                             >
                                 {languages.map(lang => (
-                                    <option key={lang} value={lang}>{lang}</option>
+                                    <option key={lang.id} value={lang.id}>{t(lang.tKey)}</option>
                                 ))}
                             </select>
                             <button

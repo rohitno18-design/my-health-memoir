@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { collection, query, where, getDocs, addDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/contexts/AuthContext";
@@ -6,14 +7,15 @@ import type { LifeEvent, Patient } from "@/pages/PatientsPage";
 import { Loader2, Plus, Calendar, Activity, X, FileText, ScanLine, Stethoscope, CheckCircle2 } from "lucide-react";
 
 export const EVENT_CATEGORIES = [
-    { value: "visit", label: "Visit / Consultation", icon: <Stethoscope size={18} />, desc: "Routine checkups, specialist appointments, ER visits", color: "text-blue-600 bg-blue-50 border-blue-200" },
-    { value: "diagnosis", label: "Diagnosis / Illness", icon: <Activity size={18} />, desc: "New conditions, illnesses, allergic reactions", color: "text-red-600 bg-red-50 border-red-200" },
-    { value: "procedure", label: "Procedure / Surgery", icon: <ScanLine size={18} />, desc: "Surgeries, MRIs, dental extractions", color: "text-teal-600 bg-teal-50 border-teal-200" },
-    { value: "milestone", label: "Life Milestone", icon: <Calendar size={18} />, desc: "Birth, moving cities, joining a gym", color: "text-amber-600 bg-amber-50 border-amber-200" },
-    { value: "note", label: "General Note", icon: <FileText size={18} />, desc: "Journal entries, symptom tracking", color: "text-slate-600 bg-slate-50 border-slate-200" },
+    { value: "visit", label: "timeline.cat_visit", icon: <Stethoscope size={18} />, desc: "timeline.cat_desc_visit", color: "text-blue-600 bg-blue-50 border-blue-200" },
+    { value: "diagnosis", label: "timeline.cat_diagnosis", icon: <Activity size={18} />, desc: "timeline.cat_desc_diagnosis", color: "text-red-600 bg-red-50 border-red-200" },
+    { value: "procedure", label: "timeline.cat_procedure", icon: <ScanLine size={18} />, desc: "timeline.cat_desc_procedure", color: "text-teal-600 bg-teal-50 border-teal-200" },
+    { value: "milestone", label: "timeline.cat_milestone", icon: <Calendar size={18} />, desc: "timeline.cat_desc_milestone", color: "text-amber-600 bg-amber-50 border-amber-200" },
+    { value: "note", label: "timeline.cat_note", icon: <FileText size={18} />, desc: "timeline.cat_desc_note", color: "text-slate-600 bg-slate-50 border-slate-200" },
 ] as const;
 
 export function LifeTimeline({ patient, onClose }: { patient: Patient, onClose: () => void }) {
+    const { t } = useTranslation();
     const { user } = useAuth();
     const [events, setEvents] = useState<LifeEvent[]>([]);
     const [loading, setLoading] = useState(true);
@@ -77,7 +79,7 @@ export function LifeTimeline({ patient, onClose }: { patient: Patient, onClose: 
             setSelectedDocs([]);
         } catch (error) {
             console.error("Error adding life event: ", error);
-            alert("Failed to add event.");
+            alert(t("documents.addTimelineError"));
         } finally {
             setSaving(false);
         }
@@ -95,9 +97,9 @@ export function LifeTimeline({ patient, onClose }: { patient: Patient, onClose: 
                     <div>
                         <h2 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
                             <Activity className="text-emerald-500" />
-                            {patient.name}'s Life Timeline
+                            {t("timeline.patient", { name: patient.name })}
                         </h2>
-                        <p className="text-sm font-semibold text-slate-500 mt-1">A chronological health biography</p>
+                        <p className="text-sm font-semibold text-slate-500 mt-1">{t("timeline.timelineDesc")}</p>
                     </div>
                     <button onClick={onClose} className="size-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 hover:text-slate-800 transition-all">
                         <X size={20} />
@@ -112,7 +114,7 @@ export function LifeTimeline({ patient, onClose }: { patient: Patient, onClose: 
                                 onClick={() => setFilterCategory(null)}
                                 className={`px-4 py-2 rounded-xl text-sm font-bold transition-colors ${!filterCategory ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
                             >
-                                All Events
+                                {t("timeline.allEvents")}
                             </button>
                             {EVENT_CATEGORIES.map(c => (
                                 <button
@@ -120,12 +122,12 @@ export function LifeTimeline({ patient, onClose }: { patient: Patient, onClose: 
                                     onClick={() => setFilterCategory(c.value)}
                                     className={`px-4 py-2 rounded-xl text-sm font-bold transition-colors ${filterCategory === c.value ? c.color : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
                                 >
-                                    {c.label}
+                                    {t(c.label)}
                                 </button>
                             ))}
                         </div>
                         <button onClick={() => setShowAddEvent(true)} className="flex items-center gap-2 px-5 py-2.5 bg-slate-900 text-white rounded-xl font-bold text-sm shadow-md hover:bg-slate-800 active:scale-95 transition-all flex-shrink-0">
-                            <Plus size={16} /> Add Event
+                            <Plus size={16} /> {t("timeline.addEvent")}
                         </button>
                     </div>
 
@@ -135,14 +137,14 @@ export function LifeTimeline({ patient, onClose }: { patient: Patient, onClose: 
                     ) : filteredEvents.length === 0 ? (
                         <div className="text-center py-16 text-slate-500">
                             <Activity size={48} className="mx-auto mb-4 opacity-30" />
-                            <p className="font-bold text-lg text-slate-800">No events found.</p>
-                            <p className="text-sm max-w-sm mx-auto mt-2 text-slate-500">Start building the health memoir by adding visits, diagnoses, or milestones.</p>
+                            <p className="font-bold text-lg text-slate-800">{t("timeline.noEvents")}</p>
+                            <p className="text-sm max-w-sm mx-auto mt-2 text-slate-500">{t("timeline.noEventsDesc")}</p>
                         </div>
                     ) : (
                         <div className="relative pl-6 sm:pl-8 border-l-2 border-slate-200/60 pb-10 space-y-10">
                             {filteredEvents.map(event => {
                                 const catMetadata = EVENT_CATEGORIES.find(c => c.value === event.category) || EVENT_CATEGORIES[0];
-                                const renderDate = new Date(event.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                                const renderDate = new Date(event.date).toLocaleDateString(t("common.localeCode"), { month: 'short', day: 'numeric', year: 'numeric' });
 
                                 return (
                                     <div key={event.id} className="relative group">
@@ -155,7 +157,7 @@ export function LifeTimeline({ patient, onClose }: { patient: Patient, onClose: 
                                                 <h3 className="font-bold text-lg text-slate-900 leading-tight">{event.title}</h3>
                                                 <div className={`px-3 py-1 bg-white/60 rounded-lg flex items-center gap-1.5 text-xs font-bold ${catMetadata.color.split(' ')[0]}`}>
                                                     {catMetadata.icon}
-                                                    {catMetadata.label}
+                                                    {t(catMetadata.label)}
                                                 </div>
                                             </div>
 
@@ -165,10 +167,10 @@ export function LifeTimeline({ patient, onClose }: { patient: Patient, onClose: 
 
                                             {event.documentIds && event.documentIds.length > 0 && (
                                                 <div className="mt-4 pt-4 border-t border-slate-900/10">
-                                                    <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2 flex items-center gap-1"><FileText size={14} /> Attached Documents</p>
+                                                    <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2 flex items-center gap-1"><FileText size={14} /> {t("timeline.documentsAttached")}</p>
                                                     <div className="flex flex-wrap gap-2">
                                                         {event.documentIds.map(docId => {
-                                                            const docName = availableDocs.find(d => d.id === docId)?.name || "Unknown Document";
+                                                            const docName = availableDocs.find(d => d.id === docId)?.name || t("common.unknown");
                                                             return <span key={docId} className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/80 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 shadow-sm"><FileText size={12} className="text-slate-400" /> {docName}</span>
                                                         })}
                                                     </div>
@@ -189,8 +191,8 @@ export function LifeTimeline({ patient, onClose }: { patient: Patient, onClose: 
                     <div className="w-full max-w-xl h-full sm:h-auto sm:max-h-[90vh] glass-card rounded-t-[2rem] sm:rounded-[2.5rem] flex flex-col shadow-2xl animate-in slide-in-from-bottom-5 duration-300 relative overflow-hidden">
                         <div className="p-6 border-b border-white/30 flex justify-between items-center bg-slate-50 relative z-10 flex-shrink-0">
                             <div>
-                                <h3 className="font-extrabold text-xl text-slate-900">Add Life Event</h3>
-                                <p className="text-xs font-semibold text-slate-500 mt-0.5">Record a milestone or medical encounter</p>
+                                <h3 className="font-extrabold text-xl text-slate-900">{t("timeline.addEvent")}</h3>
+                                <p className="text-xs font-semibold text-slate-500 mt-0.5">{t("timeline.addEventDesc")}</p>
                             </div>
                             <button onClick={() => setShowAddEvent(false)} className="text-slate-400 hover:text-slate-800 p-2 bg-slate-200/50 rounded-full transition-colors"><X size={20} /></button>
                         </div>
@@ -198,7 +200,7 @@ export function LifeTimeline({ patient, onClose }: { patient: Patient, onClose: 
                         <div className="flex-1 overflow-y-auto p-6 scroll-smooth bg-white custom-scrollbar relative z-10">
                             <form id="add-event-form" onSubmit={handleSave} className="space-y-5">
                                 <div>
-                                    <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Event Category</label>
+                                    <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">{t("timeline.eventType")}</label>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                         {EVENT_CATEGORIES.map(c => (
                                             <div
@@ -208,8 +210,8 @@ export function LifeTimeline({ patient, onClose }: { patient: Patient, onClose: 
                                             >
                                                 <div className={category === c.value ? c.color.split(' ')[0] : 'text-slate-400'}>{c.icon}</div>
                                                 <div>
-                                                    <p className={`font-bold text-sm ${category === c.value ? 'text-slate-900' : 'text-slate-700'}`}>{c.label}</p>
-                                                    <p className="text-[10px] text-slate-500 font-medium leading-tight mt-0.5">{c.desc}</p>
+                                                    <p className={`font-bold text-sm ${category === c.value ? 'text-slate-900' : 'text-slate-700'}`}>{t(c.label)}</p>
+                                                    <p className="text-[10px] text-slate-500 font-medium leading-tight mt-0.5">{t(c.desc)}</p>
                                                 </div>
                                             </div>
                                         ))}
@@ -218,24 +220,24 @@ export function LifeTimeline({ patient, onClose }: { patient: Patient, onClose: 
 
                                 <div className="grid grid-cols-1 sm:grid-cols-[1fr_150px] gap-4">
                                     <div>
-                                        <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Event Title *</label>
-                                        <input type="text" required value={title} onChange={e => setTitle(e.target.value)} placeholder="e.g. Knee Surgery, Diagnosed with Diabetes" className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-slate-900/20 font-semibold text-sm transition-all shadow-sm" />
+                                        <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">{t("timeline.eventTitle")} *</label>
+                                        <input type="text" required value={title} onChange={e => setTitle(e.target.value)} placeholder={t("timeline.eventTitlePlaceholder")} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-slate-900/20 font-semibold text-sm transition-all shadow-sm" />
                                     </div>
                                     <div>
-                                        <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Date *</label>
+                                        <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">{t("timeline.eventDate")} *</label>
                                         <input type="date" required value={date} onChange={e => setDate(e.target.value)} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-slate-900/20 font-semibold text-sm transition-all shadow-sm cursor-pointer" />
                                     </div>
                                 </div>
 
                                 <div>
-                                    <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Description (Optional)</label>
-                                    <textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="Add any details, symptoms, outcome, or notes..." className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-slate-900/20 font-medium text-sm transition-all shadow-sm min-h-[100px] resize-none" />
+                                    <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">{t("timeline.description")} ({t("common.optional")})</label>
+                                    <textarea value={description} onChange={e => setDescription(e.target.value)} placeholder={t("timeline.descriptionPlaceholder")} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-slate-900/20 font-medium text-sm transition-all shadow-sm min-h-[100px] resize-none" />
                                 </div>
 
                                 <div>
-                                    <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Link Documents</label>
+                                    <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">{t("timeline.linkedDocs")}</label>
                                     {availableDocs.length === 0 ? (
-                                        <p className="text-xs text-slate-500 font-medium bg-slate-50 p-3 rounded-xl border border-dashed border-slate-200">No documents found for this patient.</p>
+                                        <p className="text-xs text-slate-500 font-medium bg-slate-50 p-3 rounded-xl border border-dashed border-slate-200">{t("timeline.noDocsAvailable")}</p>
                                     ) : (
                                         <div className="bg-slate-50 p-2 rounded-xl border border-slate-200 max-h-[150px] overflow-y-auto custom-scrollbar">
                                             {availableDocs.map(doc => (
@@ -260,7 +262,7 @@ export function LifeTimeline({ patient, onClose }: { patient: Patient, onClose: 
 
                         <div className="p-4 border-t border-slate-200 bg-slate-50 flex-shrink-0">
                             <button type="submit" form="add-event-form" disabled={saving} className="w-full py-3.5 bg-slate-900 text-white rounded-xl font-extrabold text-sm shadow-md hover:bg-slate-800 disabled:opacity-70 flex items-center justify-center gap-2 transition-all">
-                                {saving ? <Loader2 size={18} className="animate-spin" /> : <CheckCircle2 size={18} />} Save Life Event
+                                {saving ? <Loader2 size={18} className="animate-spin" /> : <CheckCircle2 size={18} />} {t("timeline.saveChanges")}
                             </button>
                         </div>
                     </div>

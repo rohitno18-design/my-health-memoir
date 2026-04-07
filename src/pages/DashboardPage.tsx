@@ -30,7 +30,7 @@ const API_URL = `https://generativelanguage.googleapis.com/${API_VERSION}/models
 const SUMMARY_PROMPT = (lang: string) => `You are a medical AI assistant for the Universal Health OS. Analyze the document and provide a summary in ${lang}. Use Markdown formatting.`;
 
 const CATEGORIES = [
-    "Prescription", "Lab Report", "Imaging (X-ray/MRI)", "Clinical Note", "Billing/Insurance", "Other"
+    "cat_prescription", "cat_labreport", "cat_imagingxraymri", "cat_clinicalnote", "cat_billinginsurance", "cat_other"
 ];
 
 const getBase64 = (file: File): Promise<string> =>
@@ -59,9 +59,9 @@ export function DashboardPage() {
 
     const [form, setForm] = useState({
         patientId: "",
-        category: "Lab Report",
+        category: "cat_labreport",
         docDate: new Date().toISOString().split('T')[0],
-        language: "English",
+        language: t("common.localeCode") === "hi-IN" ? t("common.language_hi") : t("common.language_en"),
         generateSummary: true
     });
 
@@ -218,7 +218,7 @@ export function DashboardPage() {
                 {/* Greeting */}
                 <section>
                     <motion.p initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">
-                        {formatGreeting()}, {userProfile?.displayName?.split(' ')[0] || "Guest"}
+                        {formatGreeting()}, {userProfile?.displayName?.split(' ')[0] || t("dashboard.guest")}
                     </motion.p>
                     <motion.h2 initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="text-3xl font-black text-slate-900 leading-tight tracking-tighter">
                         {t("dashboard.healthAtAGlance1")} <br /> <span className="text-emerald-600">{t("dashboard.healthAtAGlance2")}</span>
@@ -252,7 +252,7 @@ export function DashboardPage() {
                         className="bento-card col-span-2 min-h-[180px] bg-gradient-to-br from-violet-50/50 to-white cursor-pointer active:scale-[0.98] transition-all"
                         onClick={() => navigate("/ai-chat")}
                     >
-                        <AIInsight type="Tip" content="Your dad's sugar trends are rising (4%). We suggest a quick HBA1C check this week." />
+                        <AIInsight type="Tip" content={t("dashboard.tipPlaceholder")} />
                     </motion.div>
 
                     <div className="col-span-2">
@@ -308,13 +308,14 @@ export function DashboardPage() {
                       <div className="space-y-1">
                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">{t("patients.label")}</label>
                         <select required value={form.patientId} onChange={e => setForm({...form, patientId: e.target.value})} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold text-slate-700">
+                          <option value="" disabled>{t("dashboard.selectPatient")}</option>
                           {patients.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                         </select>
                       </div>
                       <div className="space-y-1">
                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">{t("dashboard.category")}</label>
                         <select required value={form.category} onChange={e => setForm({...form, category: e.target.value})} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold text-slate-700">
-                          {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                          {CATEGORIES.map(c => <option key={c} value={c}>{t(`documents.${c}`)}</option>)}
                         </select>
                       </div>
                       <button type="submit" className="w-full py-4 bg-emerald-600 text-white rounded-xl font-black shadow-lg shadow-emerald-500/20 active:scale-95 transition-all">

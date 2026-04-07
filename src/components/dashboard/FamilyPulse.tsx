@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { User, Users } from "lucide-react";
 import type { Patient } from "@/pages/PatientsPage";
+import { useTranslation } from "react-i18next";
 
 interface FamilyPulseProps {
   patients: Patient[];
@@ -8,6 +9,7 @@ interface FamilyPulseProps {
 }
 
 export function FamilyPulse({ patients, onSelect }: FamilyPulseProps) {
+  const { t } = useTranslation();
   return (
     <div className="flex flex-col h-full">
       <div className="flex items-center justify-between mb-4">
@@ -15,15 +17,15 @@ export function FamilyPulse({ patients, onSelect }: FamilyPulseProps) {
            <div className="p-2 bg-emerald-50 rounded-lg">
              <Users size={18} className="text-emerald-600" />
            </div>
-           <h3 className="font-bold text-slate-800 text-sm">Family Pulse</h3>
+           <h3 className="font-bold text-slate-800 text-sm">{t("dashboard.familyPulse")}</h3>
         </div>
-        <span className="text-[10px] font-bold text-emerald-500 bg-emerald-50 px-2 py-0.5 rounded-full uppercase tracking-widest animate-pulse">All Stable</span>
+        <span className="text-[10px] font-bold text-emerald-500 bg-emerald-50 px-2 py-0.5 rounded-full uppercase tracking-widest animate-pulse">{t("dashboard.allStable")}</span>
       </div>
 
       <div className="flex -space-x-3 overflow-visible mb-6 h-12 items-center">
         {patients.length === 0 ? (
           <div className="w-full flex items-center justify-center text-slate-400 text-xs italic">
-            No family members added.
+            {t("dashboard.noFamily")}
           </div>
         ) : (
           patients.slice(0, 4).map((p, i) => (
@@ -58,8 +60,8 @@ export function FamilyPulse({ patients, onSelect }: FamilyPulseProps) {
 
       <div className="mt-auto pt-4 border-t border-slate-100/50">
         <div className="flex items-center justify-between text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-          <span>Next Checkup</span>
-          <span className="text-slate-600">Apr 12 - Mom</span>
+          <span>{t("dashboard.nextCheckup")}</span>
+          <span className="text-slate-600">{t("common.notSet")}</span>
         </div>
       </div>
     </div>

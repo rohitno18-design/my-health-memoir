@@ -332,7 +332,7 @@ function describeAction(toolName: string, args: Record<string, unknown>, t: any)
             return t("chat.actUpdateDoc", { name: args.documentName, parts });
         }
         default:
-            return `Execute ${toolName}`;
+            return t("chat.actExec");
     }
 }
 
@@ -387,9 +387,9 @@ function DocumentCard({
                                 className="flex items-center gap-0.5 text-[11px] text-primary font-medium mt-1"
                             >
                                 {expanded ? (
-                                    <><ChevronUp size={12} /> Show less</>
+                                    <><ChevronUp size={12} /> {t("chat.showLess")}</>
                                 ) : (
-                                    <><ChevronDown size={12} /> Show more</>
+                                    <><ChevronDown size={12} /> {t("chat.showMore")}</>
                                 )}
                             </button>
                         )}

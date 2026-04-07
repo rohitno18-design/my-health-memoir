@@ -273,14 +273,14 @@ export function PatientsPage() {
         setSaving(true);
         try {
             await deleteDoc(doc(db, "patients", deleteModal));
-            showToast("Patient deleted successfully");
+            showToast(t("patients.deleteSuccess"));
             await fetchPatients();
             setDeleteModal(null);
             setDeleteConfirmText("");
             if (editingId === deleteModal) setShowModal(false);
         } catch (err) {
             console.error(err);
-            alert("Failed to delete patient. Ensure you have network connectivity.");
+            alert(t("patients.deleteError"));
         } finally {
             setSaving(false);
         }
@@ -301,7 +301,7 @@ export function PatientsPage() {
         </div>
     );
 
-    const renderSelect = (label: string, key: keyof typeof form, options: string[]) => (
+    const renderSelect = (label: string, key: keyof typeof form, options: { label: string, value: string }[]) => (
         <div key={key}>
             <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 ml-1">{label}</label>
             <select
@@ -309,7 +309,7 @@ export function PatientsPage() {
                 onChange={e => setForm(prev => ({ ...prev, [key]: e.target.value }))}
                 className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 transition-all font-medium text-sm cursor-pointer"
             >
-                {options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                {options.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
             </select>
         </div>
     );
@@ -482,18 +482,43 @@ export function PatientsPage() {
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         {renderInput(t("account.fullName"), "name", "e.g. Priya Sharma", "text", true)}
                                         {renderInput(t("account.dob"), "dob", "", "date", true)}
-                                        {renderSelect(t("account.gender"), "gender", ["Male", "Female", "Other"])}
-                                        {renderSelect(t("patients.relationship"), "relationship", ["Self", "Spouse", "Child", "Parent", "Sibling", "Other"])}
-                                        {renderSelect(t("patients.maritalStatus"), "maritalStatus", ["Single", "Married", "Divorced", "Widowed"])}
+                                        {renderSelect(t("account.gender"), "gender", [
+                                            { label: t("patients.genMale"), value: "Male" },
+                                            { label: t("patients.genFemale"), value: "Female" },
+                                            { label: t("patients.genOther"), value: "Other" }
+                                        ])}
+                                        {renderSelect(t("patients.relationship"), "relationship", [
+                                            { label: t("patients.relSelf"), value: "Self" },
+                                            { label: t("patients.relSpouse"), value: "Spouse" },
+                                            { label: t("patients.relChild"), value: "Child" },
+                                            { label: t("patients.relParent"), value: "Parent" },
+                                            { label: t("patients.relSibling"), value: "Sibling" },
+                                            { label: t("patients.relOther"), value: "Other" }
+                                        ])}
+                                        {renderSelect(t("patients.maritalStatus"), "maritalStatus", [
+                                            { label: t("patients.msSingle"), value: "Single" },
+                                            { label: t("patients.msMarried"), value: "Married" },
+                                            { label: t("patients.msDivorced"), value: "Divorced" },
+                                            { label: t("patients.msWidowed"), value: "Widowed" }
+                                        ])}
                                         {renderInput(t("patients.occupation"), "occupation", "e.g. Teacher, Engineer")}
-                                        {renderSelect(t("patients.prefLang"), "language", ["English", "Hindi", "Marathi", "Gujarati", "Tamil", "Telugu", "Bengali", "Other"])}
+                                        {renderSelect(t("patients.prefLang"), "language", [
+                                            { label: "English", value: "English" },
+                                            { label: "Hindi", value: "Hindi" },
+                                            { label: "Marathi", value: "Marathi" },
+                                            { label: "Gujarati", value: "Gujarati" },
+                                            { label: "Tamil", value: "Tamil" },
+                                            { label: "Telugu", value: "Telugu" },
+                                            { label: "Bengali", value: "Bengali" },
+                                            { label: t("common.other"), value: "Other" }
+                                        ])}
                                     </div>
 
                                     <div className="pt-2 border-t border-border/50">
                                         <h3 className="text-sm font-bold mb-4">{t("patients.identification")}</h3>
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                             {renderInput(t("patients.aadhaar"), "aadhaar", "12-digit Aadhaar")}
-                                            {renderInput("ABHA Health ID", "abha", "e.g. 91-0000-0000-0000")}
+                                            {renderInput(t("patients.abha"), "abha", "e.g. 91-0000-0000-0000")}
                                         </div>
                                     </div>
                                 </div>
@@ -528,7 +553,17 @@ export function PatientsPage() {
                                 {/* MEDICAL INFO */}
                                 <div className={cn("space-y-6", activeTab !== "Medical" && "hidden")}>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                        {renderSelect(t("account.bloodGroup"), "bloodGroup", ["", "A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"])}
+                                        {renderSelect(t("account.bloodGroup"), "bloodGroup", [
+                                            { label: t("common.notSpecified"), value: "" },
+                                            { label: "A+", value: "A+" },
+                                            { label: "A-", value: "A-" },
+                                            { label: "B+", value: "B+" },
+                                            { label: "B-", value: "B-" },
+                                            { label: "AB+", value: "AB+" },
+                                            { label: "AB-", value: "AB-" },
+                                            { label: "O+", value: "O+" },
+                                            { label: "O-", value: "O-" }
+                                        ])}
                                         {renderInput(t("emergency.allergies"), "allergies", "e.g. Penicillin, Peanuts")}
                                         {renderTextarea(t("emergency.conditions"), "conditions", "e.g. Diabetes, Hypertension")}
                                         {renderTextarea(t("emergency.medications"), "medications", "e.g. Metformin 500mg, Amlodipine 5mg")}
@@ -548,8 +583,21 @@ export function PatientsPage() {
                                     </div>
 
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                        {renderSelect(t("account.bloodGroup"), "bloodGroup", ["", "A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"])}
-                                        {renderSelect(t("emergency.organDonor"), "organDonor", ["No", "Yes"])}
+                                        {renderSelect(t("account.bloodGroup"), "bloodGroup", [
+                                            { label: t("common.notSpecified"), value: "" },
+                                            { label: "A+", value: "A+" },
+                                            { label: "A-", value: "A-" },
+                                            { label: "B+", value: "B+" },
+                                            { label: "B-", value: "B-" },
+                                            { label: "AB+", value: "AB+" },
+                                            { label: "AB-", value: "AB-" },
+                                            { label: "O+", value: "O+" },
+                                            { label: "O-", value: "O-" }
+                                        ])}
+                                        {renderSelect(t("emergency.organDonor"), "organDonor", [
+                                            { label: t("patients.no"), value: "No" },
+                                            { label: t("patients.yes"), value: "Yes" }
+                                        ])}
                                     </div>
                                     <div className="space-y-4">
                                         {renderInput(t("emergency.allergies"), "allergies", "e.g. Penicillin, Peanuts (comma separated)")}
@@ -559,15 +607,15 @@ export function PatientsPage() {
 
                                     {/* ICE Contacts — 3 rows */}
                                     <div className="pt-2 border-t border-slate-200">
-                                        <h3 className="text-sm font-black text-slate-800 mb-1">ICE Contacts (In Case of Emergency)</h3>
-                                        <p className="text-xs text-slate-400 mb-4">Add up to 3 people. Paramedics can tap the number to call them directly.</p>
+                                        <h3 className="text-sm font-black text-slate-800 mb-1">{t("emergency.iceTitle")}</h3>
+                                        <p className="text-xs text-slate-400 mb-4">{t("emergency.iceDesc")}</p>
                                         <div className="space-y-3">
                                             {([1, 2, 3] as const).map((n) => (
                                                 <div key={n} className="bg-slate-50 border border-slate-200 rounded-2xl p-4">
-                                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Contact {n}</p>
+                                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">{t("emergency.contactNum", { num: n })}</p>
                                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                                        {renderInput(`Full Name`, `ice${n}Name` as keyof typeof form, "e.g. Suresh Thakur")}
-                                                        {renderInput(`Phone Number`, `ice${n}Phone` as keyof typeof form, "e.g. 9876543210", "tel")}
+                                                        {renderInput(t("account.fullName"), `ice${n}Name` as keyof typeof form, "e.g. Suresh Thakur")}
+                                                        {renderInput(t("account.phoneNum"), `ice${n}Phone` as keyof typeof form, "e.g. 9876543210", "tel")}
                                                     </div>
                                                 </div>
                                             ))}
@@ -579,34 +627,49 @@ export function PatientsPage() {
                                 <div className={cn("space-y-6", activeTab !== "Misc" && "hidden")}>
                                     <h3 className="text-sm font-bold">{t("patients.lifestyle")}</h3>
                                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                                        {renderSelect(t("patients.smoking"), "smoking", ["No", "Occasionally", "Regularly", "Former"])}
-                                        {renderSelect(t("patients.alcohol"), "alcohol", ["No", "Occasionally", "Regularly", "Former"])}
-                                        {renderSelect(t("patients.tobacco"), "tobacco", ["No", "Occasionally", "Regularly", "Former"])}
+                                        {renderSelect(t("patients.smoking"), "smoking", [
+                                            { label: t("patients.freqNo"), value: "No" },
+                                            { label: t("patients.freqOccasionally"), value: "Occasionally" },
+                                            { label: t("patients.freqRegularly"), value: "Regularly" },
+                                            { label: t("patients.freqFormer"), value: "Former" }
+                                        ])}
+                                        {renderSelect(t("patients.alcohol"), "alcohol", [
+                                            { label: t("patients.freqNo"), value: "No" },
+                                            { label: t("patients.freqOccasionally"), value: "Occasionally" },
+                                            { label: t("patients.freqRegularly"), value: "Regularly" },
+                                            { label: t("patients.freqFormer"), value: "Former" }
+                                        ])}
+                                        {renderSelect(t("patients.tobacco"), "tobacco", [
+                                            { label: t("patients.freqNo"), value: "No" },
+                                            { label: t("patients.freqOccasionally"), value: "Occasionally" },
+                                            { label: t("patients.freqRegularly"), value: "Regularly" },
+                                            { label: t("patients.freqFormer"), value: "Former" }
+                                        ])}
                                     </div>
 
                                     <div className="pt-4 border-t border-border/50">
-                                        <h3 className="text-sm font-bold mb-4">Insurance Details</h3>
+                                        <h3 className="text-sm font-bold mb-4">{t("patients.insuranceTitle")}</h3>
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                            {renderInput("Insurance Provider", "insuranceProvider", "e.g. Star Health")}
-                                            {renderInput("Policy Number", "policyNumber", "Policy/Card number")}
+                                            {renderInput(t("patients.insuranceTitle"), "insuranceProvider", "e.g. Star Health")}
+                                            {renderInput(t("patients.policyNum"), "policyNumber", "Policy/Card number")}
                                         </div>
                                     </div>
 
                                     <div className="pt-4 border-t border-border/50">
-                                        <h3 className="text-sm font-bold mb-4">Family Members</h3>
+                                        <h3 className="text-sm font-bold mb-4">{t("patients.familyTitle")}</h3>
                                         <div className="space-y-4">
                                             <div className="bg-secondary/30 p-4 rounded-2xl border border-border">
-                                                <h4 className="text-xs font-bold text-muted-foreground uppercase mb-3">Father / Guardian</h4>
+                                                <h4 className="text-xs font-bold text-muted-foreground uppercase mb-3">{t("patients.fatherGuardian")}</h4>
                                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                                    {renderInput("Name", "fatherName", "Father's name")}
-                                                    {renderInput("Phone", "fatherPhone", "Contact number")}
+                                                    {renderInput(t("patients.name"), "fatherName", "Father's name")}
+                                                    {renderInput(t("patients.phone"), "fatherPhone", "Contact number")}
                                                 </div>
                                             </div>
                                             <div className="bg-secondary/30 p-4 rounded-2xl border border-border">
-                                                <h4 className="text-xs font-bold text-muted-foreground uppercase mb-3">Spouse (If applicable)</h4>
+                                                <h4 className="text-xs font-bold text-muted-foreground uppercase mb-3">{t("patients.spouse")}</h4>
                                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                                    {renderInput("Name", "spouseName", "Spouse's name")}
-                                                    {renderInput("Phone", "spousePhone", "Contact number")}
+                                                    {renderInput(t("patients.name"), "spouseName", "Spouse's name")}
+                                                    {renderInput(t("patients.phone"), "spousePhone", "Contact number")}
                                                 </div>
                                             </div>
                                         </div>
