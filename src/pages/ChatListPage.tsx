@@ -244,7 +244,7 @@ export function ChatListPage() {
                                 <div className="flex items-center gap-1 mt-0.5 text-xs text-muted-foreground">
                                     <Clock size={11} />
                                     <span>{formatRelativeTime(chat.updatedAt, t)}</span>
-                                    {chat.messageCount > 0 && <span className="ml-1 text-slate-400">· {chat.messageCount} msg</span>}
+                                    {chat.messageCount > 0 && <span className="ml-1 text-slate-400">· {chat.messageCount} {t("aiChatList.msg")}</span>}
                                 </div>
                             </div>
                             
@@ -270,14 +270,14 @@ export function ChatListPage() {
                                             <button
                                                 onClick={(e) => { e.stopPropagation(); startRename(e, chat); }}
                                                 className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors"
-                                                title="Rename"
+                                                title={t("aiChatList.rename")}
                                             >
                                                 <Edit2 size={14} />
                                             </button>
                                             <button
                                                 onClick={(e) => { e.stopPropagation(); setConfirmingDeleteId(chat.id); }}
                                                 className="p-1.5 rounded-lg hover:bg-red-50 text-slate-400 hover:text-red-500 transition-colors"
-                                                title="Delete"
+                                                title={t("aiChatList.delete")}
                                             >
                                                 <Trash2 size={14} />
                                             </button>

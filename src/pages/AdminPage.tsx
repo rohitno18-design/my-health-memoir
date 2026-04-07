@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { collection, getDocs, query, orderBy } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { ShieldCheck, Users, FileText, Loader2, ChevronDown, ChevronUp } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 interface UserRecord {
     id: string;
@@ -11,6 +12,7 @@ interface UserRecord {
 }
 
 export function AdminPage() {
+    const { t } = useTranslation();
     const [users, setUsers] = useState<UserRecord[]>([]);
     const [loading, setLoading] = useState(true);
     const [docCount, setDocCount] = useState(0);
@@ -30,8 +32,8 @@ export function AdminPage() {
     }, []);
 
     const stats = [
-        { label: "Total Users", value: users.length, icon: Users, color: "bg-blue-50 text-blue-600" },
-        { label: "Documents", value: docCount, icon: FileText, color: "bg-violet-50 text-violet-600" },
+        { label: t("admin.totalUsers"), value: users.length, icon: Users, color: "bg-blue-50 text-blue-600" },
+        { label: t("admin.documents"), value: docCount, icon: FileText, color: "bg-violet-50 text-violet-600" },
     ];
 
     if (loading) {
@@ -46,7 +48,7 @@ export function AdminPage() {
         <div className="py-6 space-y-5">
             <div className="flex items-center gap-2">
                 <ShieldCheck size={22} className="text-primary" />
-                <h1 className="text-xl font-bold">Admin Dashboard</h1>
+                <h1 className="text-xl font-bold">{t("admin.dashboard")}</h1>
             </div>
 
             {/* Stats */}
@@ -68,7 +70,7 @@ export function AdminPage() {
                     onClick={() => setExpanded(!expanded)}
                     className="w-full flex items-center justify-between p-4 text-sm font-semibold"
                 >
-                    User Accounts
+                    {t("admin.userAccounts")}
                     {expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                 </button>
                 {expanded && (

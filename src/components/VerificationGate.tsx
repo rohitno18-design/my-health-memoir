@@ -7,6 +7,7 @@ import {
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 import { type ConfirmationResult } from "firebase/auth";
+import { useTranslation } from "react-i18next";
 
 /**
  * VerificationGate wraps the entire protected app content.
@@ -26,6 +27,7 @@ export function VerificationGate({ children }: { children: React.ReactNode }) {
 // Main Verification Screen — shows BOTH sections at once
 // ══════════════════════════════════════════════════════════
 function VerificationScreen() {
+    const { t } = useTranslation();
     const { userProfile, refreshUser, logout } = useAuth();
 
     const emailDone = !!userProfile?.emailVerified;
@@ -36,7 +38,7 @@ function VerificationScreen() {
             {/* Top Bar for logout */}
             <div className="w-full flex items-center justify-end p-4 sticky top-0 z-10">
                 <button onClick={logout} className="text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors px-4 py-2 rounded-full hover:bg-slate-200/50">
-                    Sign Out
+                    {t("verify.signOut")}
                 </button>
             </div>
 
@@ -49,9 +51,9 @@ function VerificationScreen() {
                 </div>
 
                 <div className="text-center mb-8">
-                    <h1 className="text-2xl font-extrabold tracking-tight mb-2 text-slate-900">Complete Your Verification</h1>
+                    <h1 className="text-2xl font-extrabold tracking-tight mb-2 text-slate-900">{t("verify.title")}</h1>
                     <p className="text-slate-500 text-sm px-4">
-                        We use multi-factor authentication to keep your sensitive health data private and secure.
+                        {t("verify.subtitle")}
                     </p>
                 </div>
 
@@ -59,14 +61,14 @@ function VerificationScreen() {
                 <div className="w-full bg-white rounded-2xl shadow-sm border border-slate-100 p-6 space-y-8">
                     {/* Email Section */}
                     {emailDone ? (
-                        <StatusDone icon="email" label="Email Address" detail={userProfile?.email || ""} detailSub="Primary verification method" />
+                        <StatusDone icon="email" label={t("verify.email")} detail={userProfile?.email || ""} detailSub={t("verify.primaryDesc")} />
                     ) : (
                         <EmailSection />
                     )}
 
                     {/* Phone Section */}
                     {phoneDone ? (
-                        <StatusDone icon="phone" label="Phone Number" detail={userProfile?.phoneNumber || ""} detailSub="Secondary verification method" />
+                        <StatusDone icon="phone" label={t("verify.phone")} detail={userProfile?.phoneNumber || ""} detailSub={t("verify.secondaryDesc")} />
                     ) : (
                         <PhoneSection />
                     )}
@@ -76,17 +78,17 @@ function VerificationScreen() {
                 {emailDone && phoneDone && (
                     <div className="w-full mt-6 bg-white rounded-2xl shadow-sm border border-slate-100 p-6 text-center">
                         <CheckCircle2 size={48} className="text-emerald-500 mx-auto mb-3" />
-                        <p className="text-sm font-bold text-slate-800 mb-4">All verified!</p>
+                        <p className="text-sm font-bold text-slate-800 mb-4">{t("verify.allVerified")}</p>
                         <button onClick={refreshUser}
                             className="w-full py-4 bg-primary text-white rounded-xl font-bold text-sm shadow-lg shadow-primary/25 hover:opacity-90 active:scale-[0.98] transition-all">
-                            Continue to App
+                            {t("verify.continueBtn")}
                         </button>
                     </div>
                 )}
 
                 <div className="mt-8 flex items-center gap-2 text-slate-400">
                     <Lock size={14} />
-                    <span className="text-xs font-medium">End-to-end encrypted security</span>
+                    <span className="text-xs font-medium">{t("verify.secureNote")}</span>
                 </div>
             </main>
         </div>
@@ -95,13 +97,14 @@ function VerificationScreen() {
 
 // ────────────── Green "Done" row ──────────────
 function StatusDone({ icon, label, detail, detailSub }: { icon: "email" | "phone"; label: string; detail: string; detailSub?: string }) {
+    const { t } = useTranslation();
     return (
         <div className="space-y-3">
             <div className="flex items-center justify-between">
                 <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">{label}</span>
                 <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-700">
                     <CheckCircle2 size={12} strokeWidth={3} />
-                    Done
+                    {t("verify.done")}
                 </span>
             </div>
             <div className="flex items-center gap-4 p-4 rounded-xl bg-slate-50 border border-slate-100">
@@ -123,6 +126,7 @@ function StatusDone({ icon, label, detail, detailSub }: { icon: "email" | "phone
 // 2. Email exists but not verified → show "Verify" + option to change
 // ══════════════════════════════════════════════════════════
 function EmailSection() {
+    const { t } = useTranslation();
     const { userProfile, linkEmailToAccount, updateUserEmail, resendVerification, refreshUser } = useAuth();
     const hasEmail = !!userProfile?.email;
 
@@ -138,7 +142,7 @@ function EmailSection() {
     // Link a new email+password OR update existing unverified email
     const handleLinkEmail = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (password.length < 6) { setError("Password must be at least 6 characters."); return; }
+        if (password.length < 6) { setError(t("auth.invalidPassword")); return; }
         setError(""); setLoading(true);
         try {
             if (hasEmail) {
@@ -157,13 +161,13 @@ function EmailSection() {
             console.error("Email link/update error:", err);
             const code = (err as { code?: string })?.code;
             if (code === "auth/email-already-in-use") {
-                setError("This email is already linked to another account.");
+                setError(t("account.errEmailUsed"));
             } else if (code === "auth/invalid-email") {
-                setError("Invalid email address.");
+                setError(t("auth.invalidEmail"));
             } else if (code === "auth/wrong-password" || code === "auth/invalid-credential") {
-                setError("Incorrect password.");
+                setError(t("auth.incorrectCreds"));
             } else {
-                setError("Error: " + (err instanceof Error ? err.message : "Failed to process email."));
+                setError(t("account.errUpdateFailed"));
             }
         } finally { setLoading(false); }
     };
@@ -180,10 +184,10 @@ function EmailSection() {
     return (
         <div className="space-y-4">
             <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Email Address</span>
+                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">{t("verify.email")}</span>
                 <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-700">
                     <Loader2 size={12} className="animate-spin" />
-                    Pending
+                    {t("verify.pending")}
                 </span>
             </div>
 
@@ -206,7 +210,7 @@ function EmailSection() {
                             <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
                             <input type={showPw ? "text" : "password"} value={password}
                                 onChange={(e) => setPassword(e.target.value)} required
-                                placeholder={hasEmail ? "Current Password" : "Create Password (min. 6 chars)"}
+                                placeholder={hasEmail ? t("account.currentPassword") : t("auth.password")}
                                 className="w-full pl-11 pr-11 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder:font-normal placeholder:text-slate-400" />
                             <button type="button" onClick={() => setShowPw(!showPw)}
                                 className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
@@ -217,12 +221,12 @@ function EmailSection() {
                     <button type="submit" disabled={loading}
                         className="w-full py-4 bg-primary text-white rounded-xl font-bold text-sm shadow-lg shadow-primary/25 hover:opacity-90 active:scale-[0.98] transition-all flex items-center justify-center gap-2">
                         {loading ? <Loader2 size={16} className="animate-spin" /> : <ArrowRight size={16} />}
-                        {loading ? "Processing..." : "Link Email & Send Verification"}
+                        {loading ? t("common.processing") : t("verify.linkPrompt")}
                     </button>
                     {hasEmail && (
                         <button type="button" onClick={() => { setEditing(false); setError(""); }}
                             className="w-full text-center text-sm font-semibold text-slate-500 hover:text-slate-700 transition-colors py-2">
-                            Cancel
+                            {t("verify.cancel")}
                         </button>
                     )}
                 </form>
@@ -231,7 +235,7 @@ function EmailSection() {
                 <div className="space-y-4">
                     <div className="flex items-center justify-between gap-4 p-4 rounded-xl bg-slate-50 border border-slate-200">
                         <div className="min-w-0 flex-1">
-                            <p className="text-xs text-slate-500 mb-0.5">Current email</p>
+                            <p className="text-xs text-slate-500 mb-0.5">{t("verify.currentEmail")}</p>
                             <p className="text-sm font-semibold text-slate-800 truncate">{userProfile?.email}</p>
                         </div>
                         <button onClick={() => { setEditing(true); setEmail(userProfile?.email || ""); setError(""); }}
@@ -240,22 +244,22 @@ function EmailSection() {
                         </button>
                     </div>
                     <p className="text-xs text-slate-500 px-1 leading-relaxed">
-                        Click the verification link we sent to your email, then press the button below.
+                        {t("account.msgVerificationSent", { email: "" })}
                     </p>
                     <button onClick={refreshUser}
                         className="w-full py-4 bg-primary text-white rounded-xl font-bold text-sm shadow-lg shadow-primary/25 hover:opacity-90 active:scale-[0.98] transition-all flex items-center justify-center gap-2">
-                        <RefreshCw size={16} /> I've Verified My Email
+                        <RefreshCw size={16} /> {t("verify.iveVerified")}
                     </button>
                     {resending ? (
                         <p className="text-center text-xs text-slate-500 flex items-center justify-center gap-2">
-                            <Loader2 size={12} className="animate-spin" /> Sending...
+                            <Loader2 size={12} className="animate-spin" /> {t("verify.sending")}
                         </p>
                     ) : resent ? (
-                        <p className="text-center text-xs text-emerald-600 font-semibold font-medium">✓ Verification email resent!</p>
+                        <p className="text-center text-xs text-emerald-600 font-semibold font-medium">✓ {t("verify.resent")}</p>
                     ) : (
                         <button onClick={handleResend} disabled={resending}
                             className="w-full text-center text-sm font-semibold text-slate-500 hover:text-slate-700 transition-colors flex items-center justify-center gap-2 py-2">
-                            <RefreshCw size={14} /> Resend verification email
+                            <RefreshCw size={14} /> {t("verify.resend")}
                         </button>
                     )}
                 </div>
@@ -270,6 +274,7 @@ function EmailSection() {
 // 2. Phone in profile but not verified → show it pre-filled, allow change, verify
 // ══════════════════════════════════════════════════════════
 function PhoneSection() {
+    const { t } = useTranslation();
     const { userProfile, linkPhoneToAccount, updateUserProfile, refreshUser } = useAuth();
     const existingPhone = userProfile?.phoneNumber || "";
 
@@ -282,7 +287,7 @@ function PhoneSection() {
 
     const handleSendOtp = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!phone || phone.length < 10) { setError("Enter a valid phone number."); return; }
+        if (!phone || phone.length < 10) { setError(t("auth.invalidPhone")); return; }
         setError(""); setLoading(true);
         try {
             const result = await linkPhoneToAccount("+" + phone, "recaptcha-gate");
@@ -292,16 +297,16 @@ function PhoneSection() {
             console.error("Link phone error:", err);
             const code = (err as { code?: string })?.code;
             if (code === "auth/credential-already-in-use") {
-                setError("This phone number is already linked to another account.");
+                setError(t("account.errEmailUsed")); // reuse
             } else if (code === "auth/too-many-requests") {
-                setError("Too many attempts. Please wait a few minutes and try again.");
+                setError(t("auth.tooManyRequests"));
             } else if (code === "auth/provider-already-linked") {
                 // Phone provider already linked — just need to update profile
                 await updateUserProfile({ phoneNumber: "+" + phone, phoneVerified: true });
                 await refreshUser();
                 return;
             } else {
-                setError("Error: " + (err instanceof Error ? err.message : "Failed to send code."));
+                setError(t("account.errUpdateFailed"));
             }
         } finally { setLoading(false); }
     };
@@ -317,11 +322,11 @@ function PhoneSection() {
         } catch (err: unknown) {
             const code = (err as { code?: string })?.code;
             if (code === "auth/invalid-verification-code") {
-                setError("Invalid code. Please try again.");
+                setError(t("account.errInvalidCode"));
             } else if (code === "auth/credential-already-in-use") {
-                setError("This phone number is already linked to another account.");
+                setError(t("account.errEmailUsed"));
             } else {
-                setError("Verification failed. Try again.");
+                setError(t("account.errUpdateFailed"));
             }
         } finally { setLoading(false); }
     };
@@ -329,9 +334,9 @@ function PhoneSection() {
     return (
         <div className="space-y-4">
             <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Phone Number</span>
+                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">{t("verify.phone")}</span>
                 <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-700">
-                    Pending
+                    {t("verify.pending")}
                 </span>
             </div>
 
@@ -345,7 +350,7 @@ function PhoneSection() {
                 <form onSubmit={handleSendOtp} className="space-y-4">
                     {existingPhone && (
                         <p className="text-xs text-slate-500 px-1 leading-relaxed">
-                            Your current number: <strong className="text-slate-700">{existingPhone}</strong> — change it below or verify it.
+                            {t("verify.currentNumber", { phone: existingPhone })}
                         </p>
                     )}
                     <div className="flex flex-col gap-4">
@@ -362,7 +367,7 @@ function PhoneSection() {
                     <button type="submit" disabled={loading}
                         className="w-full py-4 bg-primary text-white rounded-xl font-bold text-sm shadow-lg shadow-primary/25 hover:opacity-90 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-60 disabled:pointer-events-none">
                         {loading ? <Loader2 size={16} className="animate-spin" /> : <ArrowRight size={16} />}
-                        {loading ? "Sending code..." : "Send Verification Code"}
+                        {loading ? t("verify.sending") : t("verify.sendCode")}
                     </button>
                 </form>
             )}
@@ -370,7 +375,7 @@ function PhoneSection() {
             {step === "otp" && (
                 <form onSubmit={handleVerifyOtp} className="space-y-4">
                     <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 flex items-center justify-center">
-                        <p className="text-xs text-slate-500">Code sent to <strong className="text-slate-700">+{phone}</strong></p>
+                        <p className="text-xs text-slate-500">{t("verify.codeSent", { phone: phone })}</p>
                     </div>
                     <div>
                         <input type="text" value={otp}
@@ -380,11 +385,11 @@ function PhoneSection() {
                     </div>
                     <button type="submit" disabled={loading || otp.length < 6}
                         className="w-full py-4 bg-primary text-white rounded-xl font-bold text-sm shadow-lg shadow-primary/25 hover:opacity-90 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-60 disabled:pointer-events-none">
-                        {loading ? <Loader2 size={16} className="animate-spin" /> : "Verify Phone"}
+                        {loading ? <Loader2 size={16} className="animate-spin" /> : t("verify.verifyPhone")}
                     </button>
                     <button type="button" onClick={() => { setStep("input"); setOtp(""); setError(""); }}
                         className="w-full text-center text-sm font-semibold text-slate-500 hover:text-slate-700 transition-colors py-2">
-                        ← Change number
+                        ← {t("verify.changeNum")}
                     </button>
                 </form>
             )}

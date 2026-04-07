@@ -53,12 +53,13 @@ function Avatar({ photoURL, displayName, size = "lg", onClick }: {
     size?: "sm" | "lg";
     onClick?: () => void;
 }) {
+    const { t } = useTranslation();
     const dim = size === "lg" ? "w-24 h-24 text-3xl" : "w-10 h-10 text-base";
     if (photoURL) {
         return (
             <img
                 src={photoURL}
-                alt={displayName ?? "User"}
+                alt={displayName ?? t("dashboard.guest")}
                 onClick={onClick}
                 className={cn("rounded-full object-cover cursor-pointer ring-4 ring-primary/20", dim)}
             />
@@ -99,7 +100,7 @@ function EditableField({
             await onSave(val);
             setEditing(false);
         } catch (err: unknown) {
-            const msg = err instanceof Error ? err.message : "Save failed. Check your connection.";
+            const msg = err instanceof Error ? err.message : t("account.errUpdateFailed");
             setSaveError(msg);
         } finally {
             setSaving(false);
