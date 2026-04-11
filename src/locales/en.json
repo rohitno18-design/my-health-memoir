@@ -49,7 +49,7 @@
     "download": "Download"
   },
   "header": {
-    "title": "Universal Health OS",
+    "title": "I M Smrti",
     "vitals": "Vitals",
     "documents": "Documents",
     "emergency": "Emergency",
@@ -69,7 +69,7 @@
     "recentActivity": "Recent Activity",
     "vitalsSummary": "Vitals Summary",
     "emergencyAccess": "Emergency Access",
-    "tagline": "Your Complete Health Memoir",
+    "tagline": "Your Complete Health Companion",
     "statDocs": "Medical Docs",
     "statEvents": "Health Events",
     "statVitals": "Vitals Logs",
@@ -187,7 +187,7 @@
     "contactRelation": "Relation",
     "instructions": "Scan this QR code to view the patient's medical history.",
     "activeLabel": "VERIFIED PULSE",
-    "tagline": "UNIVERSAL HEALTH OS • SOS ENCRYPTION",
+    "tagline": "I M SMRTI • SOS ENCRYPTION",
     "footerSub": "SECURED BY GOVT COMPLIANT ENCRYPTION"
   },
   "auth": {

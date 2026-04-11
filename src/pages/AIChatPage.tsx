@@ -281,7 +281,7 @@ const TOOL_DECLARATIONS = [
 
 // ─── System prompt ────────────────────────────────────────────────────────────
 
-const SYSTEM_PROMPT = `You are a world-class health intelligence assistant for "My Health Memoir", a personal health records platform for Indian users.
+const SYSTEM_PROMPT = `You are a world-class health intelligence assistant for "I M Smrti", a personal health records platform for Indian users.
 
 Your mission is to provide personalized, professional, and accessible health insights by analyzing the user's uploaded medical records and timeline events.
 
@@ -827,7 +827,7 @@ export function AIChatPage() {
         // Title
         doc.setFontSize(22);
         doc.setTextColor(41, 128, 185); // Blue
-        doc.text("My Health Memoir - Health Record Package", 14, 22);
+        doc.text("I M Smrti - Health Record Package", 14, 22);
         
         doc.setFontSize(16);
         doc.setTextColor(50);

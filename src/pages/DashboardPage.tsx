@@ -27,7 +27,7 @@ const MODEL_ID = import.meta.env.VITE_GEMINI_MODEL ?? "gemini-2.0-flash";
 const API_VERSION = import.meta.env.VITE_GEMINI_API_VERSION ?? "v1beta";
 const API_URL = `https://generativelanguage.googleapis.com/${API_VERSION}/models/${MODEL_ID}:streamGenerateContent?key=${API_KEY}&alt=sse`;
 
-const SUMMARY_PROMPT = (lang: string) => `You are a medical AI assistant for the Universal Health OS. Analyze the document and provide a summary in ${lang}. Use Markdown formatting.`;
+const SUMMARY_PROMPT = (lang: string) => `You are a medical AI assistant for I M Smrti. Analyze the document and provide a summary in ${lang}. Use Markdown formatting.`;
 
 const CATEGORIES = [
     "cat_prescription", "cat_labreport", "cat_imagingxraymri", "cat_clinicalnote", "cat_billinginsurance", "cat_other"

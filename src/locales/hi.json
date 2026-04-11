@@ -49,7 +49,7 @@
     "download": "डाउनलोड"
   },
   "header": {
-    "title": "Universal Health OS",
+    "title": "I M Smrti",
     "vitals": "वाइटल्स",
     "documents": "डॉक्यूमेंट",
     "emergency": "इमरजेंसी",
@@ -69,7 +69,7 @@
     "recentActivity": "हाल की गतिविधि",
     "vitalsSummary": "वाइटल्स समरी",
     "emergencyAccess": "इमरजेंसी एक्सेस",
-    "tagline": "आपका कंप्लीट हेल्थ मेमोयर",
+    "tagline": "आपका कंप्लीट हेल्थ कंपैनियन",
     "statDocs": "मेडिकल डॉक्स",
     "statEvents": "हेल्थ इवेंट्स",
     "statVitals": "वाइटल्स लॉग्स",
@@ -187,7 +187,7 @@
     "contactRelation": "रिश्ता",
     "instructions": "पेशेंट की मेडिकल हिस्ट्री देखने के लिए यह QR कोड स्कैन करें।",
     "activeLabel": "सत्यापित पल्स",
-    "tagline": "UNIVERSAL HEALTH OS • SOS एन्क्रिप्शन",
+    "tagline": "I M SMRTI • SOS एन्क्रिप्शन",
     "footerSub": "सरकारी अनुपालन एन्क्रिप्शन द्वारा सुरक्षित"
   },
   "auth": {
