@@ -1,10 +1,10 @@
 import { Area, AreaChart, ResponsiveContainer } from "recharts";
-import { Activity, Heart, Droplets } from "lucide-react";
+import { Activity, Heart, Droplets, Scale } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 
 interface VitalsQuickViewProps {
-  type: "BP" | "Sugar" | "Pulse";
+  type: "BP" | "Sugar" | "Pulse" | "Heart Rate" | "Weight";
   value: string | number;
   unit: string;
   trend: "up" | "down" | "stable";
@@ -14,8 +14,8 @@ interface VitalsQuickViewProps {
 
 export function VitalsQuickView({ type, value, unit, trend, data, color }: VitalsQuickViewProps) {
   const { t } = useTranslation();
-  const Icon = type === "BP" ? Activity : type === "Sugar" ? Droplets : Heart;
-  const tType = type === "BP" ? "bp" : type === "Sugar" ? "sugar" : "heartRate";
+  const Icon = type === "BP" ? Activity : type === "Sugar" ? Droplets : type === "Heart Rate" ? Heart : type === "Weight" ? Scale : Heart;
+  const tType = type === "BP" ? "bp" : type === "Sugar" ? "sugar" : type === "Heart Rate" ? "heartRate" : type === "Weight" ? "weight" : "heartRate";
 
   return (
     <div className="flex flex-col h-full overflow-hidden group">

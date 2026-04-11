@@ -28,7 +28,7 @@ const VitalsPage = lazy(() => import("@/pages/VitalsPage").then(m => ({ default:
 const NotificationsPage = lazy(() => import("@/pages/NotificationsPage").then(m => ({ default: m.NotificationsPage })));
 const PrivacyPage = lazy(() => import("@/pages/PrivacyPage").then(m => ({ default: m.PrivacyPage })));
 const TermsPage = lazy(() => import("@/pages/TermsPage").then(m => ({ default: m.TermsPage })));
-const LandingPage = lazy(() => import("@/pages/LandingPage").then(m => ({ default: m.LandingPage })));
+import { LandingPage } from "@/pages/LandingPage";
 
 const SuspenseFallback = () => (
   <div className="flex min-h-screen w-full items-center justify-center bg-slate-50">

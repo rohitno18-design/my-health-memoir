@@ -19,7 +19,6 @@ import { useTranslation } from "react-i18next";
 // Bento Components
 import { FamilyPulse } from "@/components/dashboard/FamilyPulse";
 import { VitalsQuickView } from "@/components/dashboard/VitalsQuickView";
-import { AIInsight } from "@/components/dashboard/AIInsight";
 import { QuickActions } from "@/components/dashboard/QuickActions";
 
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY ?? "";
@@ -202,6 +201,8 @@ export function DashboardPage() {
 
     const glucose = getVitalData("Sugar");
     const bp = getVitalData("Blood Pressure");
+    const hr = getVitalData("Heart Rate");
+    const weight = getVitalData("Weight");
 
     if (loading) {
       return (
@@ -225,9 +226,30 @@ export function DashboardPage() {
                     </motion.h2>
                 </section>
 
-                {/* Bento Grid */}
+                {/* 1. Quick Actions (Core Value Loop) */}
+                <section>
+                    <QuickActions onUpload={() => fileInputRef.current?.click()} onCamera={() => cameraInputRef.current?.click()} />
+                </section>
+
+                {/* 2. Emergency Card (Safety) */}
+                <section>
+                    <button onClick={() => navigate("/emergency")} className="w-full p-6 rounded-[2rem] bg-rose-50 border border-rose-100 flex items-center justify-between group relative overflow-hidden shadow-sm">
+                        <div className="flex items-center gap-4 relative z-10">
+                            <div className="size-14 rounded-2xl bg-rose-500 flex items-center justify-center text-white shadow-lg shadow-rose-500/30 group-hover:scale-110 transition-transform">
+                                <Zap size={24} />
+                            </div>
+                            <div className="text-left">
+                                <h3 className="font-black text-slate-800 text-lg">{t("emergency.title")}</h3>
+                                <p className="text-xs font-bold text-rose-600/70 uppercase tracking-widest">{t("emergency.subtitle")}</p>
+                            </div>
+                        </div>
+                        <ChevronRight className="text-slate-400 group-hover:translate-x-1 transition-transform" />
+                    </button>
+                </section>
+
+                {/* 3. Vitals & Analytics Bento Grid */}
                 <div className="grid grid-cols-2 gap-4">
-                    <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2 }} className="bento-card col-span-2 md:col-span-1 min-h-[160px]">
+                    <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2 }} className="bento-card col-span-2 min-h-[160px]">
                         <FamilyPulse patients={patients} onSelect={(id) => navigate(`/documents?patientId=${id}`)} />
                     </motion.div>
 
@@ -249,32 +271,20 @@ export function DashboardPage() {
 
                     <motion.div 
                         initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.5 }} 
-                        className="bento-card col-span-2 min-h-[180px] bg-gradient-to-br from-violet-50/50 to-white cursor-pointer active:scale-[0.98] transition-all"
-                        onClick={() => navigate("/ai-chat")}
+                        className="bento-card col-span-1 cursor-pointer active:scale-95 transition-all"
+                        onClick={() => navigate("/vitals")}
                     >
-                        <AIInsight type="Tip" content={t("dashboard.tipPlaceholder")} />
+                        <VitalsQuickView type="Heart Rate" value={hr.val} unit="bpm" trend={hr.val === "--" ? "stable" : "stable"} data={hr.chartData} color="#F43F5E" />
                     </motion.div>
 
-                    <div className="col-span-2">
-                        <QuickActions onUpload={() => fileInputRef.current?.click()} onCamera={() => cameraInputRef.current?.click()} />
-                    </div>
+                    <motion.div 
+                        initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.6 }} 
+                        className="bento-card col-span-1 cursor-pointer active:scale-95 transition-all"
+                        onClick={() => navigate("/vitals")}
+                    >
+                        <VitalsQuickView type="Weight" value={weight.val} unit="kg" trend={weight.val === "--" ? "stable" : "stable"} data={weight.chartData} color="#8B5CF6" />
+                    </motion.div>
                 </div>
-
-                {/* Emergency Card */}
-                <section>
-                    <button onClick={() => navigate("/emergency")} className="w-full p-6 rounded-[2rem] bg-rose-50 border border-rose-100 flex items-center justify-between group relative overflow-hidden">
-                        <div className="flex items-center gap-4 relative z-10">
-                            <div className="size-14 rounded-2xl bg-rose-500 flex items-center justify-center text-white shadow-lg shadow-rose-500/30 group-hover:scale-110 transition-transform">
-                                <Zap size={24} />
-                            </div>
-                            <div className="text-left">
-                                <h3 className="font-black text-slate-800 text-lg">{t("emergency.title")}</h3>
-                                <p className="text-xs font-bold text-rose-600/70 uppercase tracking-widest">{t("emergency.subtitle")}</p>
-                            </div>
-                        </div>
-                        <ChevronRight className="text-slate-400 group-hover:translate-x-1 transition-transform" />
-                    </button>
-                </section>
             </main>
 
             {/* Modals & Inputs */}
