@@ -1,38 +1,62 @@
+import { lazy, Suspense } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { VerificationGate } from "@/components/VerificationGate";
 import { AppLayout } from "@/components/AppLayout";
+import { GlobalErrorBoundary } from "@/components/GlobalErrorBoundary";
+import { OfflineIndicator } from "@/components/OfflineIndicator";
+import { Loader2 } from "lucide-react";
+
+// Critical fast path (Main UI Thread optimization)
 import { LoginPage } from "@/pages/LoginPage";
 import { RegisterPage } from "@/pages/RegisterPage";
 import { DashboardPage } from "@/pages/DashboardPage";
-import { AccountPage } from "@/pages/AccountPage";
-import { PatientsPage } from "@/pages/PatientsPage";
-import { DocumentsPage } from "@/pages/DocumentsPage";
-import { ChatListPage } from "@/pages/ChatListPage";
-import { AIChatPage } from "@/pages/AIChatPage";
-import { AdminPage } from "@/pages/AdminPage";
-import { GlobalTimelinePage } from "@/pages/GlobalTimelinePage";
-import { EmergencyPage } from "@/pages/EmergencyPage";
 import { PulsePage } from "@/pages/PulsePage";
-import { VitalsPage } from "@/pages/VitalsPage";
-import { NotificationsPage } from "@/pages/NotificationsPage";
+import { EmergencyPage } from "@/pages/EmergencyPage";
+
+// Lazy Loaded (Split Chunks)
+const AccountPage = lazy(() => import("@/pages/AccountPage").then(m => ({ default: m.AccountPage })));
+const PatientsPage = lazy(() => import("@/pages/PatientsPage").then(m => ({ default: m.PatientsPage })));
+const DocumentsPage = lazy(() => import("@/pages/DocumentsPage").then(m => ({ default: m.DocumentsPage })));
+const ChatListPage = lazy(() => import("@/pages/ChatListPage").then(m => ({ default: m.ChatListPage })));
+const AIChatPage = lazy(() => import("@/pages/AIChatPage").then(m => ({ default: m.AIChatPage })));
+const AdminPage = lazy(() => import("@/pages/AdminPage").then(m => ({ default: m.AdminPage })));
+const GlobalTimelinePage = lazy(() => import("@/pages/GlobalTimelinePage").then(m => ({ default: m.GlobalTimelinePage })));
+const VitalsPage = lazy(() => import("@/pages/VitalsPage").then(m => ({ default: m.VitalsPage })));
+const NotificationsPage = lazy(() => import("@/pages/NotificationsPage").then(m => ({ default: m.NotificationsPage })));
+const PrivacyPage = lazy(() => import("@/pages/PrivacyPage").then(m => ({ default: m.PrivacyPage })));
+const TermsPage = lazy(() => import("@/pages/TermsPage").then(m => ({ default: m.TermsPage })));
+const LandingPage = lazy(() => import("@/pages/LandingPage").then(m => ({ default: m.LandingPage })));
+
+const SuspenseFallback = () => (
+  <div className="flex min-h-screen w-full items-center justify-center bg-slate-50">
+    <Loader2 className="animate-spin text-primary" size={32} />
+  </div>
+);
 
 const queryClient = new QueryClient();
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <BrowserRouter>
-          <Routes>
+    <GlobalErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <BrowserRouter>
+            <OfflineIndicator />
+            <Suspense fallback={<SuspenseFallback />}>
+              <Routes>
             {/* Public routes */}
+            <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
             
             {/* PUBLIC EMERGENCY PULSE (No Auth, No Layout) */}
             <Route path="/pulse/:userId" element={<PulsePage />} />
+            
+            <Route path="/privacy" element={<PrivacyPage />} />
+            <Route path="/terms" element={<TermsPage />} />
 
             {/* Protected routes — wrapped in VerificationGate */}
             <Route
@@ -67,10 +91,12 @@ function App() {
 
             {/* Default redirect */}
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
-          </Routes>
-        </BrowserRouter>
-      </AuthProvider>
-    </QueryClientProvider>
+              </Routes>
+            </Suspense>
+          </BrowserRouter>
+        </AuthProvider>
+      </QueryClientProvider>
+    </GlobalErrorBoundary>
   );
 }
 

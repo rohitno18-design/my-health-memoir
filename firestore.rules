@@ -14,34 +14,26 @@ service cloud.firestore {
     // NOTE: 'list' cannot use resource.data, so we allow list for any auth'd user
     // and filter in queries using userId field.
     match /patients/{patientId} {
-      allow get: if request.auth != null && resource.data.userId == request.auth.uid;
-      allow list: if request.auth != null;
+      allow read, update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
       allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
-      allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
     }
 
     // Documents — users can read/write their own documents
     match /documents/{docId} {
-      allow get: if request.auth != null && resource.data.userId == request.auth.uid;
-      allow list: if request.auth != null;
+      allow read, update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
       allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
-      allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
     }
 
     // Appointments — users can read/write their own appointments
     match /appointments/{apptId} {
-      allow get: if request.auth != null && resource.data.userId == request.auth.uid;
-      allow list: if request.auth != null;
+      allow read, update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
       allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
-      allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
     }
 
     // Life Events — users can read/write their own life timeline events
     match /life_events/{eventId} {
-      allow get: if request.auth != null && resource.data.userId == request.auth.uid;
-      allow list: if request.auth != null;
+      allow read, update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
       allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
-      allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
     }
 
     // Doctors — anyone authenticated can read, only admins can write
@@ -53,18 +45,16 @@ service cloud.firestore {
     // Vitals — KEY FIX: 'list' rule doesn't have access to resource.data
     // Only 'get' can check resource.data. Queries (list) must rely on Firestore query constraints.
     match /vitals/{vitalId} {
-      allow get: if request.auth != null && resource.data.userId == request.auth.uid;
-      allow list: if request.auth != null;
+      allow read, update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
       allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
-      allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
     }
 
     // Emergency Info — public read for paramedics, write for authenticated owner
-    // KEY FIX: Allow write if user is authenticated — the userId check is managed in app code.
-    // This allows both create (new doc) and update (merge) without Firestore fighting itself.
+    // KEY FIX: Only owner can write emergency info by ensuring userId match.
     match /emergency_info/{patientId} {
       allow read: if true;
-      allow write: if request.auth != null;
+      allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
     }
   }
 }

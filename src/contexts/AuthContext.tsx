@@ -8,6 +8,8 @@ import {
     updatePassword as firebaseUpdatePassword,
     sendEmailVerification,
     verifyBeforeUpdateEmail,
+    sendPasswordResetEmail,
+    deleteUser,
     EmailAuthProvider,
     reauthenticateWithCredential,
     reload,
@@ -19,7 +21,7 @@ import {
     type User,
 } from "firebase/auth";
 import {
-    doc, getDoc, setDoc, serverTimestamp, query,
+    doc, getDoc, setDoc, deleteDoc, serverTimestamp, query,
     collection, where, getDocs, addDoc
 } from "firebase/firestore";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
@@ -55,6 +57,8 @@ interface AuthContextType {
     updateUserProfile: (data: Partial<UserProfile>) => Promise<void>;
     updateUserEmail: (newEmail: string, currentPassword: string) => Promise<void>;
     updateUserPassword: (currentPassword: string, newPassword: string) => Promise<void>;
+    resetPassword: (email: string) => Promise<void>;
+    deleteAccount: () => Promise<void>;
     uploadProfilePhoto: (file: File, onProgress?: (p: number) => void) => Promise<string>;
     getRecaptchaVerifier: (containerId: string) => RecaptchaVerifier;
     sendPhoneOtp: (phoneNumber: string, containerId: string) => Promise<ConfirmationResult>;
@@ -242,6 +246,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUserProfile(null);
     };
 
+    const resetPassword = async (email: string) => {
+        await sendPasswordResetEmail(auth, email);
+    };
+
+    const deleteAccount = async () => {
+        const currentUser = auth.currentUser;
+        if (!currentUser) throw new Error("Not authenticated");
+        await deleteDoc(doc(db, "users", currentUser.uid));
+        await deleteUser(currentUser);
+        setUserProfile(null);
+    };
+
     /** Re-sends the email verification link */
     const resendVerification = async () => {
         if (!auth.currentUser) throw new Error("Not authenticated");
@@ -379,6 +395,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             isAdmin: userProfile?.role === "admin",
             isFullyVerified,
             login, registerWithEmail, logout,
+            resetPassword, deleteAccount,
             resendVerification, refreshUser,
             updateUserProfile, updateUserEmail, updateUserPassword, uploadProfilePhoto,
             getRecaptchaVerifier, sendPhoneOtp, linkPhoneToAccount, linkEmailToAccount,

@@ -25,10 +25,12 @@ export function RegisterPage() {
     const [showPw, setShowPw] = useState(false);
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
+    const [consent, setConsent] = useState(false);
 
     // ── Email registration ──
     const handleEmailSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!consent) { setError("You must agree to the Terms of Service & Privacy Policy."); return; }
         if (password.length < 6) { setError(t("auth.invalidPassword")); return; }
         setError(""); setLoading(true);
         try {
@@ -49,6 +51,7 @@ export function RegisterPage() {
     // ── Phone registration: send OTP ──
     const handlePhoneSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!consent) { setError("You must agree to the Terms of Service & Privacy Policy."); return; }
         if (!phone || phone.length < 10) { setError(t("auth.invalidPhone")); return; }
         setError(""); setLoading(true);
         try {
@@ -162,6 +165,12 @@ export function RegisterPage() {
                                     </button>
                                 </div>
                             </div>
+                            <div className="flex items-start gap-2 mt-4 mb-2">
+                                <input type="checkbox" id="consent-email" checked={consent} onChange={(e) => setConsent(e.target.checked)} className="mt-1" />
+                                <label htmlFor="consent-email" className="text-xs text-muted-foreground leading-tight">
+                                    I agree to the <Link to="/terms" className="text-primary hover:underline">Terms of Service</Link>, <Link to="/privacy" className="text-primary hover:underline">Privacy Policy</Link>, and acknowledge the Medical Disclaimer.
+                                </label>
+                            </div>
                             <button type="submit" disabled={loading}
                                 className="w-full py-2.5 bg-primary text-primary-foreground rounded-lg font-medium text-sm hover:bg-primary/90 transition-colors disabled:opacity-60 flex items-center justify-center gap-2">
                                 {loading && <Loader2 size={16} className="animate-spin" />}
@@ -182,6 +191,12 @@ export function RegisterPage() {
                                     containerClass="!w-full"
                                     buttonClass="!rounded-l-lg !border-input !bg-muted/30"
                                 />
+                            </div>
+                            <div className="flex items-start gap-2 mt-4 mb-2">
+                                <input type="checkbox" id="consent-phone" checked={consent} onChange={(e) => setConsent(e.target.checked)} className="mt-1" />
+                                <label htmlFor="consent-phone" className="text-xs text-muted-foreground leading-tight">
+                                    I agree to the <Link to="/terms" className="text-primary hover:underline">Terms of Service</Link>, <Link to="/privacy" className="text-primary hover:underline">Privacy Policy</Link>, and acknowledge the Medical Disclaimer.
+                                </label>
                             </div>
                             <button type="submit" disabled={loading}
                                 className="w-full py-2.5 bg-primary text-primary-foreground rounded-lg font-medium text-sm hover:bg-primary/90 transition-colors disabled:opacity-60 flex items-center justify-center gap-2">

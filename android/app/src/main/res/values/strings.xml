@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">I M Smrti</string>
+    <string name="title_activity_main">I M Smrti</string>
+    <string name="package_name">app.imsmrti.health</string>
+    <string name="custom_url_scheme">app.imsmrti.health</string>
+</resources>

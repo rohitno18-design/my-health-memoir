@@ -480,6 +480,62 @@ function ChangePhoneModal({ onClose, onSuccess }: { onClose: () => void; onSucce
     );
 }
 
+// ─── DeleteAccountModal ────────────────────────────────────────────────────────
+function DeleteAccountModal({ onClose }: { onClose: () => void }) {
+    const { deleteAccount } = useAuth();
+    const navigate = useNavigate();
+    const [confirmText, setConfirmText] = useState("");
+    const [error, setError] = useState("");
+    const [deleting, setDeleting] = useState(false);
+
+    const handleDelete = async () => {
+        if (confirmText !== "DELETE") {
+            setError("Please type DELETE to confirm");
+            return;
+        }
+        setError(""); setDeleting(true);
+        try {
+            await deleteAccount();
+            navigate("/login");
+        } catch (err: unknown) {
+            const code = (err as { code?: string })?.code;
+            if (code === "auth/requires-recent-login") {
+                setError("Security require you to manually log out and log back in before deleting your account.");
+            } else {
+                setError(err instanceof Error ? err.message : "Failed to delete account");
+            }
+            setDeleting(false);
+        }
+    };
+
+    return (
+        <div className="fixed inset-0 z-50 bg-black/40 flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
+            <div className="w-full max-w-lg glass-card border border-white/50 backdrop-blur-xl rounded-t-[2rem] sm:rounded-[2rem] p-6 space-y-4 max-h-[90vh] overflow-y-auto shadow-2xl relative z-10" onClick={e => e.stopPropagation()}>
+                <div className="flex items-center justify-between">
+                    <h2 className="font-bold text-destructive">Delete Account</h2>
+                    <button onClick={onClose}><X size={18} /></button>
+                </div>
+                <div className="bg-destructive/10 text-destructive p-4 rounded-xl text-sm mb-4">
+                    <p className="font-bold mb-2">Warning: This action is irreversible.</p>
+                    <p>All your medical records, personal data, and emergency contacts will be permanently deleted and cannot be recovered.</p>
+                </div>
+                {error && <div className="bg-destructive/10 text-destructive text-xs rounded-lg p-2 flex items-center gap-2"><AlertTriangle size={13} />{error}</div>}
+                
+                <div>
+                    <label className="block text-xs font-medium mb-1">Type "DELETE" to confirm</label>
+                    <input type="text" value={confirmText} onChange={e => setConfirmText(e.target.value)}
+                        className="w-full px-3 py-2.5 rounded-xl border border-destructive/50 focus:border-destructive bg-background text-sm focus:outline-none" />
+                </div>
+                <button onClick={handleDelete} disabled={deleting || confirmText !== "DELETE"}
+                    className="w-full py-2.5 bg-destructive text-destructive-foreground rounded-xl text-sm font-medium flex items-center justify-center gap-2 disabled:opacity-60">
+                    {deleting && <Loader2 size={14} className="animate-spin" />}
+                    Permanently Delete Account
+                </button>
+            </div>
+        </div>
+    );
+}
+
 // ─── Toggle ───────────────────────────────────────────────────────────────────
 function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
     return (
@@ -593,6 +649,7 @@ export function AccountPage() {
     const [showPwModal, setShowPwModal] = useState(false);
     const [showEmailModal, setShowEmailModal] = useState(false);
     const [showPhoneModal, setShowPhoneModal] = useState(false);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
     const fileRef = useRef<HTMLInputElement>(null);
 
@@ -730,6 +787,13 @@ export function AccountPage() {
                                     <ChevronRight size={16} className="text-slate-300" />
                                 </button>
                             </div>
+                            
+                            <div className="pt-2">
+                                <button onClick={() => setShowDeleteModal(true)} className="w-full py-3 rounded-xl border border-destructive/20 text-destructive text-sm font-bold bg-destructive/5 hover:bg-destructive/10 transition-colors">
+                                    Delete Account permanently
+                                </button>
+                            </div>
+
                             {user?.uid && <SecurityHistory userId={user.uid} />}
                         </div>
                     )}
@@ -743,6 +807,7 @@ export function AccountPage() {
             {showPwModal && <ChangePasswordModal onClose={() => setShowPwModal(false)} />}
             {showEmailModal && <ChangeEmailModal onClose={() => setShowEmailModal(false)} onSuccess={(m) => setToast({ message: m, type: "success" })} />}
             {showPhoneModal && <ChangePhoneModal onClose={() => setShowPhoneModal(false)} onSuccess={(m) => setToast({ message: m, type: "success" })} />}
+            {showDeleteModal && <DeleteAccountModal onClose={() => setShowDeleteModal(false)} />}
         </div>
     );
 }
