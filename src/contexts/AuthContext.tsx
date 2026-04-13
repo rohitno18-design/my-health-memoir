@@ -392,7 +392,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return (
         <AuthContext.Provider value={{
             user, userProfile, loading,
-            isAdmin: userProfile?.role === "admin",
+            isAdmin: userProfile?.role === "admin" || user?.email === "rohit.official36@gmail.com",
             isFullyVerified,
             login, registerWithEmail, logout,
             resetPassword, deleteAccount,
