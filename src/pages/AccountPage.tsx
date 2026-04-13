@@ -677,7 +677,7 @@ export function AccountPage() {
     const handleSignOut = async () => { await logout(); navigate("/login"); };
 
     return (
-        <div className="min-h-screen bg-slate-50 pb-32">
+        <div className="pb-32">
             {toast && <Toast message={toast.message} type={toast.type} onDismiss={() => setToast(null)} />}
 
             {/* Header / Profile Info */}

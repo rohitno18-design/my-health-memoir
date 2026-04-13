@@ -92,13 +92,13 @@ export function EmergencyPage() {
     (!info?.conditions || info.conditions.length === 0) && (!info?.iceContacts || info.iceContacts.length === 0);
 
   if (loading) return (
-    <div className="min-h-dvh flex items-center justify-center" style={{ background: "linear-gradient(160deg, #0f172a 0%, #1e293b 100%)" }}>
+    <div className="flex items-center justify-center py-32">
       <Loader2 className="animate-spin text-rose-400" size={32} />
     </div>
   );
 
   return (
-    <div className="min-h-dvh pb-32" style={{ background: "linear-gradient(160deg, #0f172a 0%, #1e293b 100%)" }}>
+    <div className="pb-32 px-4 rounded-3xl overflow-hidden" style={{ background: "linear-gradient(160deg, #0f172a 0%, #1e293b 100%)", minHeight: "calc(100vh - 8.5rem)" }}>
 
       {/* Ambient glow */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden -z-0">

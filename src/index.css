@@ -75,9 +75,11 @@
     /* Use dynamic viewport height so mobile address bar is excluded */
     min-height: 100dvh;
     overscroll-behavior: none;
-    /* Prevent ANY horizontal scrolling at the root level */
-    overflow-x: hidden;
-    max-width: 100vw;
+    /*
+      Do NOT set overflow-x: hidden on <html> — it is the browser's scroll
+      container. Doing so blocks mouse-wheel vertical scrolling on desktop.
+      Body handles horizontal clipping below.
+    */
   }
 
   body {

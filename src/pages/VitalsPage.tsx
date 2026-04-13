@@ -150,7 +150,7 @@ export function VitalsPage() {
   const ActiveIcon = VITAL_CONFIG[activeTab].icon;
 
   return (
-    <div className="min-h-dvh bg-slate-50 text-slate-900 pb-32">
+    <div className="pb-32 px-4">
       <div className="bg-white border-b border-slate-100 px-5 pt-5 pb-4 space-y-4">
         <div className="flex items-center justify-between">
           <div>

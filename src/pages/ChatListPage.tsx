@@ -115,7 +115,7 @@ export function ChatListPage() {
     };
 
     return (
-        <div className="flex flex-col h-[calc(100vh-8.5rem)] w-full max-w-2xl mx-auto relative overflow-hidden">
+        <div className="flex flex-col h-[calc(100vh-8.5rem)] w-full relative overflow-hidden">
             <div className="absolute inset-0 soft-gradient-bg -z-10 pointer-events-none" />
 
             {/* Header */}
