@@ -58,12 +58,7 @@ export function FamilyPulse({ patients, onSelect }: FamilyPulseProps) {
         )}
       </div>
 
-      <div className="mt-auto pt-4 border-t border-slate-100/50">
-        <div className="flex items-center justify-between text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-          <span>{t("dashboard.nextCheckup")}</span>
-          <span className="text-slate-600">{t("common.notSet")}</span>
-        </div>
-      </div>
+
     </div>
   );
 }

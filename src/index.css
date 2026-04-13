@@ -75,6 +75,9 @@
     /* Use dynamic viewport height so mobile address bar is excluded */
     min-height: 100dvh;
     overscroll-behavior: none;
+    /* Prevent ANY horizontal scrolling at the root level */
+    overflow-x: hidden;
+    max-width: 100vw;
   }
 
   body {

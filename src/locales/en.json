@@ -113,7 +113,8 @@
     "pulse": "Emergency Pulse",
     "vitals": "Health Vitals",
     "stability": "Stability Level",
-    "stable": "Stable"
+    "stable": "Stable",
+    "viewingVitalsFor": "Viewing vitals for:"
   },
   "vitals": {
     "title": "Health Vitals",

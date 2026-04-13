@@ -215,7 +215,6 @@ export function DashboardPage() {
     const glucose = getVitalData("Sugar");
     const bp = getVitalData("Blood Pressure");
     const hr = getVitalData("Heart Rate");
-    const weight = getVitalData("Weight");
 
     if (loading) {
       return (
@@ -260,7 +259,16 @@ export function DashboardPage() {
                     </button>
                 </section>
 
-                {/* 3. Vitals & Analytics Bento Grid */}
+                {/* 3. Vitals Bento Grid */}
+                {/* Patient context label — so user knows whose data is shown */}
+                {patients.length > 0 && (
+                    <div className="flex items-center gap-2 -mb-2">
+                        <div className="size-2 rounded-full bg-emerald-500 animate-pulse" />
+                        <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">
+                            {t("dashboard.viewingVitalsFor")} <span className="text-emerald-600">{patients.find(p => p.id === form.patientId)?.name || patients[0]?.name || "—"}</span>
+                        </p>
+                    </div>
+                )}
                 <div className="grid grid-cols-2 gap-4">
                     <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2 }} className="bento-card col-span-2 min-h-[160px]">
                         <FamilyPulse patients={patients} onSelect={(id) => navigate(`/documents?patientId=${id}`)} />
@@ -282,20 +290,13 @@ export function DashboardPage() {
                         <VitalsQuickView type="BP" value={bp.val} unit="mmHg" trend={bp.val === "--" ? "stable" : "stable"} data={bp.chartData} color="#3B82F6" />
                     </motion.div>
 
+                    {/* Heart Rate — spans full width so chart has room to breathe */}
                     <motion.div 
                         initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.5 }} 
-                        className="bento-card col-span-1 cursor-pointer active:scale-95 transition-all"
+                        className="bento-card col-span-2 cursor-pointer active:scale-95 transition-all"
                         onClick={() => navigate("/vitals")}
                     >
                         <VitalsQuickView type="Heart Rate" value={hr.val} unit="bpm" trend={hr.val === "--" ? "stable" : "stable"} data={hr.chartData} color="#F43F5E" />
-                    </motion.div>
-
-                    <motion.div 
-                        initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.6 }} 
-                        className="bento-card col-span-1 cursor-pointer active:scale-95 transition-all"
-                        onClick={() => navigate("/vitals")}
-                    >
-                        <VitalsQuickView type="Weight" value={weight.val} unit="kg" trend={weight.val === "--" ? "stable" : "stable"} data={weight.chartData} color="#8B5CF6" />
                     </motion.div>
                 </div>
             </main>

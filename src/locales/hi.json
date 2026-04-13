@@ -113,7 +113,8 @@
     "pulse": "इमरजेंसी पल्स",
     "vitals": "हेल्थ वाइटल्स",
     "stability": "स्थिति (Stability)",
-    "stable": "स्थिर (Stable)"
+    "stable": "स्थिर (Stable)",
+    "viewingVitalsFor": "जिसके Vitals देख रहे हैं:"
   },
   "vitals": {
     "title": "हेल्थ वाइटल्स",
