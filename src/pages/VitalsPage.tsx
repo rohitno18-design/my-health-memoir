@@ -176,13 +176,19 @@ export function VitalsPage() {
               key={tab}
               onClick={() => setActiveTab(tab)}
               className={cn(
-                "flex-1 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all",
+                "flex-1 py-2.5 rounded-xl text-[10px] xs:text-xs font-black uppercase tracking-wider transition-all truncate px-1",
                 activeTab === tab
                   ? "bg-white text-slate-900 shadow-sm"
                   : "text-slate-400 hover:text-slate-600"
               )}
             >
-              {t(`vitals.${VITAL_CONFIG[tab].tKey}`)}
+              {/* Show abbreviation on very small screens, full label on normal */}
+              <span className="sm:hidden">
+                {tab === "Sugar" ? "Sugar" : tab === "Blood Pressure" ? "BP" : "HR"}
+              </span>
+              <span className="hidden sm:inline">
+                {t(`vitals.${VITAL_CONFIG[tab].tKey}`)}
+              </span>
             </button>
           ))}
         </div>
@@ -298,7 +304,8 @@ export function VitalsPage() {
             />
             <motion.div
               initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
-              className="relative bg-white rounded-t-[2.5rem] px-6 pt-4 pb-28 space-y-5 shadow-2xl"
+              className="relative bg-white rounded-t-[2.5rem] px-6 pt-4 shadow-2xl"
+              style={{ paddingBottom: "calc(6rem + env(safe-area-inset-bottom, 0px))" }}
             >
               <div className="w-10 h-1 bg-slate-200 rounded-full mx-auto mb-2" />
               <div className="flex items-center justify-between">

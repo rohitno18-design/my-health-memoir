@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { 
   Bot, UploadCloud, Loader2, X,
-  ChevronRight, Zap
+  ChevronRight, Zap, WifiOff
 } from "lucide-react";
 
 import { useNavigate } from "react-router-dom";
@@ -51,7 +51,8 @@ export function DashboardPage() {
     const [loading, setLoading] = useState(true);
 
     // Upload & Analysis State
-    const [uploadStep, setUploadStep] = useState<"idle" | "form" | "uploading" | "analyzing" | "summary">("idle");
+    const [uploadStep, setUploadStep] = useState<"idle" | "form" | "uploading" | "analyzing" | "summary" | "queued">("idle");
+    const [isOffline, setIsOffline] = useState(!navigator.onLine);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [progress, setProgress] = useState(0);
     const [aiSummary, setAiSummary] = useState("");
@@ -66,6 +67,18 @@ export function DashboardPage() {
 
     const fileInputRef = useRef<HTMLInputElement>(null);
     const cameraInputRef = useRef<HTMLInputElement>(null);
+
+    // Track network status for offline-aware uploads
+    useEffect(() => {
+        const goOnline = () => setIsOffline(false);
+        const goOffline = () => setIsOffline(true);
+        window.addEventListener("online", goOnline);
+        window.addEventListener("offline", goOffline);
+        return () => {
+            window.removeEventListener("online", goOnline);
+            window.removeEventListener("offline", goOffline);
+        };
+    }, []);
 
     // Fetch Patients & Vitals
     useEffect(() => {
@@ -206,7 +219,7 @@ export function DashboardPage() {
 
     if (loading) {
       return (
-        <div className="flex items-center justify-center min-h-screen bg-slate-50">
+        <div className="flex items-center justify-center min-h-dvh bg-slate-50">
           <Loader2 className="animate-spin text-emerald-500" size={32} />
         </div>
       );
@@ -308,12 +321,36 @@ export function DashboardPage() {
               )}
 
               {uploadStep === "form" && (
-                <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
-                  <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="w-full max-w-sm bg-white rounded-[2rem] p-6 shadow-2xl space-y-4">
-                    <div className="flex items-center justify-between">
+                // Bottom-sheet modal — slides up from bottom, never clips on small screens
+                <div className="fixed inset-0 z-50 flex flex-col justify-end">
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    onClick={resetUpload}
+                    className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+                  />
+                  <motion.div
+                    initial={{ y: "100%" }}
+                    animate={{ y: 0 }}
+                    exit={{ y: "100%" }}
+                    className="relative bg-white rounded-t-[2.5rem] px-6 pt-4 shadow-2xl"
+                    style={{ paddingBottom: "calc(2rem + env(safe-area-inset-bottom, 0px))" }}
+                  >
+                    <div className="w-10 h-1 bg-slate-200 rounded-full mx-auto mb-4" />
+                    <div className="flex items-center justify-between mb-4">
                       <h3 className="text-xl font-black text-slate-900">{t("dashboard.docScan")}</h3>
                       <button onClick={resetUpload} className="p-2 bg-slate-100 rounded-full"><X size={16} /></button>
                     </div>
+
+                    {/* Offline warning */}
+                    {isOffline && (
+                      <div className="flex items-center gap-2 mb-4 px-4 py-3 bg-orange-50 border border-orange-200 rounded-2xl">
+                        <WifiOff size={16} className="text-orange-500 shrink-0" />
+                        <p className="text-xs font-bold text-orange-700">You're offline. The file will be saved and analyzed when you reconnect.</p>
+                      </div>
+                    )}
+
                     <form onSubmit={processUploadAndAnalyze} className="space-y-4">
                       <div className="space-y-1">
                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">{t("patients.label")}</label>
@@ -329,7 +366,7 @@ export function DashboardPage() {
                         </select>
                       </div>
                       <button type="submit" className="w-full py-4 bg-emerald-600 text-white rounded-xl font-black shadow-lg shadow-emerald-500/20 active:scale-95 transition-all">
-                        {t("dashboard.beginAnalysis")}
+                        {isOffline ? "Save & Queue for Analysis" : t("dashboard.beginAnalysis")}
                       </button>
                     </form>
                   </motion.div>

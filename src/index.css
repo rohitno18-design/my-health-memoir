@@ -31,6 +31,12 @@
     --health-rose: 349 89% 60%;
     --health-amber: 38 92% 52%;
     --health-blue: 213 94% 58%;
+
+    /* Safe area insets — populated by the device/browser */
+    --sat: env(safe-area-inset-top, 0px);
+    --sar: env(safe-area-inset-right, 0px);
+    --sab: env(safe-area-inset-bottom, 0px);
+    --sal: env(safe-area-inset-left, 0px);
   }
 
   .dark {
@@ -59,6 +65,16 @@
 @layer base {
   * {
     @apply border-border;
+    /* Instant taps — eliminates 300ms delay on iOS/Android */
+    touch-action: manipulation;
+    /* Prevent text selection on UI elements */
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html, body, #root {
+    /* Use dynamic viewport height so mobile address bar is excluded */
+    min-height: 100dvh;
+    overscroll-behavior: none;
   }
 
   body {
@@ -66,11 +82,18 @@
     font-family: 'Inter', sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    /* Prevent rubber-band scrolling of the body itself */
+    overflow-x: hidden;
   }
 
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Lexend', sans-serif;
     @apply font-bold tracking-tight;
+  }
+
+  /* Ensure inputs are not zoomed on iOS (requires font-size >= 16px) */
+  input, select, textarea {
+    font-size: 16px;
   }
 }
 
@@ -112,5 +135,18 @@
 
   .custom-scrollbar::-webkit-scrollbar-thumb {
     @apply bg-slate-200 rounded-full;
+  }
+
+  /* Safe area padding utilities */
+  .pt-safe { padding-top: var(--sat); }
+  .pb-safe { padding-bottom: var(--sab); }
+  .pl-safe { padding-left: var(--sal); }
+  .pr-safe { padding-right: var(--sar); }
+  .mb-safe { margin-bottom: var(--sab); }
+
+  /* Minimum tap target (WCAG / Apple HIG: 44x44px) */
+  .tap-target {
+    min-height: 44px;
+    min-width: 44px;
   }
 }
