@@ -32,5 +32,9 @@ export function ProtectedRoute({ children, requireAdmin = false }: ProtectedRout
         }
     }
 
+    if (userProfile?.suspended) {
+        return <Navigate to="/login" replace />; // You could also bounce to a specific /suspended page
+    }
+
     return <>{children}</>;
 }

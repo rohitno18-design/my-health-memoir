@@ -18,6 +18,10 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 
 export const auth = getAuth(app);
+// Secondary App for Admin operations (creating accounts silently)
+const adminApp = initializeApp(firebaseConfig, "adminApp");
+export const adminAuth = getAuth(adminApp);
+
 // Enable offline persistence via IndexedDB - data survives offline/airplane mode
 export const db = initializeFirestore(app, {
     localCache: persistentLocalCache({

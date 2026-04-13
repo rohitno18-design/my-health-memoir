@@ -40,6 +40,7 @@ export interface UserProfile {
     emailVerified: boolean;
     phoneVerified: boolean;
     role: "patient" | "admin";
+    suspended?: boolean;
     createdAt?: unknown;
 }
 
