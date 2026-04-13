@@ -13,7 +13,7 @@ export function LandingPage() {
 
             {/* Navigation */}
             <nav className="fixed top-0 inset-x-0 z-50 glass-morphism border-b border-white/20">
-                <div className="max-w-6xl mx-auto px-6 h-20 flex items-center justify-between">
+            <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 sm:h-20 flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <div className="size-10 rounded-2xl bg-gradient-to-tr from-primary to-health-teal flex items-center justify-center text-white shadow-lg shadow-primary/20">
                             <Activity size={20} strokeWidth={3} />
@@ -46,14 +46,14 @@ export function LandingPage() {
                     <span className="text-xs font-bold text-slate-600 uppercase tracking-widest">Universal Health OS 1.0</span>
                 </div>
 
-                <h1 className="text-5xl md:text-7xl font-black text-slate-900 leading-tight tracking-tighter mb-6 max-w-4xl animate-in slide-in-from-bottom-8 duration-700 delay-100">
+                <h1 className="text-3xl sm:text-5xl md:text-7xl font-black text-slate-900 leading-tight tracking-tighter mb-6 max-w-4xl animate-in slide-in-from-bottom-8 duration-700 delay-100">
                     A Brain for Your <br className="hidden md:block"/> 
                     <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-health-teal to-health-blue">
                         Entire Medical History
                     </span>
                 </h1>
                 
-                <p className="text-lg md:text-xl text-slate-500 mb-10 max-w-2xl leading-relaxed animate-in slide-in-from-bottom-10 duration-700 delay-200">
+                <p className="text-base sm:text-lg md:text-xl text-slate-500 mb-10 max-w-2xl leading-relaxed animate-in slide-in-from-bottom-10 duration-700 delay-200">
                     I M Smrti centralizes your health records securely, analyzing documents with AI, and providing life-saving access to paramedics via Emergency SOS mode.
                 </p>
 

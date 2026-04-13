@@ -88,8 +88,12 @@ export function LifeTimeline({ patient, onClose }: { patient: Patient, onClose: 
     const filteredEvents = filterCategory ? events.filter(e => e.category === filterCategory) : events;
 
     return (
-        <div className="fixed inset-0 z-[60] bg-white sm:bg-black/40 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200">
-            <div className="w-full max-w-4xl h-full sm:h-auto sm:max-h-[85vh] glass-card sm:rounded-[2.5rem] flex flex-col shadow-2xl relative overflow-hidden bg-white/90">
+        <div className="fixed inset-0 z-[110] bg-white sm:bg-black/40 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200">
+            {/* On mobile: full-height sheet but with safe-area top padding so header isn't clipped by notch/statusbar */}
+            <div
+                className="w-full max-w-4xl sm:h-auto sm:max-h-[85vh] glass-card sm:rounded-[2.5rem] flex flex-col shadow-2xl relative overflow-hidden bg-white/95"
+                style={{ height: '100%', paddingTop: 'env(safe-area-inset-top, 0px)' }}
+            >
                 <div className="absolute top-0 right-0 size-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none -z-10"></div>
 
                 {/* Header */}

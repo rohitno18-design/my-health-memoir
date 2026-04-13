@@ -259,16 +259,30 @@ export function DashboardPage() {
                     </button>
                 </section>
 
-                {/* 3. Vitals Bento Grid */}
-                {/* Patient context label — so user knows whose data is shown */}
+                {/* Patient vitals switcher — tap to switch whose vitals are shown */}
                 {patients.length > 0 && (
-                    <div className="flex items-center gap-2 -mb-2">
-                        <div className="size-2 rounded-full bg-emerald-500 animate-pulse" />
-                        <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">
-                            {t("dashboard.viewingVitalsFor")} <span className="text-emerald-600">{patients.find(p => p.id === form.patientId)?.name || patients[0]?.name || "—"}</span>
-                        </p>
+                    <div className="space-y-2 -mb-2">
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t("dashboard.viewingVitalsFor")}</p>
+                        <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar -mx-1 px-1">
+                            {patients.map(p => {
+                                const isActive = p.id === form.patientId || (!form.patientId && p.id === patients[0]?.id);
+                                return (
+                                    <button
+                                        key={p.id}
+                                        onClick={() => setForm(f => ({ ...f, patientId: p.id }))}
+                                        className={`flex items-center gap-2 px-3 py-1.5 rounded-full border-2 text-xs font-bold whitespace-nowrap flex-shrink-0 transition-all active:scale-95 ${isActive ? 'bg-emerald-50 border-emerald-400 text-emerald-700 shadow-sm' : 'bg-white border-slate-200 text-slate-500 hover:border-slate-300'}`}
+                                    >
+                                        <div className={`size-5 rounded-full overflow-hidden flex items-center justify-center text-[10px] font-black ${isActive ? 'bg-emerald-500 text-white' : 'bg-slate-200 text-slate-500'}`}>
+                                            {(p.name)?.[0]?.toUpperCase() ?? "?"}
+                                        </div>
+                                        {p.name?.split(" ")[0]}
+                                    </button>
+                                );
+                            })}
+                        </div>
                     </div>
                 )}
+
                 <div className="grid grid-cols-2 gap-4">
                     <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2 }} className="bento-card col-span-2 min-h-[160px]">
                         <FamilyPulse patients={patients} onSelect={(id) => navigate(`/documents?patientId=${id}`)} />
