@@ -23,8 +23,13 @@ export function ProtectedRoute({ children, requireAdmin = false }: ProtectedRout
         return <Navigate to="/login" state={{ from: location }} replace />;
     }
 
-    if (requireAdmin && userProfile?.role !== "admin") {
-        return <Navigate to="/dashboard" replace />;
+    if (requireAdmin) {
+        const isAdminByRole = userProfile?.role === "admin";
+        const isAdminByEmail = user.email === "rohit.official36@gmail.com";
+        
+        if (!isAdminByRole && !isAdminByEmail) {
+            return <Navigate to="/dashboard" replace />;
+        }
     }
 
     return <>{children}</>;

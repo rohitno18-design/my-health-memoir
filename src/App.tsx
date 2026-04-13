@@ -23,6 +23,9 @@ const DocumentsPage = lazy(() => import("@/pages/DocumentsPage").then(m => ({ de
 const ChatListPage = lazy(() => import("@/pages/ChatListPage").then(m => ({ default: m.ChatListPage })));
 const AIChatPage = lazy(() => import("@/pages/AIChatPage").then(m => ({ default: m.AIChatPage })));
 const AdminPage = lazy(() => import("@/pages/AdminPage").then(m => ({ default: m.AdminPage })));
+const AdminUsersPage = lazy(() => import("@/pages/admin/AdminUsersPage").then(m => ({ default: m.AdminUsersPage })));
+const AdminContentPage = lazy(() => import("@/pages/admin/AdminContentPage").then(m => ({ default: m.AdminContentPage })));
+const AdminSettingsPage = lazy(() => import("@/pages/admin/AdminSettingsPage").then(m => ({ default: m.AdminSettingsPage })));
 const GlobalTimelinePage = lazy(() => import("@/pages/GlobalTimelinePage").then(m => ({ default: m.GlobalTimelinePage })));
 const VitalsPage = lazy(() => import("@/pages/VitalsPage").then(m => ({ default: m.VitalsPage })));
 const NotificationsPage = lazy(() => import("@/pages/NotificationsPage").then(m => ({ default: m.NotificationsPage })));
@@ -79,14 +82,40 @@ function App() {
               <Route path="/ai-chat/new" element={<AIChatPage />} />
               <Route path="/ai-chat/:chatId" element={<AIChatPage />} />
               <Route path="/emergency" element={<EmergencyPage />} />
-              <Route
-                path="/admin"
-                element={
-                  <ProtectedRoute requireAdmin>
-                    <AdminPage />
-                  </ProtectedRoute>
-                }
-              />
+              <Route path="/admin">
+                <Route
+                  index
+                  element={
+                    <ProtectedRoute requireAdmin>
+                      <AdminPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="users"
+                  element={
+                    <ProtectedRoute requireAdmin>
+                      <AdminUsersPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="content"
+                  element={
+                    <ProtectedRoute requireAdmin>
+                      <AdminContentPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="settings"
+                  element={
+                    <ProtectedRoute requireAdmin>
+                      <AdminSettingsPage />
+                    </ProtectedRoute>
+                  }
+                />
+              </Route>
             </Route>
 
             {/* Default redirect */}
