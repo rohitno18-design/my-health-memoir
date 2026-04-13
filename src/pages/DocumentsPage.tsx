@@ -91,7 +91,7 @@ export function DocumentsPage() {
     const [showLanguageModalForDoc, setShowLanguageModalForDoc] = useState<Document | null>(null);
     const [summaryLanguage, setSummaryLanguage] = useState(t("common.localeCode") === "hi-IN" ? "Hindi" : "English");
     const [summarizingDocId, setSummarizingDocId] = useState<string | null>(null);
-    const [generationProgress, setGenerationProgress] = useState<string>("");
+    const [_generationProgress, setGenerationProgress] = useState<string>("");
 
     // Add to Timeline state
     const [addToTimelineDoc, setAddToTimelineDoc] = useState<Document | null>(null);
@@ -480,16 +480,16 @@ export function DocumentsPage() {
     };
 
     return (
-        <div className="pb-6 w-full max-w-lg mx-auto space-y-6 relative">
+        <div className="pb-6 w-full max-w-lg mx-auto space-y-6 relative px-4 overflow-x-hidden">
             <div className="fixed top-0 left-0 right-0 h-[50vh] soft-gradient-bg -z-10 pointer-events-none"></div>
             <div className="flex items-center justify-between pt-6">
                 <h1 className="text-xl font-bold">{t("documents.title")}</h1>
                 <button
                     onClick={() => navigate('/dashboard')}
-                    className="flex items-center gap-1.5 text-sm bg-primary text-primary-foreground px-4 py-2 rounded-xl font-medium cursor-pointer shadow-sm hover:bg-primary/90 transition-colors"
+                    className="flex items-center gap-1.5 text-sm bg-primary text-primary-foreground px-3 py-2 rounded-xl font-medium cursor-pointer shadow-sm hover:bg-primary/90 transition-colors flex-shrink-0 min-h-[44px]"
                 >
                     <Upload size={16} />
-                    {t("documents.upload")}
+                    <span className="hidden xs:inline">{t("documents.upload")}</span>
                 </button>
             </div>
 
@@ -525,23 +525,27 @@ export function DocumentsPage() {
             {/* View Toggles for Single Patient */}
             {selectedPatientId !== "all" && !loading && (
                 <div className="flex bg-white/40 backdrop-blur-md border border-white/40 p-1.5 rounded-[1.25rem] shadow-sm mt-2 relative z-10 w-full mb-4">
+                    {/* Icon-only on small screens, icon+label on sm+ */}
                     <button
                         onClick={() => { setViewMode("dashboard"); setTimelineFilterCategory(null); setTimelineFilterEpisode(null); }}
-                        className={`flex-1 py-2 text-sm font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 ${viewMode === "dashboard" ? "bg-white text-primary shadow-sm" : "text-slate-500 hover:text-slate-700 hover:bg-white/20"}`}
+                        className={`flex-1 py-2.5 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1 min-h-[44px] ${viewMode === "dashboard" ? "bg-white text-primary shadow-sm" : "text-slate-500 hover:text-slate-700 hover:bg-white/20"}`}
                     >
-                        <span className="material-symbols-outlined text-[18px]">grid_view</span> {t("documents.viewDashboard")}
+                        <span className="material-symbols-outlined text-[20px]">grid_view</span>
+                        <span className="hidden sm:inline">{t("documents.viewDashboard")}</span>
                     </button>
                     <button
                         onClick={() => { setViewMode("timeline"); setTimelineFilterCategory(null); setTimelineFilterEpisode(null); }}
-                        className={`flex-1 py-2 text-sm font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 ${viewMode === "timeline" ? "bg-white text-primary shadow-sm" : "text-slate-500 hover:text-slate-700 hover:bg-white/20"}`}
+                        className={`flex-1 py-2.5 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1 min-h-[44px] ${viewMode === "timeline" ? "bg-white text-primary shadow-sm" : "text-slate-500 hover:text-slate-700 hover:bg-white/20"}`}
                     >
-                        <span className="material-symbols-outlined text-[18px]">timeline</span> {t("documents.viewTimeline")}
+                        <span className="material-symbols-outlined text-[20px]">timeline</span>
+                        <span className="hidden sm:inline">{t("documents.viewTimeline")}</span>
                     </button>
                     <button
                         onClick={() => { setViewMode("list"); setTimelineFilterCategory(null); setTimelineFilterEpisode(null); }}
-                        className={`flex-1 py-2 text-sm font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 ${viewMode === "list" ? "bg-white text-primary shadow-sm" : "text-slate-500 hover:text-slate-700 hover:bg-white/20"}`}
+                        className={`flex-1 py-2.5 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1 min-h-[44px] ${viewMode === "list" ? "bg-white text-primary shadow-sm" : "text-slate-500 hover:text-slate-700 hover:bg-white/20"}`}
                     >
-                        <span className="material-symbols-outlined text-[18px]">list</span> {t("documents.viewList")}
+                        <span className="material-symbols-outlined text-[20px]">list</span>
+                        <span className="hidden sm:inline">{t("documents.viewList")}</span>
                     </button>
                 </div>
             )}
@@ -622,68 +626,64 @@ export function DocumentsPage() {
                             <p className="text-sm mt-1 max-w-xs mx-auto">{t("documents.noDocsSubtitle")}</p>
                         </div>
                     ) : (
-                        <div className="relative pl-6 sm:pl-8 border-l-2 border-slate-200/60 pb-10 space-y-10">
+                        <div className="relative pl-5 border-l-2 border-slate-200/60 pb-10 space-y-8">
                             {filteredDocs.sort((a, b) => new Date(b.eventDate || b.docDate || 0).getTime() - new Date(a.eventDate || a.docDate || 0).getTime()).map(doc => {
                                 const renderDate = new Date(doc.eventDate || doc.docDate || Date.now()).toLocaleDateString(t("common.localeCode"), { month: 'short', day: 'numeric', year: 'numeric' });
                                 return (
                                     <div key={doc.id} className="relative group">
-                                        <div className="absolute -left-[30px] sm:-left-[38px] top-1/2 -translate-y-1/2 size-4 rounded-full bg-white border-4 border-primary shadow-sm group-hover:scale-125 transition-transform z-10"></div>
+                                        <div className="absolute -left-[27px] top-5 size-4 rounded-full bg-white border-4 border-primary shadow-sm group-hover:scale-125 transition-transform z-10"></div>
 
-                                        <div className="bg-white/60 backdrop-blur-md border border-white/60 rounded-[1.5rem] p-5 shadow-sm hover:shadow-md hover:border-primary/30 transition-all flex flex-col sm:flex-row gap-5 relative overflow-hidden">
-                                            <button 
-                                                onClick={() => {
-                                                    setViewerData({ url: doc.url, title: doc.name, type: doc.category || doc.type });
-                                                    setViewerOpen(true);
-                                                }}
-                                                className="w-20 h-24 sm:w-28 sm:h-auto rounded-[1rem] bg-slate-50 flex items-center justify-center flex-shrink-0 relative overflow-hidden border border-slate-200 cursor-pointer hover:border-primary/50 transition-colors"
-                                            >
-                                                {doc.type.startsWith('image/') ? (
-                                                    <img src={doc.url} alt={doc.name} className="w-full h-full object-cover" />
-                                                ) : (
-                                                    <FileText size={32} className="text-primary/50" />
-                                                )}
-                                                <div className="absolute bottom-0 left-0 right-0 bg-black/60 backdrop-blur-md px-2 py-1 text-[10px] text-white font-bold text-center truncate">
-                                                    {doc.category ? t(`documents.cat_${doc.category.toLowerCase().replace(/[^a-z]/g, '')}`) : (doc.docType || t("documents.unknownType"))}
+                                        {/* Always stacked on mobile, side-by-side on sm+ */}
+                                        <div className="bg-white/60 backdrop-blur-md border border-white/60 rounded-[1.5rem] p-4 shadow-sm hover:shadow-md hover:border-primary/30 transition-all flex flex-col gap-4 relative overflow-hidden">
+                                            <div className="flex gap-3 items-start">
+                                                {/* Thumbnail — fixed small size so it never dominates */}
+                                                <button 
+                                                    onClick={() => {
+                                                        setViewerData({ url: doc.url, title: doc.name, type: doc.category || doc.type });
+                                                        setViewerOpen(true);
+                                                    }}
+                                                    className="w-14 h-16 rounded-xl bg-slate-50 flex items-center justify-center flex-shrink-0 relative overflow-hidden border border-slate-200 cursor-pointer hover:border-primary/50 transition-colors"
+                                                >
+                                                    {doc.type.startsWith('image/') ? (
+                                                        <img src={doc.url} alt={doc.name} className="w-full h-full object-cover" />
+                                                    ) : (
+                                                        <FileText size={22} className="text-primary/50" />
+                                                    )}
+                                                </button>
+
+                                                <div className="flex-1 min-w-0">
+                                                    <span className="text-[11px] font-extrabold text-primary uppercase tracking-wider block">{renderDate}</span>
+                                                    <h3 className="font-bold text-[15px] text-slate-800 leading-tight mt-0.5 break-words">{doc.name}</h3>
+                                                    {doc.category && (
+                                                        <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md inline-block mt-1">
+                                                            {t(`documents.cat_${doc.category.toLowerCase().replace(/[^a-z]/g, '')}`)}
+                                                        </span>
+                                                    )}
                                                 </div>
-                                            </button>
-
-                                            <div className="flex-1 min-w-0 space-y-2">
-                                                <div className="flex items-start justify-between gap-4">
-                                                    <div>
-                                                        <span className="text-[12px] font-extrabold text-primary uppercase tracking-wider">{renderDate}</span>
-                                                        <h3 className="font-bold text-[16px] text-slate-800 leading-tight mt-0.5">{doc.name}</h3>
-                                                    </div>
-                                                </div>
-
-                                                {(doc.hospital || doc.lab || doc.doctorName) && (
-                                                    <div className="flex flex-wrap items-center gap-3 mt-2 text-[12px] font-semibold text-slate-600">
-                                                        {doc.doctorName && <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[14px]">person</span> {doc.doctorName}</span>}
-                                                        {doc.hospital && <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[14px]">local_hospital</span> {doc.hospital}</span>}
-                                                        {doc.lab && <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[14px]">science</span> {doc.lab}</span>}
-                                                    </div>
-                                                )}
-
-                                                {doc.episodeId && (
-                                                    <span className="inline-block text-[11px] font-bold text-emerald-700 bg-emerald-100/50 border border-emerald-200 px-2 py-1 rounded-md mt-2">
-                                                        {t("documents.episodeLabel")}: {episodes.find(e => e.id === doc.episodeId)?.name || t("common.general")}
-                                                    </span>
-                                                )}
-
-                                                {doc.aiSummary && (
-                                                    <p className="text-[13px] text-slate-600/90 font-medium leading-relaxed line-clamp-2 mt-2 break-words">
-                                                        {doc.aiSummary}
-                                                    </p>
-                                                )}
                                             </div>
 
-                                            <div className="flex flex-row sm:flex-col justify-end sm:justify-center gap-2 mt-4 sm:mt-0 pt-4 sm:pt-0 border-t sm:border-t-0 sm:border-l border-slate-200/50 sm:pl-4">
+                                            {(doc.hospital || doc.lab || doc.doctorName) && (
+                                                <div className="flex flex-wrap items-center gap-2 text-[11px] font-semibold text-slate-600">
+                                                    {doc.doctorName && <span className="flex items-center gap-1 bg-slate-50 px-2 py-1 rounded-lg"><span className="material-symbols-outlined text-[13px]">person</span> <span className="truncate max-w-[100px]">{doc.doctorName}</span></span>}
+                                                    {doc.hospital && <span className="flex items-center gap-1 bg-slate-50 px-2 py-1 rounded-lg"><span className="material-symbols-outlined text-[13px]">local_hospital</span> <span className="truncate max-w-[100px]">{doc.hospital}</span></span>}
+                                                    {doc.lab && <span className="flex items-center gap-1 bg-slate-50 px-2 py-1 rounded-lg"><span className="material-symbols-outlined text-[13px]">science</span> <span className="truncate max-w-[100px]">{doc.lab}</span></span>}
+                                                </div>
+                                            )}
+
+                                            {doc.aiSummary && (
+                                                <p className="text-[12px] text-slate-600/90 font-medium leading-relaxed line-clamp-2 break-words">
+                                                    {doc.aiSummary}
+                                                </p>
+                                            )}
+
+                                            <div className="flex flex-row gap-2 pt-3 border-t border-slate-100">
                                                 {doc.aiSummary && (
-                                                    <button onClick={() => setViewSummary({ text: doc.aiSummary || "", lang: "English" })} className="p-2.5 rounded-xl bg-violet-100 text-violet-700 hover:bg-violet-200 transition-colors shadow-sm" title="View Summary">
-                                                        <Bot size={18} />
+                                                    <button onClick={() => setViewSummary({ text: doc.aiSummary || "", lang: "English" })} className="flex-1 py-2 rounded-xl bg-violet-100 text-violet-700 hover:bg-violet-200 transition-colors text-xs font-bold flex items-center justify-center gap-1.5" title="View Summary">
+                                                        <Bot size={15} /> AI
                                                     </button>
                                                 )}
-                                                <button onClick={() => handleDocDownload(doc)} disabled={downloadingDocId === doc.id} className="p-2.5 rounded-xl bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors shadow-sm text-center disabled:opacity-60" title="Download Source File">
-                                                    {downloadingDocId === doc.id ? <Loader2 size={18} className="animate-spin" /> : <Download size={18} />}
+                                                <button onClick={() => handleDocDownload(doc)} disabled={downloadingDocId === doc.id} className="flex-1 py-2 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors text-xs font-bold flex items-center justify-center gap-1.5 disabled:opacity-60" title="Download">
+                                                    {downloadingDocId === doc.id ? <Loader2 size={15} className="animate-spin" /> : <><Download size={15} /> <span>Save</span></>}
                                                 </button>
                                             </div>
                                         </div>
@@ -713,107 +713,85 @@ export function DocumentsPage() {
                             {filteredDocs.map(doc => {
                                 const patient = patients.find(p => p.id === doc.patientId);
                                 return (
-                                    <div key={doc.id} className="glass-card rounded-2xl p-2.5 flex gap-2.5 items-center shadow-sm border border-white/40 hover:shadow-md hover:border-primary/30 transition-all group overflow-hidden">
+                                    /* Mobile-first list card: thumbnail | info | action column */
+                                    <div key={doc.id} className="glass-card rounded-2xl p-3 flex gap-3 items-start shadow-sm border border-white/40 hover:shadow-md hover:border-primary/30 transition-all group overflow-hidden">
+                                        {/* Thumbnail */}
                                         <button 
                                             onClick={() => {
                                                 setViewerData({ url: doc.url, title: doc.name, type: doc.type });
                                                 setViewerOpen(true);
                                             }}
-                                            className="w-12 h-12 rounded-[0.75rem] bg-white flex items-center justify-center flex-shrink-0 overflow-hidden relative border-2 border-slate-200 shadow-sm hover:border-primary/50 transition-colors cursor-pointer"
+                                            className="w-12 h-12 rounded-xl bg-white flex-shrink-0 overflow-hidden border-2 border-slate-200 shadow-sm hover:border-primary/50 transition-colors cursor-pointer flex items-center justify-center"
                                         >
                                             {doc.type.startsWith('image/') ? (
                                                 <img src={doc.url} alt={doc.name} className="w-full h-full object-cover" />
                                             ) : (
-                                                <FileText size={24} className="text-primary/70" />
+                                                <FileText size={22} className="text-primary/70" />
                                             )}
                                         </button>
+
+                                        {/* Info — fills remaining space, truncates */}
                                         <div className="flex-1 min-w-0 text-left">
-                                            <button 
-                                                onClick={() => {
-                                                    setViewerData({ url: doc.url, title: doc.name, type: doc.category || doc.type });
-                                                    setViewerOpen(true);
-                                                }}
-                                                className="font-bold text-[13px] hover:text-primary hover:underline transition-colors block truncate w-full text-left" 
-                                                title={doc.name}
-                                            >
-                                                {doc.name}
-                                            </button>
-                                            <div className="flex items-center gap-2 mt-0.5">
-                                                <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider px-2 py-0.5 bg-secondary rounded-md capitalize">
+                                            <p className="font-bold text-[13px] text-slate-900 truncate" title={doc.name}>{doc.name}</p>
+
+                                            {/* Type + Patient badges */}
+                                            <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                                                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider px-1.5 py-0.5 bg-slate-100 rounded-md">
                                                     {doc.type.split("/")[1] ?? doc.type}
                                                 </span>
                                                 {patient && (
-                                                    <span className="text-[11px] font-bold text-green-700 bg-green-50 border border-green-100 uppercase tracking-wider px-2 py-0.5 rounded-md truncate max-w-[100px]" title={patient.name}>
+                                                    <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-100 px-1.5 py-0.5 rounded-md truncate max-w-[80px]">
                                                         {patient.name}
                                                     </span>
                                                 )}
                                                 {(() => {
                                                     const linkCount = globalLifeEvents.filter(e => e.documentIds?.includes(doc.id)).length;
-                                                    if (linkCount > 0) {
-                                                        return (
-                                                            <button
-                                                                onClick={(e) => { e.stopPropagation(); setViewingLinksDoc(doc); }}
-                                                                className="text-[11px] font-bold text-violet-700 bg-violet-50 border border-violet-100 uppercase tracking-wider px-2 py-0.5 rounded-md flex items-center gap-1 hover:bg-violet-100 transition-colors shadow-sm"
-                                                                title={`Linked to ${linkCount} timeline events. Click to manage.`}
-                                                            >
-                                                                <Activity size={10} /> {t("documents.eventCount", { count: linkCount })}
-                                                            </button>
-                                                        );
-                                                    }
-                                                    return null;
+                                                    return linkCount > 0 ? (
+                                                        <button
+                                                            onClick={(e) => { e.stopPropagation(); setViewingLinksDoc(doc); }}
+                                                            className="text-[10px] font-bold text-violet-700 bg-violet-50 border border-violet-100 px-1.5 py-0.5 rounded-md flex items-center gap-0.5 hover:bg-violet-100 transition-colors"
+                                                        >
+                                                            <Activity size={9} /> {linkCount}
+                                                        </button>
+                                                    ) : null;
                                                 })()}
                                             </div>
-                                            <div className="flex gap-2 mt-2.5 flex-wrap">
+
+                                            {/* AI Summary buttons — wrap gracefully */}
+                                            <div className="flex gap-1.5 mt-2 flex-wrap">
                                                 {doc.aiSummaries && Object.keys(doc.aiSummaries).length > 0 ? (
                                                     Object.entries(doc.aiSummaries).map(([l, text]) => (
-                                                        <button
-                                                            key={l}
-                                                            onClick={() => setViewSummary({ text, lang: l })}
-                                                            className="text-[11px] font-bold text-violet-700 bg-violet-100 hover:bg-violet-200 px-2.5 py-1.5 flex items-center gap-1.5 rounded-lg transition-colors"
-                                                        >
-                                                            <Bot size={13} /> {t("documents.langSummary", { lang: l })}
+                                                        <button key={l} onClick={() => setViewSummary({ text, lang: l })} className="text-[10px] font-bold text-violet-700 bg-violet-100 hover:bg-violet-200 px-2 py-1 flex items-center gap-1 rounded-lg transition-colors">
+                                                            <Bot size={11} /> {l}
                                                         </button>
                                                     ))
-                                                ) : doc.aiSummary && typeof doc.aiSummary === 'string' && doc.aiSummary.length > 0 && !doc.aiSummary.includes("failed") ? (
-                                                    <button
-                                                        onClick={() => setViewSummary({ text: doc.aiSummary || "", lang: "English" })}
-                                                        className="text-[11px] font-bold text-violet-700 bg-violet-100 hover:bg-violet-200 px-2.5 py-1.5 flex items-center gap-1.5 rounded-lg transition-colors"
-                                                    >
-                                                        <Bot size={13} /> {t("documents.enSummary")}
+                                                ) : doc.aiSummary && !doc.aiSummary.includes("failed") ? (
+                                                    <button onClick={() => setViewSummary({ text: doc.aiSummary || "", lang: "English" })} className="text-[10px] font-bold text-violet-700 bg-violet-100 hover:bg-violet-200 px-2 py-1 flex items-center gap-1 rounded-lg transition-colors">
+                                                        <Bot size={11} /> EN
                                                     </button>
-                                                ) : doc.aiSummary && doc.aiSummary.includes("failed") ? (
-                                                    <span className="text-xs font-bold text-destructive bg-destructive/10 px-2 py-1 rounded-md flex items-center gap-1">{t("documents.analysisFailed")}</span>
+                                                ) : doc.aiSummary?.includes("failed") ? (
+                                                    <span className="text-[10px] font-bold text-rose-600 bg-rose-50 px-2 py-1 rounded-md">{t("documents.analysisFailed")}</span>
                                                 ) : null}
 
                                                 {!doc.aiSummary?.includes("failed") && (
-                                                    <button
-                                                        onClick={() => setShowLanguageModalForDoc(doc)}
-                                                        disabled={summarizingDocId === doc.id}
-                                                        className="text-xs font-bold text-emerald-700 bg-emerald-100 hover:bg-emerald-200 px-2.5 py-1.5 flex items-center gap-1.5 rounded-lg transition-colors disabled:opacity-50"
-                                                    >
-                                                        {summarizingDocId === doc.id ? (
-                                                            <><Loader2 size={14} className="animate-spin" /> {generationProgress || "Working..."}</>
-                                                        ) : (
-                                                            <><Globe size={13} /> {t("common.translate")}</>
-                                                        )}
+                                                    <button onClick={() => setShowLanguageModalForDoc(doc)} disabled={summarizingDocId === doc.id} className="text-[10px] font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-2 py-1 flex items-center gap-1 rounded-lg transition-colors disabled:opacity-50">
+                                                        {summarizingDocId === doc.id ? <Loader2 size={11} className="animate-spin" /> : <Globe size={11} />}
+                                                        {summarizingDocId === doc.id ? "..." : t("common.translate")}
                                                     </button>
                                                 )}
                                             </div>
                                         </div>
-                                        <div className="flex flex-col gap-2">
-                                            <button onClick={() => openEditDocModal(doc)} className="w-9 h-9 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center hover:bg-slate-200 hover:text-slate-900 transition-colors shadow-sm" title="Edit Document">
-                                                <Edit2 size={16} />
+
+                                        {/* Action column — vertical, fixed-width, always right-aligned */}
+                                        <div className="flex flex-col gap-1.5 flex-shrink-0">
+                                            <button onClick={() => openEditDocModal(doc)} className="size-9 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center hover:bg-slate-200 transition-colors" title="Edit">
+                                                <Edit2 size={15} />
                                             </button>
-                                            <button
-                                                onClick={() => handleDocDownload(doc)}
-                                                disabled={downloadingDocId === doc.id}
-                                                className="w-9 h-9 rounded-full bg-secondary text-secondary-foreground flex items-center justify-center hover:bg-secondary/80 transition-colors shadow-sm disabled:opacity-60"
-                                                title="Download Document"
-                                            >
-                                                {downloadingDocId === doc.id ? <Loader2 size={16} className="animate-spin" /> : <Download size={18} />}
+                                            <button onClick={() => handleDocDownload(doc)} disabled={downloadingDocId === doc.id} className="size-9 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center hover:bg-slate-200 transition-colors disabled:opacity-60" title="Download">
+                                                {downloadingDocId === doc.id ? <Loader2 size={15} className="animate-spin" /> : <Download size={15} />}
                                             </button>
-                                            <button onClick={() => openAddToTimeline(doc)} className="w-9 h-9 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center hover:bg-emerald-100 transition-colors shadow-sm" title="Add to Timeline">
-                                                <Activity size={18} />
+                                            <button onClick={() => openAddToTimeline(doc)} className="size-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center hover:bg-emerald-100 transition-colors" title="Add to Timeline">
+                                                <Activity size={15} />
                                             </button>
                                         </div>
                                     </div>
@@ -827,7 +805,7 @@ export function DocumentsPage() {
             {/* View Summary Modal */}
             {viewSummary && (
                 <div className="fixed inset-0 z-[60] bg-black/40 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4">
-                    <div className="w-full max-w-2xl glass-card rounded-t-[2.5rem] sm:rounded-[2.5rem] flex flex-col shadow-2xl animate-in slide-in-from-bottom-5 duration-300 max-h-[92vh] border border-white/50">
+                    <div className="w-full max-w-2xl glass-card rounded-t-[2.5rem] sm:rounded-[2.5rem] flex flex-col shadow-2xl animate-in slide-in-from-bottom-5 duration-300 max-h-[92dvh] border border-white/50">
                         <div className="p-6 border-b border-white/30 flex justify-between items-center bg-violet-50/50 rounded-t-[2.5rem] text-violet-900 flex-shrink-0 relative overflow-hidden">
                             <div className="absolute top-0 right-0 size-32 bg-violet-500/10 rounded-full blur-3xl pointer-events-none -z-10"></div>
                             <div className="relative z-10">
@@ -855,15 +833,15 @@ export function DocumentsPage() {
                                 </ReactMarkdown>
                             </div>
                         </div>
-                        <div className="p-4 border-t border-white/30 bg-primary/5 rounded-b-[2.5rem] flex-shrink-0">
+                        <div className="p-4 border-t border-white/30 bg-primary/5 rounded-b-[2.5rem] flex-shrink-0"
+                             style={{ paddingBottom: "calc(1rem + env(safe-area-inset-bottom, 0px))" }}>
                             <button onClick={() => setViewSummary(null)} className="w-full py-3.5 bg-primary text-primary-foreground hover:bg-primary/90 font-extrabold rounded-[1rem] transition-colors text-[15px] shadow-sm">
                                 {t("common.close")}
                             </button>
                         </div>
                     </div>
                 </div>
-            )
-            }
+            )}
 
             {/* Language Selection Modal */}
             {
@@ -941,7 +919,7 @@ export function DocumentsPage() {
             {/* Edit Document Modal */}
             {editingDoc && (
                 <div className="fixed inset-0 z-[70] bg-black/50 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={() => setEditingDoc(null)}>
-                    <div className="w-full max-w-xl bg-white rounded-t-[2.5rem] sm:rounded-[2.5rem] flex flex-col shadow-2xl max-h-[88vh]" onClick={e => e.stopPropagation()}>
+                    <div className="w-full max-w-xl bg-white rounded-t-[2.5rem] sm:rounded-[2.5rem] flex flex-col shadow-2xl max-h-[88dvh]" onClick={e => e.stopPropagation()}>
                         <div className="p-6 border-b flex justify-between items-center bg-slate-50 rounded-t-[2.5rem] flex-shrink-0">
                             <div>
                                 <h3 className="font-bold text-slate-900 flex items-center gap-2"><Edit2 size={18} className="text-emerald-600" /> {t("documents.editTitle")}</h3>
