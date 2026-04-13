@@ -1,4 +1,5 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { logUserAction } from "@/lib/audit";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -1088,6 +1089,10 @@ export function AIChatPage() {
 
         // Create chat if new
         let activeChatId = currentChatId;
+        
+        // Log telemetry
+        await logUserAction(user.uid, "AI_CHAT_STARTED", `Sent prompt to AI: ${attachedIds.length} doc(s) attached`);
+        
         if (!activeChatId) {
             const chatTitle = text 
                 ? text.slice(0, 60) + (text.length > 60 ? "..." : "")

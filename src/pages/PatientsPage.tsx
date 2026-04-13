@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { logUserAction } from "@/lib/audit";
 import { collection, query, where, getDocs, addDoc, doc, updateDoc, serverTimestamp, deleteDoc, setDoc } from "firebase/firestore";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { db, storage } from "@/lib/firebase";
@@ -216,6 +217,7 @@ export function PatientsPage() {
             if (editingId) {
                 await updateDoc(doc(db, "patients", editingId), { ...form, userId: user.uid });
                 patientIdToUse = editingId;
+                await logUserAction(user.uid, "PROFILE_UPDATED", `Updated patient profile: ${form.name}`, { patientId: editingId });
             } else {
                 const newDoc = await addDoc(collection(db, "patients"), {
                     ...form,
@@ -223,6 +225,7 @@ export function PatientsPage() {
                     createdAt: serverTimestamp()
                 });
                 patientIdToUse = newDoc.id;
+                await logUserAction(user.uid, "PATIENT_ADDED", `Added new patient: ${form.name}`, { patientId: newDoc.id });
             }
         } catch (err: any) {
             console.error("Patient save error:", err);

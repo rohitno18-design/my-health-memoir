@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
+import { logUserAction } from "@/lib/audit";
 import {
     onAuthStateChanged,
     signInWithEmailAndPassword,
@@ -286,6 +287,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
         await setDoc(doc(db, "users", currentUser.uid), data as Record<string, unknown>, { merge: true });
         setUserProfile(prev => prev ? { ...prev, ...data } : prev);
+        
+        // Log telemetry
+        await logUserAction(currentUser.uid, "PROFILE_UPDATED", "User updated metadata profile");
     };
 
     const updateUserEmail = async (newEmail: string, currentPassword: string) => {
@@ -342,10 +346,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const updateUserPassword = async (currentPassword: string, newPassword: string) => {
         const currentUser = auth.currentUser;
-        if (!currentUser || !currentUser.email) throw new Error("Email user not found");
-        const cred = EmailAuthProvider.credential(currentUser.email, currentPassword);
-        await reauthenticateWithCredential(currentUser, cred);
+        if (!currentUser) throw new Error("Not authenticated");
+        if (!currentUser.email) throw new Error("Please link an email address first");
+
+        // Re-authenticate first
+        const credential = EmailAuthProvider.credential(currentUser.email, currentPassword);
+        await reauthenticateWithCredential(currentUser, credential);
+        
+        // Then update 
         await firebaseUpdatePassword(currentUser, newPassword);
+        
+        // Log telemetry
+        await logUserAction(currentUser.uid, "PASSWORD_CHANGED", "User successfully changed password from settings");
     };
 
     const uploadProfilePhoto = async (file: File, onProgress?: (p: number) => void): Promise<string> => {

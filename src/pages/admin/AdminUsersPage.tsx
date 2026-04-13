@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
-import { collection, getDocs, query, orderBy, doc, updateDoc, deleteDoc } from "firebase/firestore";
+import { collection, getDocs, query, orderBy, doc, updateDoc, deleteDoc, getCountFromServer, where } from "firebase/firestore";
 import { createUserWithEmailAndPassword, sendSignInLinkToEmail } from "firebase/auth";
 import { auth, adminAuth, db } from "@/lib/firebase";
-import { Loader2, ArrowLeft, Search, ShieldAlert, Key, X, CheckSquare, Square, Trash2, Plus } from "lucide-react";
+import { Loader2, ArrowLeft, Search, ShieldAlert, Key, X, CheckSquare, Square, Trash2, Plus, Activity, FileText, Users, MessageSquare } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 interface UserRecord {
@@ -45,6 +45,43 @@ export function AdminUsersPage() {
     useEffect(() => {
         fetchUsers();
     }, []);
+
+    // Telemetry & Audit States
+    const [userModalTab, setUserModalTab] = useState<"overview" | "activity">("overview");
+    const [userMetrics, setUserMetrics] = useState({ patients: 0, documents: 0, aiChats: 0 });
+    const [userActivity, setUserActivity] = useState<any[]>([]);
+    const [loadingActivity, setLoadingActivity] = useState(false);
+
+    // Fetch Counters
+    useEffect(() => {
+        if (selectedUser) {
+            setUserModalTab("overview");
+            Promise.all([
+                getCountFromServer(query(collection(db, "patients"), where("userId", "==", selectedUser.id))),
+                getCountFromServer(query(collection(db, "documents"), where("userId", "==", selectedUser.id))),
+                getCountFromServer(query(collection(db, "audit_logs"), where("userId", "==", selectedUser.id), where("action", "==", "AI_CHAT_STARTED")))
+            ]).then(([pSnap, dSnap, aSnap]) => {
+                setUserMetrics({
+                    patients: pSnap.data().count,
+                    documents: dSnap.data().count,
+                    aiChats: aSnap.data().count
+                });
+            }).catch(e => console.error("Error fetching metrics:", e));
+        }
+    }, [selectedUser]);
+
+    // Fetch Activity Logs
+    useEffect(() => {
+        if (selectedUser && userModalTab === "activity") {
+            setLoadingActivity(true);
+            getDocs(query(collection(db, "audit_logs"), where("userId", "==", selectedUser.id), orderBy("timestamp", "desc")))
+                .then(snap => {
+                    setUserActivity(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+                })
+                .catch(e => console.error("Error fetching activity:", e))
+                .finally(() => setLoadingActivity(false));
+        }
+    }, [selectedUser, userModalTab]);
 
     // Derived Data
     const filteredUsers = users.filter(u => {
@@ -367,57 +404,130 @@ export function AdminUsersPage() {
                             </div>
                         </div>
 
-                        <div className="space-y-4 mb-8">
-                            <div className="bg-muted/30 p-3 rounded-xl border border-border/50">
-                                <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider mb-1">Email</p>
-                                <p className="font-medium text-sm">{selectedUser.email || "Not set"} {selectedUser.emailVerified && <span className="text-emerald-600 text-[10px] ml-2 font-bold uppercase tracking-wider">Verified</span>}</p>
-                            </div>
-                            
-                            <div className="bg-muted/30 p-3 rounded-xl border border-border/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                                <div>
-                                    <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider mb-1">Account Role</p>
-                                    <p className="font-medium text-sm capitalize">{selectedUser.role}</p>
-                                </div>
-                                {!selectedUser.suspended && (
-                                    <button
-                                        onClick={() => toggleRole(selectedUser.id, selectedUser.role)}
-                                        disabled={actionLoading}
-                                        className={`px-4 py-2 rounded-xl text-xs font-bold ${
-                                            selectedUser.role === 'admin' 
-                                                ? 'bg-red-50 text-red-600 hover:bg-red-100' 
-                                                : 'bg-amber-50 text-amber-700 hover:bg-amber-100'
-                                        }`}
-                                    >
-                                        {actionLoading ? "Updating..." : selectedUser.role === 'admin' ? "Revoke Admin" : "Make Admin"}
-                                    </button>
-                                )}
-                            </div>
+                        <div className="flex gap-2 border-b border-border pb-2 mb-6">
+                            <button
+                                onClick={() => setUserModalTab("overview")}
+                                className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all ${userModalTab === "overview" ? "bg-foreground text-background" : "bg-muted text-muted-foreground hover:bg-muted/80"}`}
+                            >
+                                Overview
+                            </button>
+                            <button
+                                onClick={() => setUserModalTab("activity")}
+                                className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all ${userModalTab === "activity" ? "bg-foreground text-background" : "bg-muted text-muted-foreground hover:bg-muted/80"}`}
+                            >
+                                Activity Feed
+                            </button>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-3">
-                            <button 
-                                onClick={() => handleSendMagicLink(selectedUser.email)}
-                                disabled={actionLoading || selectedUser.suspended}
-                                className="flex items-center justify-center gap-2 w-full py-3 bg-secondary text-secondary-foreground rounded-xl font-semibold text-sm hover:bg-secondary/80 disabled:opacity-50"
-                            >
-                                <Key size={16} /> Magic Link
-                            </button>
-                            <button 
-                                onClick={() => {
-                                    setSelectedIds(new Set([selectedUser.id]));
-                                    handleBulkSuspend(!selectedUser.suspended);
-                                    setSelectedUser(null);
-                                }}
-                                disabled={actionLoading}
-                                className={`flex items-center justify-center gap-2 w-full py-3 rounded-xl font-semibold text-sm disabled:opacity-50 ${
-                                    selectedUser.suspended 
-                                    ? 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100' 
-                                    : 'bg-red-50 text-red-600 hover:bg-red-100'
-                                }`}
-                            >
-                                <ShieldAlert size={16} /> {selectedUser.suspended ? 'Restore Account' : 'Suspend Account'}
-                            </button>
-                        </div>
+                        {userModalTab === "overview" ? (
+                            <>
+                                {/* Telemetry Stats */}
+                                <div className="grid grid-cols-3 gap-3 mb-6">
+                                    <div className="bg-primary/5 p-3 rounded-2xl flex flex-col items-center justify-center border border-primary/10">
+                                        <Users size={18} className="text-primary mb-1" />
+                                        <span className="text-xl font-extrabold text-foreground">{userMetrics.patients}</span>
+                                        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Patients</span>
+                                    </div>
+                                    <div className="bg-emerald-500/5 p-3 rounded-2xl flex flex-col items-center justify-center border border-emerald-500/10">
+                                        <FileText size={18} className="text-emerald-600 mb-1" />
+                                        <span className="text-xl font-extrabold text-foreground">{userMetrics.documents}</span>
+                                        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Docs</span>
+                                    </div>
+                                    <div className="bg-violet-500/5 p-3 rounded-2xl flex flex-col items-center justify-center border border-violet-500/10">
+                                        <MessageSquare size={18} className="text-violet-600 mb-1" />
+                                        <span className="text-xl font-extrabold text-foreground">{userMetrics.aiChats}</span>
+                                        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">AI Prompts</span>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-4 mb-8">
+                                    <div className="bg-muted/30 p-3 rounded-xl border border-border/50">
+                                        <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider mb-1">Email</p>
+                                        <p className="font-medium text-sm">{selectedUser.email || "Not set"} {selectedUser.emailVerified && <span className="text-emerald-600 text-[10px] ml-2 font-bold uppercase tracking-wider">Verified</span>}</p>
+                                    </div>
+                                    
+                                    <div className="bg-muted/30 p-3 rounded-xl border border-border/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                        <div>
+                                            <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider mb-1">Account Role</p>
+                                            <p className="font-medium text-sm capitalize">{selectedUser.role}</p>
+                                        </div>
+                                        {!selectedUser.suspended && (
+                                            <button
+                                                onClick={() => toggleRole(selectedUser.id, selectedUser.role)}
+                                                disabled={actionLoading}
+                                                className={`px-4 py-2 rounded-xl text-xs font-bold ${
+                                                    selectedUser.role === 'admin' 
+                                                        ? 'bg-red-50 text-red-600 hover:bg-red-100' 
+                                                        : 'bg-amber-50 text-amber-700 hover:bg-amber-100'
+                                                }`}
+                                            >
+                                                {actionLoading ? "Updating..." : selectedUser.role === 'admin' ? "Revoke Admin" : "Make Admin"}
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-3">
+                                    <button 
+                                        onClick={() => handleSendMagicLink(selectedUser.email)}
+                                        disabled={actionLoading || selectedUser.suspended}
+                                        className="flex items-center justify-center gap-2 w-full py-3 bg-secondary text-secondary-foreground rounded-xl font-semibold text-sm hover:bg-secondary/80 disabled:opacity-50"
+                                    >
+                                        <Key size={16} /> Magic Link
+                                    </button>
+                                    <button 
+                                        onClick={async () => {
+                                            const suspend = !selectedUser.suspended;
+                                            if (!confirm(`Are you sure you want to ${suspend ? 'suspend' : 'restore'} this user?`)) return;
+                                            setActionLoading(true);
+                                            try {
+                                                await updateDoc(doc(db, "users", selectedUser.id), { suspended: suspend });
+                                                setUsers(prev => prev.map(u => u.id === selectedUser.id ? { ...u, suspended: suspend } : u));
+                                                setSelectedUser(null);
+                                            } catch (e) {
+                                                alert("Action failed.");
+                                            } finally {
+                                                setActionLoading(false);
+                                            }
+                                        }}
+                                        disabled={actionLoading}
+                                        className={`flex items-center justify-center gap-2 w-full py-3 rounded-xl font-semibold text-sm disabled:opacity-50 ${
+                                            selectedUser.suspended 
+                                            ? 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100' 
+                                            : 'bg-red-50 text-red-600 hover:bg-red-100'
+                                        }`}
+                                    >
+                                        <ShieldAlert size={16} /> {selectedUser.suspended ? 'Restore Account' : 'Suspend Account'}
+                                    </button>
+                                </div>
+                            </>
+                        ) : (
+                            <div className="space-y-4 max-h-[50vh] overflow-y-auto pr-2 custom-scrollbar">
+                                {loadingActivity ? (
+                                    <div className="flex justify-center py-12"><Loader2 size={24} className="animate-spin text-primary" /></div>
+                                ) : userActivity.length === 0 ? (
+                                    <div className="text-center py-12 text-muted-foreground text-sm">No activity recorded yet.</div>
+                                ) : (
+                                    <div className="space-y-4 relative before:absolute before:inset-0 before:ml-[19px] before:-translate-x-px before:h-full before:w-0.5 before:bg-border">
+                                        {userActivity.map((log: any) => (
+                                            <div key={log.id} className="relative flex items-start gap-4">
+                                                <div className="flex items-center justify-center w-10 h-10 rounded-full border-4 border-background bg-muted text-muted-foreground shadow-sm shrink-0 z-10">
+                                                    <Activity size={14} />
+                                                </div>
+                                                <div className="flex-1 bg-muted/30 p-3.5 rounded-2xl border border-border/50">
+                                                    <div className="font-bold text-foreground text-sm tracking-tight">{log.action.replace(/_/g, " ")}</div>
+                                                    <div className="text-muted-foreground text-xs mt-0.5">{log.details}</div>
+                                                    <div className="text-primary/70 text-[10px] uppercase font-bold tracking-wider mt-2">
+                                                        {log.timestamp ? new Date(log.timestamp.toDate()).toLocaleString() : "Just now"}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        )}
                     </div>
                 </div>
             )}

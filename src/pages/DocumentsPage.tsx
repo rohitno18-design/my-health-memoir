@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { logUserAction } from "@/lib/audit";
 import ReactMarkdown from "react-markdown";
 import { collection, query, where, getDocs, updateDoc, doc as fsDoc, addDoc, serverTimestamp, deleteDoc } from "firebase/firestore";
 import { ref, deleteObject } from "firebase/storage";
@@ -242,6 +243,9 @@ export function DocumentsPage() {
 
             // Delete from Firestore
             await deleteDoc(fsDoc(db, "documents", editingDoc.id));
+
+            // Log telemetry
+            await logUserAction(user.uid, "DOCUMENT_DELETED", `User deleted document: ${editingDoc.name}`, { docId: editingDoc.id });
 
             setDocs(docs.filter(d => d.id !== editingDoc.id));
             setEditingDoc(null);
