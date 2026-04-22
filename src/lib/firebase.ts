@@ -3,7 +3,6 @@ import { getAuth } from "firebase/auth";
 import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 import { getAnalytics } from "firebase/analytics";
-import { initializeAppCheck, ReCaptchaEnterpriseProvider } from "firebase/app-check";
 
 const firebaseConfig = {
     apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -30,29 +29,26 @@ export const db = initializeFirestore(app, {
 });
 export const storage = getStorage(app);
 
-// Wait to initialize Analytics and App Check until running strictly in the browser
+// Initialize Analytics in the browser
 let analytics = null;
 if (typeof window !== "undefined") {
     analytics = getAnalytics(app);
-    
-    // Enable debug mode for App Check if in development mode
-    if (import.meta.env.DEV) {
-        (window as any).FIREBASE_APPCHECK_DEBUG_TOKEN = true;
-    }
-    
-    // Using a dummy key until the Google Cloud project generates a real reCAPTCHA Enterprise key
-    const recaptchaKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY || "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI";
-    
-    try {
-        initializeAppCheck(app, {
-            provider: new ReCaptchaEnterpriseProvider(recaptchaKey),
-            isTokenAutoRefreshEnabled: true
-        });
-        console.log("Firebase App Check initialized.");
-    } catch (e) {
-        console.error("Firebase App Check failed to initialize", e);
-    }
 }
+
+// NOTE: Firebase App Check is DISABLED.
+// The dummy reCAPTCHA Enterprise key was conflicting with Firebase Phone Auth's
+// RecaptchaVerifier in production (known Firebase SDK issue where both systems
+// compete for reCAPTCHA control, causing OTP verification failures).
+// To re-enable, obtain a REAL reCAPTCHA Enterprise site key from Google Cloud Console,
+// set it as VITE_RECAPTCHA_SITE_KEY in .env, and uncomment the App Check init below.
+//
+// import { initializeAppCheck, ReCaptchaEnterpriseProvider } from "firebase/app-check";
+// if (typeof window !== "undefined" && import.meta.env.VITE_RECAPTCHA_SITE_KEY) {
+//     initializeAppCheck(app, {
+//         provider: new ReCaptchaEnterpriseProvider(import.meta.env.VITE_RECAPTCHA_SITE_KEY),
+//         isTokenAutoRefreshEnabled: true
+//     });
+// }
 
 export { analytics };
 export default app;

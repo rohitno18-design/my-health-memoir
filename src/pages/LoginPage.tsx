@@ -1,29 +1,19 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import {
-    Heart, Mail, Lock, Eye, EyeOff, Loader2,
-    AlertTriangle, ArrowLeft
-} from "lucide-react";
-import PhoneInput from "react-phone-input-2";
-import "react-phone-input-2/lib/style.css";
-import { type ConfirmationResult } from "firebase/auth";
+import { Heart, Mail, Lock, Eye, EyeOff, Loader2, AlertTriangle, ArrowLeft } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 export function LoginPage() {
-    const { login, sendPhoneOtp, resetPassword } = useAuth();
+    const { login, resetPassword } = useAuth();
     const navigate = useNavigate();
     const { t } = useTranslation();
 
-    // Login method tabs
-    const [method, setMethod] = useState<"email" | "phone" | "otp" | "reset">("email");
-    const [confirmResult, setConfirmResult] = useState<ConfirmationResult | null>(null);
+    const [method, setMethod] = useState<"email" | "reset">("email");
 
     // Form states
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const [phone, setPhone] = useState("");
-    const [otp, setOtp] = useState("");
     const [showPw, setShowPw] = useState(false);
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
@@ -69,46 +59,9 @@ export function LoginPage() {
         } finally { setLoading(false); }
     };
 
-    const handlePhoneSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!phone || phone.length < 10) { setError(t("auth.invalidPhone")); return; }
-        setError(""); setLoading(true);
-        try {
-            const result = await sendPhoneOtp("+" + phone, "recaptcha-container");
-            setConfirmResult(result);
-            setMethod("otp");
-        } catch (err: unknown) {
-            console.error("Phone Auth Error:", err);
-            const code = (err as { code?: string })?.code;
-            if (code === "auth/invalid-phone-number") {
-                setError(t("auth.invalidPhone"));
-            } else {
-                setError(t("auth.errorTitle") + ": " + (err instanceof Error ? err.message : "Failed to send code"));
-            }
-        } finally { setLoading(false); }
-    };
-
-    const handleOtpSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!confirmResult) return;
-        setError(""); setLoading(true);
-        try {
-            await confirmResult.confirm(otp);
-            navigate("/dashboard");
-        } catch (err: unknown) {
-            const code = (err as { code?: string })?.code;
-            if (code === "auth/invalid-verification-code") {
-                setError(t("account.errInvalidCode"));
-            } else {
-                setError(t("auth.errorTitle"));
-            }
-        } finally { setLoading(false); }
-    };
-
     return (
-        <div className="min-h-screen soft-gradient-bg flex flex-col items-center justify-center px-6">
+        <div className="min-h-screen soft-gradient-bg flex flex-col items-center justify-center px-6 py-12">
             <div className="w-full max-w-sm">
-                {/* Logo */}
                 <div className="flex flex-col items-center mb-6">
                     <div className="w-16 h-16 rounded-2xl bg-primary flex items-center justify-center shadow-lg mb-4">
                         <Heart size={28} className="text-primary-foreground fill-primary-foreground" />
@@ -120,9 +73,10 @@ export function LoginPage() {
                 <div className="glass-card rounded-[2rem] shadow-2xl border border-white/50 p-6 sm:p-8 relative overflow-hidden group">
                     <div className="absolute top-0 right-0 size-32 bg-primary/10 rounded-full blur-3xl pointer-events-none -z-10 group-hover:bg-primary/20 transition-colors"></div>
                     <div className="absolute bottom-0 left-0 size-32 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none -z-10 group-hover:bg-emerald-500/20 transition-colors"></div>
-                    <h2 className="text-xl font-bold mb-6 text-slate-800 relative z-10">{t("auth.loginTitle")}</h2>
+                    <h2 className="text-xl font-bold mb-6 text-slate-800 relative z-10">
+                        {method === "reset" ? "Reset Password" : t("auth.loginTitle")}
+                    </h2>
 
-                    {/* Error / Message */}
                     {error && (
                         <div className="bg-destructive/10 text-destructive text-sm rounded-lg p-3 mb-4 flex items-center gap-2">
                             <AlertTriangle size={14} className="flex-shrink-0" />
@@ -135,29 +89,6 @@ export function LoginPage() {
                         </div>
                     )}
 
-                    {/* Method Tabs */}
-                    {method !== "otp" && method !== "reset" && (
-                        <div className="flex bg-muted/50 p-1 rounded-lg mb-6">
-                            <button
-                                type="button"
-                                onClick={() => { setMethod("email"); setError(""); }}
-                                className={`flex-1 text-sm font-bold py-2 rounded-md transition-colors ${method === "email" ? "bg-white shadow-sm text-primary" : "text-slate-500 hover:text-slate-800"}`}
-                            >
-                                {t("auth.email")}
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => { setMethod("phone"); setError(""); }}
-                                className={`flex-1 text-sm font-bold py-2 rounded-md transition-colors ${method === "phone" ? "bg-white shadow-sm text-primary" : "text-slate-500 hover:text-slate-800"}`}
-                            >
-                                {t("auth.phone")}
-                            </button>
-                        </div>
-                    )}
-
-                    <div id="recaptcha-container"></div>
-
-                    {/* Email form */}
                     {method === "email" && (
                         <form onSubmit={handleEmailSubmit} className="space-y-4">
                             <div>
@@ -199,57 +130,6 @@ export function LoginPage() {
                         </form>
                     )}
 
-                    {/* Phone form */}
-                    {method === "phone" && (
-                        <form onSubmit={handlePhoneSubmit} className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium mb-1.5">{t("auth.phone")}</label>
-                                <PhoneInput
-                                    country={'in'} value={phone}
-                                    onChange={p => setPhone(p)}
-                                    inputClass="!w-full !py-2.5 !h-auto !text-sm !rounded-lg !border-input !bg-background focus:!border-primary focus:!ring-2 focus:!ring-ring"
-                                    containerClass="!w-full"
-                                    buttonClass="!rounded-l-lg !border-input !bg-muted/30"
-                                />
-                            </div>
-                            <button type="submit" disabled={loading}
-                                className="w-full py-2.5 bg-primary text-primary-foreground rounded-lg font-medium text-sm hover:bg-primary/90 transition-colors disabled:opacity-60 flex items-center justify-center gap-2">
-                                {loading && <Loader2 size={16} className="animate-spin" />}
-                                {loading ? t("common.loading") : t("auth.sendCode")}
-                            </button>
-                        </form>
-                    )}
-
-                    {/* OTP form */}
-                    {method === "otp" && (
-                        <form onSubmit={handleOtpSubmit} className="space-y-4">
-                            <div className="bg-muted/50 p-4 rounded-xl border border-border">
-                                <p className="text-sm font-medium mb-1">{t("auth.verifyPhoneTitle")}</p>
-                                <p className="text-xs text-muted-foreground">
-                                    {t("auth.smsSent", { phone })}
-                                </p>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium mb-1.5">{t("auth.otpLabel")}</label>
-                                <input
-                                    type="text" value={otp}
-                                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
-                                    required placeholder="000000" maxLength={6}
-                                    className="w-full px-4 py-2.5 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring text-center tracking-widest text-lg font-semibold placeholder:font-normal placeholder:tracking-normal"
-                                />
-                            </div>
-                            <button type="submit" disabled={loading || otp.length < 6}
-                                className="w-full py-3 bg-primary text-primary-foreground rounded-xl font-bold text-sm hover:bg-primary/90 transition-all shadow-md disabled:opacity-60 flex items-center justify-center gap-2 active:scale-95">
-                                {loading ? <Loader2 size={16} className="animate-spin" /> : t("auth.verifyCode")}
-                            </button>
-                            <button type="button" onClick={() => { setMethod("phone"); setOtp(""); setError(""); }}
-                                className="w-full text-center text-sm flex items-center justify-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors mt-2">
-                                <ArrowLeft size={14} /> {t("common.back")}
-                            </button>
-                        </form>
-                    )}
-
-                    {/* Reset Password form */}
                     {method === "reset" && (
                         <form onSubmit={handleResetPassword} className="space-y-4">
                             <div className="bg-muted/50 p-4 rounded-xl border border-border">
@@ -281,9 +161,9 @@ export function LoginPage() {
                         </form>
                     )}
 
-                    <p className="text-sm text-center mt-4 text-muted-foreground">
+                    <p className="text-sm text-center mt-6 text-muted-foreground">
                         {t("auth.noAccount")}{" "}
-                        <Link to="/register" className="text-primary font-medium hover:underline">
+                        <Link to="/register" className="text-primary font-bold hover:underline">
                             {t("auth.registerTitle")}
                         </Link>
                     </p>

@@ -8,25 +8,26 @@ import {
     updateProfile as firebaseUpdateProfile,
     updatePassword as firebaseUpdatePassword,
     sendEmailVerification,
-    verifyBeforeUpdateEmail,
     sendPasswordResetEmail,
     deleteUser,
     EmailAuthProvider,
     reauthenticateWithCredential,
     reload,
-    RecaptchaVerifier,
-    signInWithPhoneNumber,
-    linkWithPhoneNumber,
-    linkWithCredential,
-    type ConfirmationResult,
+    verifyBeforeUpdateEmail,
     type User,
 } from "firebase/auth";
 import {
-    doc, getDoc, setDoc, deleteDoc, serverTimestamp, query,
-    collection, where, getDocs, addDoc
+    doc, getDoc, setDoc, deleteDoc, serverTimestamp, addDoc, collection
 } from "firebase/firestore";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { auth, db, storage } from "@/lib/firebase";
+
+// Action code settings — Firebase verifies email on its own domain,
+// then redirects the user back to imsmrti.app automatically.
+const actionCodeSettings = {
+    url: "https://imsmrti.app",
+    handleCodeInApp: false,
+};
 
 export interface UserProfile {
     uid: string;
@@ -62,11 +63,6 @@ interface AuthContextType {
     resetPassword: (email: string) => Promise<void>;
     deleteAccount: () => Promise<void>;
     uploadProfilePhoto: (file: File, onProgress?: (p: number) => void) => Promise<string>;
-    getRecaptchaVerifier: (containerId: string) => RecaptchaVerifier;
-    sendPhoneOtp: (phoneNumber: string, containerId: string) => Promise<ConfirmationResult>;
-    linkPhoneToAccount: (phoneNumber: string, containerId: string) => Promise<ConfirmationResult>;
-    linkEmailToAccount: (email: string, password: string) => Promise<void>;
-    checkPhoneUnique: (phoneNumber: string) => Promise<boolean>;
     logSecurityActivity: (type: string, oldValue: string, newValue: string, metadata?: any) => Promise<void>;
 }
 
@@ -143,32 +139,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return unsubscribe;
     }, []);
 
-    // ────────────── ReCAPTCHA management ──────────────
-    const getRecaptchaVerifier = (containerId: string): RecaptchaVerifier => {
-        // Always clear the old verifier to prevent "element removed" error
-        if ((window as any).recaptchaVerifier) {
-            try { (window as any).recaptchaVerifier.clear(); } catch { /* ignore */ }
-            (window as any).recaptchaVerifier = null;
-        }
 
-        // Ensure the container exists
-        const container = document.getElementById(containerId);
-        if (!container) {
-            console.error(`ReCAPTCHA container #${containerId} not found in DOM`);
-            // Fallback: create one
-            const fallback = document.createElement("div");
-            fallback.id = containerId;
-            document.body.appendChild(fallback);
-        }
-
-        const verifier = new RecaptchaVerifier(auth, containerId, {
-            size: "invisible",
-            callback: () => console.log("reCAPTCHA solved"),
-            'expired-callback': () => console.log("reCAPTCHA expired")
-        });
-        (window as any).recaptchaVerifier = verifier;
-        return verifier;
-    };
 
     // ────────────── Login ──────────────
     const login = async (email: string, password: string) => {
@@ -181,7 +152,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const cred = await createUserWithEmailAndPassword(auth, email, password);
         await firebaseUpdateProfile(cred.user, { displayName: name });
         // Send verification email
-        await sendEmailVerification(cred.user);
+        await sendEmailVerification(cred.user, actionCodeSettings);
         // Create Firestore profile
         const profile: UserProfile = {
             uid: cred.user.uid,
@@ -203,47 +174,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // User stays signed in — the VerificationGate will prompt them
     };
 
-    // ────────────── Phone OTP (for login) ──────────────
-    const sendPhoneOtp = async (phoneNumber: string, containerId: string) => {
-        const verifier = getRecaptchaVerifier(containerId);
-        return signInWithPhoneNumber(auth, phoneNumber, verifier);
-    };
-
-    // ────────────── Link phone to existing account ──────────────
-    const linkPhoneToAccount = async (phoneNumber: string, containerId: string) => {
-        if (!auth.currentUser) throw new Error("Not authenticated");
-        const verifier = getRecaptchaVerifier(containerId);
-        return linkWithPhoneNumber(auth.currentUser, phoneNumber, verifier);
-    };
-
-    // ────────────── Link email/password to existing phone account ──────────────
-    const linkEmailToAccount = async (email: string, password: string) => {
-        if (!auth.currentUser) throw new Error("Not authenticated");
-        const credential = EmailAuthProvider.credential(email, password);
-        await linkWithCredential(auth.currentUser, credential);
-        // Send verification email
-        await sendEmailVerification(auth.currentUser);
-        // Update Firestore
-        await setDoc(doc(db, "users", auth.currentUser.uid), {
-            email,
-            emailVerified: false,
-        }, { merge: true });
-        setUserProfile(prev => prev ? { ...prev, email, emailVerified: false } : prev);
-    };
-
-    // ────────────── Check phone uniqueness ──────────────
-    const checkPhoneUnique = async (phoneNumber: string): Promise<boolean> => {
-        const q = query(collection(db, "users"), where("phoneNumber", "==", phoneNumber));
-        const snap = await getDocs(q);
-        return snap.empty;
-    };
-
     const logout = async () => {
-        // Clean up recaptcha
-        if ((window as any).recaptchaVerifier) {
-            try { (window as any).recaptchaVerifier.clear(); } catch { /* ignore */ }
-            (window as any).recaptchaVerifier = null;
-        }
         await signOut(auth);
         setUserProfile(null);
     };
@@ -263,7 +194,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     /** Re-sends the email verification link */
     const resendVerification = async () => {
         if (!auth.currentUser) throw new Error("Not authenticated");
-        await sendEmailVerification(auth.currentUser);
+        await sendEmailVerification(auth.currentUser, actionCodeSettings);
     };
 
     /** Reloads the Firebase Auth user to pick up emailVerified changes */
@@ -312,10 +243,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (freshEmail) {
             const cred = EmailAuthProvider.credential(freshEmail, currentPassword);
             await reauthenticateWithCredential(currentUser, cred);
-        } else {
-            // If phone-only, we need to link the email/password first
-            const credential = EmailAuthProvider.credential(newEmail, currentPassword);
-            await linkWithCredential(currentUser, credential);
         }
 
         // Use the modern API that sends a verification link to the NEW address
@@ -411,8 +338,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             resetPassword, deleteAccount,
             resendVerification, refreshUser,
             updateUserProfile, updateUserEmail, updateUserPassword, uploadProfilePhoto,
-            getRecaptchaVerifier, sendPhoneOtp, linkPhoneToAccount, linkEmailToAccount,
-            checkPhoneUnique,
             logSecurityActivity,
         }}>
             {children}

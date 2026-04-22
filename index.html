@@ -19,6 +19,20 @@
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      // Nuclear cache buster — increment CACHE_VERSION on each deploy to force fresh code
+      (async function() {
+        var V = 'v6';
+        if (localStorage.getItem('_cv') !== V) {
+          var regs = await (navigator.serviceWorker ? navigator.serviceWorker.getRegistrations() : Promise.resolve([]));
+          for (var i = 0; i < regs.length; i++) { await regs[i].unregister(); }
+          var keys = await (window.caches ? caches.keys() : Promise.resolve([]));
+          for (var j = 0; j < keys.length; j++) { await caches.delete(keys[j]); }
+          localStorage.setItem('_cv', V);
+          if (regs.length > 0) { window.location.reload(); return; }
+        }
+      })();
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

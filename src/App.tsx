@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
-import { VerificationGate } from "@/components/VerificationGate";
+
 import { AppLayout } from "@/components/AppLayout";
 import { GlobalErrorBoundary } from "@/components/GlobalErrorBoundary";
 import { OfflineIndicator } from "@/components/OfflineIndicator";
@@ -61,13 +61,11 @@ function App() {
             <Route path="/privacy" element={<PrivacyPage />} />
             <Route path="/terms" element={<TermsPage />} />
 
-            {/* Protected routes — wrapped in VerificationGate */}
+            {/* Protected routes */}
             <Route
               element={
                 <ProtectedRoute>
-                  <VerificationGate>
-                    <AppLayout />
-                  </VerificationGate>
+                  <AppLayout />
                 </ProtectedRoute>
               }
             >

@@ -2,11 +2,10 @@ import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import {
-    Camera, User, Mail, Phone, Lock, ChevronRight,
+    Camera, User, Mail, Lock, ChevronRight,
     Check, Loader2, LogOut, Pencil, ShieldCheck,
     Calendar, Droplets, UserCircle, AlertTriangle, X,
-    Bell, Share2, Sparkles, CheckCircle2, ArrowRight,
-    RefreshCw, AlertCircle,
+    Bell, Share2, Sparkles, CheckCircle2, RefreshCw,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -14,9 +13,7 @@ import {
 } from "firebase/firestore";
 import { useTranslation } from "react-i18next";
 import { db } from "@/lib/firebase";
-import PhoneInput from "react-phone-input-2";
-import "react-phone-input-2/lib/style.css";
-import { type ConfirmationResult } from "firebase/auth";
+
 
 interface UserSettings {
     notifAppointments: boolean;
@@ -382,103 +379,6 @@ function ChangeEmailModal({ onClose, onSuccess }: { onClose: () => void; onSucce
     );
 }
 
-// ─── ChangePhoneModal ─────────────────────────────────────────────────────────
-function ChangePhoneModal({ onClose, onSuccess }: { onClose: () => void; onSuccess: (msg: string) => void }) {
-    const { t } = useTranslation();
-    const { userProfile, linkPhoneToAccount, updateUserProfile, refreshUser, logSecurityActivity, getRecaptchaVerifier } = useAuth();
-    const [phone, setPhone] = useState("");
-    const [otp, setOtp] = useState("");
-    const [step, setStep] = useState<"input" | "otp" | "done">("input");
-    const [confirmResult, setConfirmResult] = useState<ConfirmationResult | null>(null);
-    const [error, setError] = useState("");
-    const [loading, setLoading] = useState(false);
-
-    const recaptchaId = "recaptcha-phone-change";
-    const oldPhone = userProfile?.phoneNumber || "";
-
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            try { getRecaptchaVerifier(recaptchaId); } catch (e) { console.error(e); }
-        }, 500);
-        return () => clearTimeout(timer);
-    }, []);
-
-    const handleSendOtp = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setError(""); setLoading(true);
-        try {
-            const result = await linkPhoneToAccount("+" + phone, recaptchaId);
-            setConfirmResult(result);
-            setStep("otp");
-        } catch (err: unknown) {
-            console.error(err);
-            const code = (err as { code?: string })?.code;
-            if (code === "auth/provider-already-linked") {
-                 await updateUserProfile({ phoneNumber: "+" + phone, phoneVerified: true });
-                 setStep("done");
-                 onSuccess(t("account.msgPhoneUpdated"));
-                 return;
-            }
-            setError(t("account.errUpdateFailed"));
-        } finally { setLoading(false); }
-    };
-
-    const handleVerifyOtp = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!confirmResult) return;
-        setError(""); setLoading(true);
-        try {
-            await confirmResult.confirm(otp);
-            await updateUserProfile({ phoneNumber: "+" + phone, phoneVerified: true });
-            await logSecurityActivity("PHONE_CHANGE", oldPhone, "+" + phone, { notifiedOld: true });
-            await refreshUser();
-            setStep("done");
-            onSuccess(t("account.msgPhoneUpdated"));
-        } catch (err: unknown) {
-            setError(t("account.errInvalidCode"));
-        } finally { setLoading(false); }
-    };
-
-    return (
-        <div className="fixed inset-0 z-50 bg-black/40 flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
-            <div className="w-full max-w-lg glass-card border border-white/50 backdrop-blur-xl rounded-t-[2rem] sm:rounded-[2rem] p-6 space-y-4 max-h-[90vh] overflow-y-auto shadow-2xl relative z-10" onClick={e => e.stopPropagation()}>
-                <div className="flex items-center justify-between">
-                    <h2 className="font-bold">{t("account.changePhone")}</h2>
-                    <button onClick={onClose}><X size={18} /></button>
-                </div>
-                <div id={recaptchaId}></div>
-                {error && (
-                    <div className="bg-rose-50 text-rose-600 p-3 rounded-xl text-[12px] font-bold border border-rose-100 flex items-center gap-2 animate-in fade-in slide-in-from-top-2 duration-200">
-                        <AlertCircle size={14} />
-                        {error}
-                    </div>
-                )}
-                {step === "done" ? (
-                    <div className="text-center py-6">
-                        <div className="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-2"><Check size={32} className="text-emerald-600" /></div>
-                        <p className="font-bold text-lg">{t("account.done")}</p>
-                        <button onClick={onClose} className="w-full mt-4 py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-medium">{t("common.ok")}</button>
-                    </div>
-                ) : step === "input" ? (
-                    <form onSubmit={handleSendOtp} className="space-y-3">
-                        <PhoneInput country={'in'} value={phone} onChange={p => setPhone(p)} inputClass="!w-full !py-2.5 !h-auto !text-sm !rounded-xl !border-input !bg-background" containerClass="!w-full" buttonClass="!rounded-l-xl" />
-                        <button type="submit" disabled={loading} className="w-full py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-medium flex items-center justify-center gap-2">
-                             {loading ? <Loader2 className="animate-spin" size={14} /> : <ArrowRight size={14} />} {t("account.sendCode")}
-                        </button>
-                    </form>
-                ) : (
-                    <form onSubmit={handleVerifyOtp} className="space-y-3">
-                        <input type="text" value={otp} onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))} required placeholder="000000" maxLength={6}
-                           className="w-full px-3 py-2.5 rounded-xl border border-input bg-background text-sm text-center tracking-widest text-lg font-semibold" />
-                        <button type="submit" disabled={loading || otp.length < 6} className="w-full py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-medium">
-                            {t("account.verifyBtn")}
-                        </button>
-                    </form>
-                )}
-            </div>
-        </div>
-    );
-}
 
 // ─── DeleteAccountModal ────────────────────────────────────────────────────────
 function DeleteAccountModal({ onClose }: { onClose: () => void }) {
@@ -648,7 +548,6 @@ export function AccountPage() {
     const [photoUploading, setPhotoUploading] = useState(false);
     const [showPwModal, setShowPwModal] = useState(false);
     const [showEmailModal, setShowEmailModal] = useState(false);
-    const [showPhoneModal, setShowPhoneModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
     const fileRef = useRef<HTMLInputElement>(null);
@@ -766,16 +665,7 @@ export function AccountPage() {
                                     </div>
                                     <ChevronRight size={16} className="text-slate-300" />
                                 </button>
-                                <button onClick={() => setShowPhoneModal(true)} className="w-full flex items-center justify-between p-5 hover:bg-slate-50 transition-colors">
-                                    <div className="flex items-center gap-4">
-                                        <div className="size-11 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center"><Phone size={18} /></div>
-                                        <div className="text-left font-lexend">
-                                            <p className="text-sm font-black uppercase tracking-tight text-slate-900">{t("account.changePhone")}</p>
-                                            <p className="text-[10px] font-bold text-slate-400 mt-1">{userProfile?.phoneNumber || t("common.notSet")}</p>
-                                        </div>
-                                    </div>
-                                    <ChevronRight size={16} className="text-slate-300" />
-                                </button>
+
                                 <button onClick={() => setShowPwModal(true)} className="w-full flex items-center justify-between p-5 hover:bg-slate-50 transition-colors">
                                     <div className="flex items-center gap-4">
                                         <div className="size-11 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center"><Lock size={18} /></div>
@@ -806,7 +696,6 @@ export function AccountPage() {
 
             {showPwModal && <ChangePasswordModal onClose={() => setShowPwModal(false)} />}
             {showEmailModal && <ChangeEmailModal onClose={() => setShowEmailModal(false)} onSuccess={(m) => setToast({ message: m, type: "success" })} />}
-            {showPhoneModal && <ChangePhoneModal onClose={() => setShowPhoneModal(false)} onSuccess={(m) => setToast({ message: m, type: "success" })} />}
             {showDeleteModal && <DeleteAccountModal onClose={() => setShowDeleteModal(false)} />}
         </div>
     );
