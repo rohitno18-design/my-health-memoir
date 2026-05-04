@@ -265,6 +265,8 @@ export function LoginPage() {
                         <Link to="/register" className="text-primary font-bold hover:underline">Sign Up</Link>
                     </p>
                 </div>
+                {/* Firebase ReCaptcha Widget Container (Invisible) */}
+                <div id={recaptchaContainerId}></div>
             </div>
         </div>
     );
