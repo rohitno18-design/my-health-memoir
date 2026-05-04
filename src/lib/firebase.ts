@@ -4,16 +4,18 @@ import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager
 import { getStorage } from "firebase/storage";
 import { getAnalytics } from "firebase/analytics";
 
-// ─── NEW PROJECT CONFIG ────────────────────────────────────────────────────────
-// All keys come from .env — see .env file for setup instructions.
+// ─── PROJECT CONFIG: im-smrti ─────────────────────────────────────────────────
+// Env vars are injected at build time. Fallback values ensure CI builds without
+// secrets still produce a working app (Firebase client keys are not secret —
+// security is enforced entirely via Firestore/Storage rules).
 const firebaseConfig = {
-    apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+    apiKey: import.meta.env.VITE_FIREBASE_API_KEY ?? "AIzaSyC5c1HePuiM84Z8qqhJJH603K0uIwo-JGQ",
     authDomain: "imsmrti.app",
-    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-    storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-    messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-    appId: import.meta.env.VITE_FIREBASE_APP_ID,
-    measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
+    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID ?? "im-smrti",
+    storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET ?? "im-smrti.firebasestorage.app",
+    messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID ?? "541123545766",
+    appId: import.meta.env.VITE_FIREBASE_APP_ID ?? "1:541123545766:web:c4266829082bd3ef1cc267",
+    measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID ?? "G-2P2P5KYKBK",
 };
 
 const app = initializeApp(firebaseConfig);
