@@ -12,12 +12,9 @@ import {
     sendPasswordResetEmail,
     deleteUser,
     EmailAuthProvider,
-
     reauthenticateWithCredential,
-    linkWithCredential,
     reload,
     verifyBeforeUpdateEmail,
-    RecaptchaVerifier,
     type User,
     type ConfirmationResult,
 } from "firebase/auth";
@@ -58,7 +55,7 @@ interface AuthContextType {
     // Phone auth
     sendOtp: (phoneNumber: string, recaptchaContainerId: string) => Promise<ConfirmationResult>;
     confirmOtp: (confirmationResult: ConfirmationResult, otp: string, name: string, email?: string) => Promise<void>;
-    // Email auth (fallback login)
+    // Email auth (fallback)
     login: (email: string, password: string) => Promise<void>;
     registerWithEmail: (email: string, password: string, name: string) => Promise<void>;
     logout: () => Promise<void>;
@@ -79,7 +76,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
     const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
     const [loading, setLoading] = useState(true);
-    const recaptchaVerifierRef = useRef<RecaptchaVerifier | null>(null);
+    // Store recaptcha verifier instance ID so we can clear it before creating a new one
+    const recaptchaVerifierRef = useRef<any>(null);
 
     const fetchOrCreateProfile = async (firebaseUser: User) => {
         const docRef = doc(db, "users", firebaseUser.uid);
@@ -134,29 +132,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return unsubscribe;
     }, []);
 
-    // ────────────── Invisible reCAPTCHA setup ──────────────
-    const setupRecaptcha = (containerId: string): RecaptchaVerifier => {
-        // Destroy old instance if it exists
+    // ── Send OTP: dynamically import RecaptchaVerifier to avoid module-level crash ──
+    const sendOtp = async (phoneNumber: string, recaptchaContainerId: string): Promise<ConfirmationResult> => {
+        // Destroy old verifier if it exists
         if (recaptchaVerifierRef.current) {
             try { recaptchaVerifierRef.current.clear(); } catch (_) {}
             recaptchaVerifierRef.current = null;
         }
-        const verifier = new RecaptchaVerifier(auth, containerId, {
+
+        // Dynamic import so RecaptchaVerifier never runs at module parse time
+        const { RecaptchaVerifier } = await import("firebase/auth");
+        const verifier = new RecaptchaVerifier(auth, recaptchaContainerId, {
             size: "invisible",
             callback: () => {},
         });
         recaptchaVerifierRef.current = verifier;
-        return verifier;
+
+        return await signInWithPhoneNumber(auth, phoneNumber, verifier);
     };
 
-    // ────────────── Send OTP ──────────────
-    const sendOtp = async (phoneNumber: string, recaptchaContainerId: string): Promise<ConfirmationResult> => {
-        const verifier = setupRecaptcha(recaptchaContainerId);
-        const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, verifier);
-        return confirmationResult;
-    };
-
-    // ────────────── Confirm OTP + create profile ──────────────
+    // ── Confirm OTP + create/update Firestore profile ──
     const confirmOtp = async (
         confirmationResult: ConfirmationResult,
         otp: string,
@@ -166,47 +161,55 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const cred = await confirmationResult.confirm(otp);
         const firebaseUser = cred.user;
 
-        // Set display name
-        await firebaseUpdateProfile(firebaseUser, { displayName: name });
+        // Only update display name if provided
+        if (name && name.trim()) {
+            await firebaseUpdateProfile(firebaseUser, { displayName: name.trim() });
+        }
 
-        // Build profile
-        const profile: UserProfile = {
+        // Build/merge Firestore profile
+        const profileData: Partial<UserProfile> = {
             uid: firebaseUser.uid,
-            email: email || null,
-            displayName: name,
             phoneNumber: firebaseUser.phoneNumber,
-            photoURL: null,
-            bio: null, gender: null, dob: null, bloodGroup: null,
-            emailVerified: false,
-            phoneVerified: true, // Phone was just verified via OTP
+            phoneVerified: true,
             role: "patient",
-            createdAt: serverTimestamp(),
         };
 
-        await setDoc(doc(db, "users", firebaseUser.uid), profile, { merge: true });
-        setUserProfile(profile);
+        if (name && name.trim()) profileData.displayName = name.trim();
+        if (email) profileData.email = email;
 
-        // Silently link email + send verification in background (non-blocking)
+        // Check if profile already exists
+        const docRef = doc(db, "users", firebaseUser.uid);
+        const snap = await getDoc(docRef);
+        if (!snap.exists()) {
+            // New user — create full profile
+            await setDoc(docRef, {
+                ...profileData,
+                displayName: name?.trim() || firebaseUser.displayName || "User",
+                email: email || null,
+                photoURL: null,
+                bio: null, gender: null, dob: null, bloodGroup: null,
+                emailVerified: false,
+                createdAt: serverTimestamp(),
+            });
+        } else {
+            // Existing user — just update phone verification
+            await setDoc(docRef, profileData, { merge: true });
+        }
+
+        // Silently send email verification in background if email provided
         if (email) {
-            try {
-                const emailCred = EmailAuthProvider.credential(email, firebaseUser.uid);
-                await linkWithCredential(firebaseUser, emailCred).catch(() => {
-                    // Email may already be in use — just store it without linking Auth
-                });
-                await sendEmailVerification(firebaseUser, actionCodeSettings);
-                await setDoc(doc(db, "users", firebaseUser.uid), { email }, { merge: true });
-            } catch (_) {
-                // Silent — email verification is background, not blocking
-            }
+            sendEmailVerification(firebaseUser, actionCodeSettings).catch(() => {
+                // Silent — background only
+            });
         }
     };
 
-    // ────────────── Email login (fallback) ──────────────
+    // ── Email login (fallback) ──
     const login = async (email: string, password: string) => {
         await signInWithEmailAndPassword(auth, email, password);
     };
 
-    // ────────────── Email register (fallback) ──────────────
+    // ── Email register (fallback) ──
     const registerWithEmail = async (email: string, password: string, name: string) => {
         const cred = await createUserWithEmailAndPassword(auth, email, password);
         await firebaseUpdateProfile(cred.user, { displayName: name });
@@ -222,7 +225,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     const logout = async () => { await signOut(auth); setUserProfile(null); };
-
     const resetPassword = async (email: string) => { await sendPasswordResetEmail(auth, email); };
 
     const deleteAccount = async () => {
@@ -325,7 +327,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         await internalLogActivity(auth.currentUser.uid, type, oldValue, newValue, metadata);
     };
 
-    const isFullyVerified = !!(userProfile?.emailVerified && userProfile?.phoneVerified);
+    const isFullyVerified = !!(userProfile?.emailVerified || userProfile?.phoneVerified);
 
     return (
         <AuthContext.Provider value={{

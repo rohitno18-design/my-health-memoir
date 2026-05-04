@@ -10,11 +10,13 @@ import { OfflineIndicator } from "@/components/OfflineIndicator";
 import { Loader2 } from "lucide-react";
 
 // Critical fast path (Main UI Thread optimization)
-import { LoginPage } from "@/pages/LoginPage";
-import { RegisterPage } from "@/pages/RegisterPage";
 import { DashboardPage } from "@/pages/DashboardPage";
 import { PulsePage } from "@/pages/PulsePage";
 import { EmergencyPage } from "@/pages/EmergencyPage";
+
+// Auth pages — lazy loaded to isolate phone-input CSS from root bundle
+const LoginPage = lazy(() => import("@/pages/LoginPage").then(m => ({ default: m.LoginPage })));
+const RegisterPage = lazy(() => import("@/pages/RegisterPage").then(m => ({ default: m.RegisterPage })));
 
 // Lazy Loaded (Split Chunks)
 const AccountPage = lazy(() => import("@/pages/AccountPage").then(m => ({ default: m.AccountPage })));
