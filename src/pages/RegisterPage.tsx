@@ -12,7 +12,7 @@ import "react-phone-input-2/lib/style.css";
 type Step = "phone" | "otp" | "profile";
 
 export function RegisterPage() {
-    const { sendOtp, confirmOtp } = useAuth();
+    const { sendOtp, setupPhoneProfile } = useAuth();
     const navigate = useNavigate();
 
     const [step, setStep] = useState<Step>("phone");
@@ -69,7 +69,7 @@ export function RegisterPage() {
         if (!confirmationResult) return;
         setError(""); setLoading(true);
         try {
-            await confirmOtp(confirmationResult, otp, name.trim(), email || undefined);
+            await setupPhoneProfile(name.trim(), email || undefined);
             navigate("/dashboard");
         } catch (err: unknown) {
             setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");

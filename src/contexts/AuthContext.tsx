@@ -55,6 +55,7 @@ interface AuthContextType {
     // Phone auth
     sendOtp: (phoneNumber: string, recaptchaContainerId: string) => Promise<ConfirmationResult>;
     confirmOtp: (confirmationResult: ConfirmationResult, otp: string, name: string, email?: string) => Promise<void>;
+    setupPhoneProfile: (name: string, email?: string) => Promise<void>;
     // Email auth (fallback)
     login: (email: string, password: string) => Promise<void>;
     registerWithEmail: (email: string, password: string, name: string) => Promise<void>;
@@ -151,16 +152,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return await signInWithPhoneNumber(auth, phoneNumber, verifier);
     };
 
-    // ── Confirm OTP + create/update Firestore profile ──
-    const confirmOtp = async (
-        confirmationResult: ConfirmationResult,
-        otp: string,
-        name: string,
-        email?: string
-    ): Promise<void> => {
-        const cred = await confirmationResult.confirm(otp);
-        const firebaseUser = cred.user;
-
+    // ── Setup Phone Profile (called after OTP is verified) ──
+    const setupPhoneProfile = async (name: string, email?: string, existingUser?: User): Promise<void> => {
+        const firebaseUser = existingUser || auth.currentUser;
+        if (!firebaseUser) throw new Error("No authenticated user found.");
+        
         // Only update display name if provided
         if (name && name.trim()) {
             await firebaseUpdateProfile(firebaseUser, { displayName: name.trim() });
@@ -202,6 +198,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 // Silent — background only
             });
         }
+        
+        await fetchOrCreateProfile(firebaseUser);
+    };
+
+    // ── Confirm OTP + create/update Firestore profile ──
+    const confirmOtp = async (
+        confirmationResult: ConfirmationResult,
+        otp: string,
+        name: string,
+        email?: string
+    ): Promise<void> => {
+        const cred = await confirmationResult.confirm(otp);
+        await setupPhoneProfile(name, email, cred.user);
     };
 
     // ── Email login (fallback) ──
@@ -334,7 +343,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             user, userProfile, loading,
             isAdmin: userProfile?.role === "admin" || user?.email === "rohit.official36@gmail.com",
             isFullyVerified,
-            sendOtp, confirmOtp,
+            sendOtp, confirmOtp, setupPhoneProfile,
             login, registerWithEmail, logout,
             resetPassword, deleteAccount,
             resendVerification, refreshUser,
