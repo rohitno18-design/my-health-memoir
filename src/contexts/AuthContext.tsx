@@ -60,7 +60,7 @@ interface AuthContextType {
     login: (email: string, password: string) => Promise<void>;
     registerWithEmail: (email: string, password: string, name: string) => Promise<void>;
     logout: () => Promise<void>;
-    resendVerification: () => Promise<void>;
+    resendVerification: (pendingEmail?: string) => Promise<void>;
     refreshUser: () => Promise<void>;
     updateUserProfile: (data: Partial<UserProfile>) => Promise<void>;
     updateUserEmail: (newEmail: string, currentPassword: string) => Promise<void>;
@@ -194,9 +194,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         // Silently send email verification in background if email provided
         if (email) {
-            sendEmailVerification(firebaseUser, actionCodeSettings).catch(() => {
-                // Silent — background only
-            });
+            if (!firebaseUser.email) {
+                verifyBeforeUpdateEmail(firebaseUser, email, actionCodeSettings).catch(() => {});
+            } else {
+                sendEmailVerification(firebaseUser, actionCodeSettings).catch(() => {});
+            }
         }
         
         await fetchOrCreateProfile(firebaseUser);
@@ -244,9 +246,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUserProfile(null);
     };
 
-    const resendVerification = async () => {
+    const resendVerification = async (pendingEmail?: string) => {
         if (!auth.currentUser) throw new Error("Not authenticated");
-        await sendEmailVerification(auth.currentUser, actionCodeSettings);
+        if (!auth.currentUser.email && pendingEmail) {
+            await verifyBeforeUpdateEmail(auth.currentUser, pendingEmail, actionCodeSettings);
+        } else {
+            await sendEmailVerification(auth.currentUser, actionCodeSettings);
+        }
     };
 
     const refreshUser = async () => {

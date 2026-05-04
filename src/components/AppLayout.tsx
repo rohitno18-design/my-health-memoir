@@ -15,7 +15,7 @@ function VerificationBanner() {
     const handleResend = async () => {
         setSending(true);
         try {
-            await resendVerification();
+            await resendVerification(userProfile.email || undefined);
             setSent(true);
         } catch (error) {
             console.error("Failed to resend verification", error);
