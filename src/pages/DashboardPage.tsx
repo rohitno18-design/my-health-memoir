@@ -94,16 +94,19 @@ export function DashboardPage() {
         });
 
         const currentPatientId = form.patientId || (patients.length > 0 ? patients[0].id : null);
-        if (!currentPatientId) return;
 
-        const qVitals = query(collection(db, "vitals"), where("userId", "==", user.uid), where("patientId", "==", currentPatientId));
-        const unsubVitals = onSnapshot(qVitals, (snap) => {
-            setVitals(snap.docs.map(d => d.data()));
-        });
+        // Only subscribe to vitals if we have a patient ID
+        let unsubVitals: (() => void) | null = null;
+        if (currentPatientId) {
+            const qVitals = query(collection(db, "vitals"), where("userId", "==", user.uid), where("patientId", "==", currentPatientId));
+            unsubVitals = onSnapshot(qVitals, (snap) => {
+                setVitals(snap.docs.map(d => d.data()));
+            });
+        }
 
         return () => {
             unsubPatients();
-            unsubVitals();
+            if (unsubVitals) unsubVitals();
         };
     }, [user, form.patientId]);
 
@@ -114,7 +117,7 @@ export function DashboardPage() {
         return t("dashboard.evening");
     };
 
-    const handleFileSelect = (file: File) => {
+    const handleFileSelect = (file: File | null | undefined) => {
         if (!file) return;
         setSelectedFile(file);
         setUploadStep("form");
@@ -190,9 +193,13 @@ export function DashboardPage() {
                 navigate("/documents");
             }
 
-        } catch (err) {
-            console.error(err);
+        } catch (err: any) {
+            console.error("Upload/Analyze error:", err);
             setUploadStep("idle");
+            setSelectedFile(null);
+            // Show user-friendly error — never let errors silently leave a white screen
+            const msg = err?.message || "Upload failed. Please check your connection and try again.";
+            alert(msg);
         }
     };
 
@@ -316,8 +323,8 @@ export function DashboardPage() {
             </main>
 
             {/* Modals & Inputs */}
-            <input type="file" accept="image/*" capture="environment" className="hidden" ref={cameraInputRef} onChange={(e) => handleFileSelect(e.target.files?.[0]!)} />
-            <input type="file" accept=".pdf,image/*" className="hidden" ref={fileInputRef} onChange={(e) => handleFileSelect(e.target.files?.[0]!)} />
+            <input type="file" accept="image/*" capture="environment" className="hidden" ref={cameraInputRef} onChange={(e) => handleFileSelect(e.target.files?.[0])} />
+            <input type="file" accept=".pdf,image/*" className="hidden" ref={fileInputRef} onChange={(e) => handleFileSelect(e.target.files?.[0])} />
 
             <AnimatePresence>
               {uploadStep === "uploading" && (

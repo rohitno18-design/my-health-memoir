@@ -27,21 +27,28 @@ export class GlobalErrorBoundary extends Component<Props, State> {
   public render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6 pb-32">
-          <div className="w-full max-w-sm glass-card rounded-[2rem] p-8 text-center shadow-xl border border-white/50 relative overflow-hidden">
-            <div className="absolute top-0 right-0 size-32 bg-rose-500/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
-            <div className="size-16 rounded-3xl bg-rose-50 text-rose-500 flex items-center justify-center mx-auto mb-6 shadow-sm border border-rose-100/50">
+        <div className="min-h-screen bg-rose-50 flex items-center justify-center p-6 pb-32">
+          <div className="w-full max-w-sm bg-white rounded-[2rem] p-8 text-center shadow-xl border border-rose-100">
+            <div className="size-16 rounded-3xl bg-rose-100 text-rose-500 flex items-center justify-center mx-auto mb-6 shadow-sm border border-rose-200">
               <AlertTriangle size={32} />
             </div>
             
             <h1 className="text-xl font-black text-slate-900 mb-2">Something went wrong</h1>
-            <p className="text-sm font-medium text-slate-500 mb-8 leading-relaxed">
+            <p className="text-sm font-medium text-slate-500 mb-4 leading-relaxed">
               We encountered an unexpected error. Please refresh the app to continue.
             </p>
             
+            {this.state.error && (
+              <div className="bg-slate-100 rounded-xl p-3 mb-6 text-left">
+                <p className="text-[11px] font-mono text-rose-700 break-all leading-relaxed">
+                  {this.state.error.message}
+                </p>
+              </div>
+            )}
+            
             <button
               onClick={() => window.location.reload()}
-              className="w-full py-3.5 bg-primary text-white rounded-xl text-sm font-black flex items-center justify-center gap-2 active:scale-95 transition-transform shadow-md"
+              className="w-full py-3.5 bg-rose-500 text-white rounded-xl text-sm font-black flex items-center justify-center gap-2 active:scale-95 transition-transform shadow-md"
             >
               <RefreshCw size={16} />
               Reload Application
@@ -51,7 +58,7 @@ export class GlobalErrorBoundary extends Component<Props, State> {
                     onClick={() => { localStorage.clear(); window.location.href = "/"; }}
                     className="text-[10px] uppercase font-bold tracking-wider text-slate-400 hover:text-slate-600 transition-colors"
                 >
-                    Clear Cache & Restart
+                    Clear Cache &amp; Restart
                 </button>
             </div>
           </div>
