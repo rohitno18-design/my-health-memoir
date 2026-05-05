@@ -219,7 +219,7 @@ function GenderSelect({ value, onSave }: { value: string; onSave: (v: string) =>
 // ─── ChangePasswordModal ──────────────────────────────────────────────────────
 function ChangePasswordModal({ onClose }: { onClose: () => void }) {
     const { t } = useTranslation();
-    const { updateUserPassword, logSecurityActivity } = useAuth();
+    const { updateUserPassword, logSecurityActivity, hasPassword } = useAuth();
     const [current, setCurrent] = useState("");
     const [next, setNext] = useState("");
     const [confirm, setConfirm] = useState("");
@@ -253,7 +253,7 @@ function ChangePasswordModal({ onClose }: { onClose: () => void }) {
         <div className="fixed inset-0 z-50 bg-black/40 flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
             <div className="w-full max-w-lg glass-card border border-white/50 backdrop-blur-xl rounded-t-[2rem] sm:rounded-[2rem] p-6 space-y-4 max-h-[90vh] overflow-y-auto shadow-2xl relative z-10" onClick={e => e.stopPropagation()}>
                 <div className="flex items-center justify-between">
-                    <h2 className="font-bold">{t("account.changePassword")}</h2>
+                    <h2 className="font-bold">{hasPassword ? t("account.changePassword") : "Create Password"}</h2>
                     <button onClick={onClose}><X size={18} /></button>
                 </div>
                 {done ? (
@@ -266,9 +266,15 @@ function ChangePasswordModal({ onClose }: { onClose: () => void }) {
                 ) : (
                     <form onSubmit={handleSubmit} className="space-y-3">
                         {error && <div className="bg-destructive/10 text-destructive text-xs rounded-lg p-2.5 flex items-center gap-2"><AlertTriangle size={13} />{error}</div>}
+                        {hasPassword && (
+                            <div>
+                                <label className="block text-xs font-medium mb-1">{t("account.currentPassword")}</label>
+                                <input type="password" value={current} onChange={e => setCurrent(e.target.value)} required
+                                    className="w-full px-3 py-2.5 rounded-xl border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
+                            </div>
+                        )}
                         {[
-                            { label: t("account.currentPassword"), val: current, set: setCurrent },
-                            { label: t("account.newPassword"), val: next, set: setNext },
+                            { label: hasPassword ? t("account.newPassword") : "Create Password", val: next, set: setNext },
                             { label: t("account.confirmPassword"), val: confirm, set: setConfirm },
                         ].map(({ label, val, set }) => (
                             <div key={label}>
@@ -280,7 +286,7 @@ function ChangePasswordModal({ onClose }: { onClose: () => void }) {
                         <button type="submit" disabled={saving}
                             className="w-full py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-medium flex items-center justify-center gap-2 disabled:opacity-60">
                             {saving && <Loader2 size={14} className="animate-spin" />}
-                            {t("account.updateBtn")}
+                            {hasPassword ? t("account.updateBtn") : "Create Password"}
                         </button>
                     </form>
                 )}
@@ -541,7 +547,7 @@ function SecurityHistory({ userId }: { userId: string }) {
 
 // ─── AccountPage ──────────────────────────────────────────────────────────────
 export function AccountPage() {
-    const { user, userProfile, logout, refreshUser, updateUserProfile, uploadProfilePhoto } = useAuth();
+    const { user, userProfile, logout, refreshUser, updateUserProfile, uploadProfilePhoto, hasPassword } = useAuth();
     const { t } = useTranslation();
     const navigate = useNavigate();
     const [section, setSection] = useState<Section>("info");
@@ -670,8 +676,8 @@ export function AccountPage() {
                                     <div className="flex items-center gap-4">
                                         <div className="size-11 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center"><Lock size={18} /></div>
                                         <div className="text-left font-lexend">
-                                            <p className="text-sm font-black uppercase tracking-tight text-slate-900">{t("account.changePassword")}</p>
-                                            <p className="text-[10px] font-bold text-slate-400 mt-1">••••••••</p>
+                                            <p className="text-sm font-black uppercase tracking-tight text-slate-900">{hasPassword ? t("account.changePassword") : "Create Password"}</p>
+                                            <p className="text-[10px] font-bold text-slate-400 mt-1">{hasPassword ? "••••••••" : "Not set"}</p>
                                         </div>
                                     </div>
                                     <ChevronRight size={16} className="text-slate-300" />

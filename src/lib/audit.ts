@@ -4,6 +4,7 @@ import { db } from "@/lib/firebase";
 export type AuditActionType = 
     | "ACCOUNT_CREATED" 
     | "PASSWORD_CHANGED" 
+    | "PASSWORD_CREATED"
     | "PROFILE_UPDATED" 
     | "PATIENT_ADDED" 
     | "PATIENT_REMOVED"

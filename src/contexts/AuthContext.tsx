@@ -52,6 +52,7 @@ interface AuthContextType {
     loading: boolean;
     isAdmin: boolean;
     isFullyVerified: boolean;
+    hasPassword: boolean;
     // Phone auth
     sendOtp: (phoneNumber: string, recaptchaContainerId: string) => Promise<ConfirmationResult>;
     confirmOtp: (confirmationResult: ConfirmationResult, otp: string, name: string, email?: string) => Promise<void>;
@@ -302,11 +303,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const updateUserPassword = async (currentPassword: string, newPassword: string) => {
         const currentUser = auth.currentUser;
         if (!currentUser) throw new Error("Not authenticated");
-        if (!currentUser.email) throw new Error("Please link an email address first");
-        const credential = EmailAuthProvider.credential(currentUser.email, currentPassword);
-        await reauthenticateWithCredential(currentUser, credential);
+        if (!currentUser.email) throw new Error("Please link an email address first to set a password.");
+        
+        const userHasPassword = currentUser.providerData.some(p => p.providerId === 'password');
+        
+        if (userHasPassword) {
+            if (!currentPassword) throw new Error("Current password is required.");
+            const credential = EmailAuthProvider.credential(currentUser.email, currentPassword);
+            await reauthenticateWithCredential(currentUser, credential);
+        }
+        
         await firebaseUpdatePassword(currentUser, newPassword);
-        await logUserAction(currentUser.uid, "PASSWORD_CHANGED", "User successfully changed password from settings");
+        await reload(currentUser);
+        setUser(auth.currentUser);
+        
+        await logUserAction(currentUser.uid, userHasPassword ? "PASSWORD_CHANGED" : "PASSWORD_CREATED", userHasPassword ? "User successfully changed password from settings" : "User created initial password");
     };
 
     const uploadProfilePhoto = async (file: File, onProgress?: (p: number) => void): Promise<string> => {
@@ -348,7 +359,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         <AuthContext.Provider value={{
             user, userProfile, loading,
             isAdmin: userProfile?.role === "admin" || user?.email === "rohit.official36@gmail.com",
-            isFullyVerified,
+            isFullyVerified, hasPassword: user?.providerData.some(p => p.providerId === 'password') || false,
             sendOtp, confirmOtp, setupPhoneProfile,
             login, registerWithEmail, logout,
             resetPassword, deleteAccount,
