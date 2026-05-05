@@ -42,6 +42,7 @@ if (typeof window !== 'undefined') {
 
 import './i18n.ts'
 import App from './App.tsx'
+import { ErrorBoundary } from './components/ErrorBoundary.tsx'
 
 console.log("IM-SMRTI: Root mounting...");
 const rootElement = document.getElementById('root');
@@ -50,7 +51,9 @@ if (!rootElement) {
 } else {
   createRoot(rootElement).render(
     <StrictMode>
-      <App />
+      <ErrorBoundary>
+        <App />
+      </ErrorBoundary>
     </StrictMode>,
   )
   console.log("IM-SMRTI: Render call complete.");
