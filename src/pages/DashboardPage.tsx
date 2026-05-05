@@ -22,7 +22,7 @@ import { FamilyPulse } from "@/components/dashboard/FamilyPulse";
 import { VitalsQuickView } from "@/components/dashboard/VitalsQuickView";
 import { QuickActions } from "@/components/dashboard/QuickActions";
 
-const API_KEY = import.meta.env.VITE_GEMINI_API_KEY ?? "AIzaSyDh6tL3aVDU4UO_9eG62mwUPSxovUMtBJY";
+const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 const MODEL_ID = import.meta.env.VITE_GEMINI_MODEL ?? "gemini-2.5-flash";
 const API_VERSION = import.meta.env.VITE_GEMINI_API_VERSION ?? "v1beta";
 const API_URL = `https://generativelanguage.googleapis.com/${API_VERSION}/models/${MODEL_ID}:streamGenerateContent?key=${API_KEY}&alt=sse`;
