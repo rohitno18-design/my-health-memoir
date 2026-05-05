@@ -305,7 +305,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (!currentUser) throw new Error("Not authenticated");
         if (!currentUser.email) throw new Error("Please link an email address first to set a password.");
         
-        const userHasPassword = currentUser.providerData.some(p => p.providerId === 'password');
+        const userHasPassword = currentUser.providerData?.some(p => p.providerId === 'password');
         
         if (userHasPassword) {
             if (!currentPassword) throw new Error("Current password is required.");
@@ -359,7 +359,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         <AuthContext.Provider value={{
             user, userProfile, loading,
             isAdmin: userProfile?.role === "admin" || user?.email === "rohit.official36@gmail.com",
-            isFullyVerified, hasPassword: user?.providerData.some(p => p.providerId === 'password') || false,
+            isFullyVerified, hasPassword: user?.providerData?.some(p => p.providerId === 'password') || false,
             sendOtp, confirmOtp, setupPhoneProfile,
             login, registerWithEmail, logout,
             resetPassword, deleteAccount,
