@@ -31,7 +31,7 @@ export function Header() {
                         ) : (
                             <div className="size-full bg-emerald-50 rounded-full flex items-center justify-center">
                                 <span className="text-sm font-bold text-emerald-600">
-                                    {(userProfile?.displayName ?? userProfile?.email ?? "U")[0].toUpperCase()}
+                                    {(userProfile?.displayName?.trim() || userProfile?.email?.trim() || "U").charAt(0).toUpperCase()}
                                 </span>
                             </div>
                         )}

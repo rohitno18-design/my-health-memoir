@@ -328,7 +328,7 @@ export function AdminUsersPage() {
                             
                             <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${user.suspended ? 'bg-red-100' : user.role === 'admin' ? 'bg-amber-100' : 'bg-primary/10'}`}>
                                 <span className={`text-sm font-bold ${user.suspended ? 'text-red-700' : user.role === 'admin' ? 'text-amber-700' : 'text-primary'}`}>
-                                    {(user.displayName ?? user.email ?? "U")[0].toUpperCase()}
+                                    {(user.displayName?.trim() || user.email?.trim() || "U").charAt(0).toUpperCase()}
                                 </span>
                             </div>
                             <div className="flex-1 min-w-0">
@@ -395,7 +395,7 @@ export function AdminUsersPage() {
                         <div className="flex items-center gap-4 mb-6">
                              <div className={`w-16 h-16 rounded-full flex items-center justify-center ${selectedUser.suspended ? 'bg-red-100' : 'bg-primary/10'}`}>
                                 <span className={`text-2xl font-bold ${selectedUser.suspended ? 'text-red-700' : 'text-primary'}`}>
-                                    {(selectedUser.displayName ?? selectedUser.email ?? "U")[0].toUpperCase()}
+                                    {(selectedUser.displayName?.trim() || selectedUser.email?.trim() || "U").charAt(0).toUpperCase()}
                                 </span>
                             </div>
                             <div>

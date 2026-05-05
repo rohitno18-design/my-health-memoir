@@ -64,7 +64,7 @@ function Avatar({ photoURL, displayName, size = "lg", onClick }: {
     }
     return (
         <div onClick={onClick} className={cn("rounded-full bg-primary/10 flex items-center justify-center cursor-pointer ring-4 ring-primary/20 font-bold text-primary", dim)}>
-            {(displayName ?? "U")[0].toUpperCase()}
+            {(displayName?.trim() || "U").charAt(0).toUpperCase()}
         </div>
     );
 }
