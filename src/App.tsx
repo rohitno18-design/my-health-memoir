@@ -44,6 +44,7 @@ const SuspenseFallback = () => (
 const queryClient = new QueryClient();
 
 function App() {
+  console.log("IM-SMRTI: App component rendering...");
   return (
     <GlobalErrorBoundary>
       <QueryClientProvider client={queryClient}>

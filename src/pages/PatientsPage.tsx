@@ -108,7 +108,7 @@ function calcAge(dob: string): number | string {
 
 function Toast({ message }: { message: string }) {
     return (
-        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] flex items-center gap-2 px-4 py-3 bg-green-600 text-white rounded-2xl shadow-xl text-sm font-medium w-max max-w-[90vw] animate-in slide-in-from-top-5">
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[120] flex items-center gap-2 px-4 py-3 bg-green-600 text-white rounded-2xl shadow-xl text-sm font-medium w-max max-w-[90vw] animate-in slide-in-from-top-5">
             <CheckCircle2 size={16} />
             {message}
         </div>
@@ -418,7 +418,7 @@ export function PatientsPage() {
 
             {/* Create / Edit Modal */}
             {showModal && (
-                <div className="fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={() => setShowModal(false)}>
+                <div className="fixed inset-0 z-[110] bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={() => setShowModal(false)}>
                     <div
                         className="w-full max-w-2xl bg-white rounded-t-[2rem] sm:rounded-[2rem] flex flex-col max-h-[92vh] sm:max-h-[85vh] shadow-2xl animate-in slide-in-from-bottom-5 sm:zoom-in-95 duration-300 overflow-hidden"
                         onClick={e => e.stopPropagation()}
@@ -708,7 +708,7 @@ export function PatientsPage() {
 
             {/* Delete Confirmation Modal */}
             {deleteModal && (
-                <div className="fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+                <div className="fixed inset-0 z-[110] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
                     <div className="w-full max-w-sm bg-white rounded-3xl p-6 shadow-2xl animate-in zoom-in-95 duration-200">
                         <div className="w-16 h-16 bg-red-100/80 rounded-[1rem] border border-red-200 flex items-center justify-center mx-auto mb-5 shadow-sm">
                             <AlertTriangle size={28} className="text-destructive" />

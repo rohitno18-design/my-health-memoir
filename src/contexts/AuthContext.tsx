@@ -123,13 +123,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-            setUser(firebaseUser);
-            if (firebaseUser) {
-                await fetchOrCreateProfile(firebaseUser);
-            } else {
-                setUserProfile(null);
+            try {
+                setUser(firebaseUser);
+                if (firebaseUser) {
+                    await fetchOrCreateProfile(firebaseUser);
+                } else {
+                    setUserProfile(null);
+                }
+            } catch (error) {
+                console.error("Auth hydration error:", error);
+                // Even on error, we must let the app move past the loading state
+                // otherwise the user is stuck with a white screen/spinner forever.
+            } finally {
+                setLoading(false);
             }
-            setLoading(false);
         });
         return unsubscribe;
     }, []);

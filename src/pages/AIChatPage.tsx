@@ -64,8 +64,9 @@ interface Document {
 // ─── Constants ───────────────────────────────────────────────────────────────
 
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY ?? "";
-const MODEL = import.meta.env.VITE_GEMINI_MODEL ?? "gemini-2.0-flash";
-const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${API_KEY}`;
+const MODEL = import.meta.env.VITE_GEMINI_MODEL ?? "gemini-2.5-flash";
+const API_VERSION = import.meta.env.VITE_GEMINI_API_VERSION ?? "v1beta";
+const GEMINI_URL = `https://generativelanguage.googleapis.com/${API_VERSION}/models/${MODEL}:generateContent?key=${API_KEY}`;
 const MAX_TOOL_ROUNDS = 8;
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -580,7 +581,7 @@ export function AIChatPage() {
             geminiHistoryRef.current = loaded
                 .filter((m) => !m.pendingActions)
                 .map((m) => ({
-                    role: m.role,
+                    role: m.role === "assistant" ? "model" : (m.role === "model" ? "model" : "user"),
                     parts: [{ text: m.content }],
                 }));
             setLoadingHistory(false);
@@ -601,7 +602,10 @@ export function AIChatPage() {
                 generationConfig: { temperature: 0.3, maxOutputTokens: 2048 },
             }),
         });
-        if (!res.ok) throw new Error(`Gemini API error: ${res.status}`);
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            throw new Error(`AI Error (${res.status}): ${err.error?.message || "Check connection"}`);
+        }
         return res.json();
     }, []);
 
@@ -1453,7 +1457,7 @@ export function AIChatPage() {
                     
                     {/* Attachment Menu Popup */}
                     {showAttachMenu && (
-                        <div className="absolute bottom-full left-0 mb-3 w-48 glass-card border border-white/60 shadow-2xl rounded-2xl p-2 animate-in fade-in zoom-in-95 duration-200 z-50">
+                        <div className="absolute bottom-full left-0 mb-3 w-48 glass-card border border-white/60 shadow-2xl rounded-2xl p-2 animate-in fade-in zoom-in-95 duration-200 z-[110]">
                             <button 
                                 onClick={() => { setShowDocSelector(true); setShowAttachMenu(false); }}
                                 className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 transition-colors text-sm font-semibold text-slate-700"
@@ -1530,7 +1534,7 @@ export function AIChatPage() {
 
             {/* Document Selector Modal */}
             {showDocSelector && (
-                <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4 animate-in fade-in duration-300">
+                <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[110] flex items-center justify-center p-4 animate-in fade-in duration-300">
                     <div className="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl border border-white/20 overflow-hidden flex flex-col max-h-[85vh] animate-in zoom-in-95 duration-300">
                         <div className="px-6 pt-6 pb-4 border-b border-slate-100">
                             <div className="flex items-center justify-between mb-4">

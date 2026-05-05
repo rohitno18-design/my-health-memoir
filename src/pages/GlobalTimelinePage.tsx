@@ -278,7 +278,7 @@ export function GlobalTimelinePage() {
 
             {/* Summary Modal */}
             {viewingSummary && (
-                <div className="fixed inset-0 z-[70] bg-black/50 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={() => setViewingSummary(null)}>
+                <div className="fixed inset-0 z-[110] bg-black/50 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={() => setViewingSummary(null)}>
                     <div className="w-full max-w-2xl bg-white rounded-t-[2.5rem] sm:rounded-[2.5rem] flex flex-col shadow-2xl max-h-[88vh]" onClick={e => e.stopPropagation()}>
                         <div className="p-5 border-b flex justify-between items-center bg-violet-50 rounded-t-[2.5rem]">
                             <div>
@@ -308,7 +308,7 @@ export function GlobalTimelinePage() {
 
             {/* Edit Event Modal */}
             {editingEvent && (
-                <div className="fixed inset-0 z-[70] bg-black/50 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={() => setEditingEvent(null)}>
+                <div className="fixed inset-0 z-[110] bg-black/50 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={() => setEditingEvent(null)}>
                     <div className="w-full max-w-xl bg-white rounded-t-[2.5rem] sm:rounded-[2.5rem] flex flex-col shadow-2xl max-h-[88vh]" onClick={e => e.stopPropagation()}>
                         <div className="p-6 border-b flex justify-between items-center bg-slate-50 rounded-t-[2.5rem] flex-shrink-0">
                             <div>

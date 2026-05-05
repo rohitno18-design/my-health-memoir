@@ -12,7 +12,7 @@ import { DocumentViewerModal } from "@/components/DocumentViewerModal";
 import { useTranslation } from "react-i18next";
 
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY ?? "";
-const MODEL_ID = import.meta.env.VITE_GEMINI_MODEL ?? "gemini-2.0-flash";
+const MODEL_ID = import.meta.env.VITE_GEMINI_MODEL ?? "gemini-2.5-flash";
 const API_VERSION = import.meta.env.VITE_GEMINI_API_VERSION ?? "v1beta";
 const API_URL = `https://generativelanguage.googleapis.com/${API_VERSION}/models/${MODEL_ID}:streamGenerateContent?key=${API_KEY}&alt=sse`;
 
@@ -808,7 +808,7 @@ export function DocumentsPage() {
 
             {/* View Summary Modal */}
             {viewSummary && (
-                <div className="fixed inset-0 z-[60] bg-black/40 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4">
+                <div className="fixed inset-0 z-[110] bg-black/40 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4">
                     <div className="w-full max-w-2xl glass-card rounded-t-[2.5rem] sm:rounded-[2.5rem] flex flex-col shadow-2xl animate-in slide-in-from-bottom-5 duration-300 max-h-[92dvh] border border-white/50">
                         <div className="p-6 border-b border-white/30 flex justify-between items-center bg-violet-50/50 rounded-t-[2.5rem] text-violet-900 flex-shrink-0 relative overflow-hidden">
                             <div className="absolute top-0 right-0 size-32 bg-violet-500/10 rounded-full blur-3xl pointer-events-none -z-10"></div>
@@ -850,7 +850,7 @@ export function DocumentsPage() {
             {/* Language Selection Modal */}
             {
                 showLanguageModalForDoc && (
-                    <div className="fixed inset-0 z-[70] bg-black/40 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4">
+                    <div className="fixed inset-0 z-[110] bg-black/40 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4">
                         <div className="w-full max-w-sm glass-card border border-white/50 rounded-t-[2.5rem] sm:rounded-3xl p-6 shadow-2xl animate-in slide-in-from-bottom-5 sm:zoom-in-95 duration-200 relative overflow-hidden">
                             <div className="absolute top-0 right-0 size-32 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none -z-10"></div>
                             <div className="flex justify-between items-center mb-5 relative z-10">
@@ -883,7 +883,7 @@ export function DocumentsPage() {
             {/* Add to Timeline Modal */}
             {
                 addToTimelineDoc && (
-                    <div className="fixed inset-0 z-[70] bg-black/50 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={() => setAddToTimelineDoc(null)}>
+                    <div className="fixed inset-0 z-[110] bg-black/50 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={() => setAddToTimelineDoc(null)}>
                         <div className="w-full max-w-sm bg-white rounded-t-[2.5rem] sm:rounded-[2.5rem] p-6 shadow-2xl animate-in slide-in-from-bottom-5 duration-200" onClick={e => e.stopPropagation()}>
                             <div className="flex items-center justify-between mb-1">
                                 <h3 className="font-extrabold text-lg text-slate-900 flex items-center gap-2"><Activity size={20} className="text-emerald-500" /> {t("documents.addToTimeline")}</h3>
@@ -922,7 +922,7 @@ export function DocumentsPage() {
 
             {/* Edit Document Modal */}
             {editingDoc && (
-                <div className="fixed inset-0 z-[70] bg-black/50 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={() => setEditingDoc(null)}>
+                <div className="fixed inset-0 z-[110] bg-black/50 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={() => setEditingDoc(null)}>
                     <div className="w-full max-w-xl bg-white rounded-t-[2.5rem] sm:rounded-[2.5rem] flex flex-col shadow-2xl max-h-[88dvh]" onClick={e => e.stopPropagation()}>
                         <div className="p-6 border-b flex justify-between items-center bg-slate-50 rounded-t-[2.5rem] flex-shrink-0">
                             <div>
@@ -1035,7 +1035,7 @@ export function DocumentsPage() {
             )}
             {/* Linked Events Management Modal */}
             {viewingLinksDoc && (
-                <div className="fixed inset-0 z-[80] bg-black/50 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={() => setViewingLinksDoc(null)}>
+                <div className="fixed inset-0 z-[110] bg-black/50 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={() => setViewingLinksDoc(null)}>
                     <div className="w-full max-w-sm bg-white rounded-t-[2.5rem] sm:rounded-[2rem] p-6 shadow-2xl animate-in slide-in-from-bottom-5 duration-200 relative overflow-hidden" onClick={e => e.stopPropagation()}>
                         <div className="absolute top-0 right-0 size-32 bg-violet-500/10 rounded-full blur-3xl pointer-events-none -z-10"></div>
                         <div className="flex items-center justify-between mb-2">

@@ -22,7 +22,7 @@ import { VitalsQuickView } from "@/components/dashboard/VitalsQuickView";
 import { QuickActions } from "@/components/dashboard/QuickActions";
 
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY ?? "";
-const MODEL_ID = import.meta.env.VITE_GEMINI_MODEL ?? "gemini-2.0-flash";
+const MODEL_ID = import.meta.env.VITE_GEMINI_MODEL ?? "gemini-2.5-flash";
 const API_VERSION = import.meta.env.VITE_GEMINI_API_VERSION ?? "v1beta";
 const API_URL = `https://generativelanguage.googleapis.com/${API_VERSION}/models/${MODEL_ID}:streamGenerateContent?key=${API_KEY}&alt=sse`;
 
@@ -34,9 +34,19 @@ const CATEGORIES = [
 
 const getBase64 = (file: File): Promise<string> =>
     new Promise((resolve, reject) => {
+        if (file.size > 20 * 1024 * 1024) {
+          reject(new Error("File too large for AI analysis (max 20MB)"));
+          return;
+        }
         const reader = new FileReader();
         reader.readAsDataURL(file);
-        reader.onload = () => resolve((reader.result as string).split(',')[1]);
+        reader.onload = () => {
+          if (typeof reader.result === 'string') {
+            resolve(reader.result.split(',')[1]);
+          } else {
+            reject(new Error("Failed to read file as string"));
+          }
+        };
         reader.onerror = error => reject(error);
     });
 
@@ -83,6 +93,8 @@ export function DashboardPage() {
     // Fetch Patients & Vitals
     useEffect(() => {
         if (!user) return;
+        
+        // Listen for patients first
         const qPatients = query(collection(db, "patients"), where("userId", "==", user.uid));
         const unsubPatients = onSnapshot(qPatients, (snap) => {
             const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -91,23 +103,31 @@ export function DashboardPage() {
               setForm(f => ({ ...f, patientId: data[0].id }));
             }
             setLoading(false);
+        }, (err) => {
+            console.error("Patients listener error:", err);
+            setLoading(false);
         });
 
-        const currentPatientId = form.patientId || (patients.length > 0 ? patients[0].id : null);
+        return () => unsubPatients();
+    }, [user]);
 
-        // Only subscribe to vitals if we have a patient ID
-        let unsubVitals: (() => void) | null = null;
-        if (currentPatientId) {
-            const qVitals = query(collection(db, "vitals"), where("userId", "==", user.uid), where("patientId", "==", currentPatientId));
-            unsubVitals = onSnapshot(qVitals, (snap) => {
-                setVitals(snap.docs.map(d => d.data()));
-            });
-        }
+    // Separate effect for vitals based on selected patient
+    useEffect(() => {
+        if (!user || !form.patientId) return;
 
-        return () => {
-            unsubPatients();
-            if (unsubVitals) unsubVitals();
-        };
+        const qVitals = query(
+            collection(db, "vitals"), 
+            where("userId", "==", user.uid), 
+            where("patientId", "==", form.patientId)
+        );
+        
+        const unsubVitals = onSnapshot(qVitals, (snap) => {
+            setVitals(snap.docs.map(d => d.data()));
+        }, (err) => {
+            console.error("Vitals listener error:", err);
+        });
+
+        return () => unsubVitals();
     }, [user, form.patientId]);
 
     const formatGreeting = () => {
@@ -179,13 +199,50 @@ export function DashboardPage() {
                 });
 
                 if (res.ok) {
-                    const data = await res.json();
-                    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text ?? "Analysis complete.";
-                    setAiSummary(text);
-                    await updateDoc(doc(db, "documents", firestoreDocId), {
-                        aiSummary: text,
-                        status: "completed"
-                    });
+                    const reader = res.body?.getReader();
+                    const decoder = new TextDecoder();
+                    let buffer = "";
+                    let fullText = "";
+
+                    if (reader) {
+                        while (true) {
+                            const { done, value } = await reader.read();
+                            if (done) break;
+
+                            buffer += decoder.decode(value, { stream: true });
+                            const lines = buffer.split("\n");
+                            buffer = lines.pop() || "";
+
+                            for (const line of lines) {
+                                const trimmed = line.trim();
+                                if (!trimmed.startsWith("data:")) continue;
+                                try {
+                                    const jsonStr = trimmed.replace(/^data:\s*/, "");
+                                    if (jsonStr === "[DONE]") continue;
+                                    const data = JSON.parse(jsonStr);
+                                    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
+                                    if (text) {
+                                        fullText += text;
+                                        setAiSummary(fullText);
+                                    }
+                                } catch (e) {
+                                    console.warn("Partial JSON parse error:", e);
+                                }
+                            }
+                        }
+                    }
+                    
+                    if (fullText) {
+                        await updateDoc(doc(db, "documents", firestoreDocId), {
+                            aiSummary: fullText,
+                            status: "completed"
+                        });
+                    } else {
+                        throw new Error("AI analysis returned empty results.");
+                    }
+                } else {
+                    const errorData = await res.json().catch(() => ({}));
+                    throw new Error(errorData?.error?.message || "AI Analysis Failed");
                 }
                 setUploadStep("summary");
             } else {
@@ -210,11 +267,18 @@ export function DashboardPage() {
     };
 
     const getVitalData = (type: string) => {
-        const filtered = vitals.filter(v => v.type === type).sort((a,b) => (a.timestamp?.toMillis() || 0) - (b.timestamp?.toMillis() || 0));
-        const val = filtered.length > 0 ? filtered[filtered.length - 1].value : "--";
+        const filtered = vitals.filter(v => v.type === type).sort((a,b) => {
+            const tA = a.timestamp?.toMillis?.() || (a.timestamp instanceof Date ? a.timestamp.getTime() : 0);
+            const tB = b.timestamp?.toMillis?.() || (b.timestamp instanceof Date ? b.timestamp.getTime() : 0);
+            return tA - tB;
+        });
+        const latest = filtered.length > 0 ? filtered[filtered.length - 1].value : "--";
+        // Safe check: if latest is an object, stringify it to avoid React render crash
+        const val = (typeof latest === 'object' && latest !== null) ? JSON.stringify(latest) : latest;
+        
         const chartData = filtered.slice(-7).map((v: any) => ({
             date: "", 
-            value: typeof v.value === 'string' ? parseInt(v.value.split('/')[0]) || 0 : v.value
+            value: typeof v.value === 'string' ? parseInt(v.value.split('/')[0]) || 0 : (typeof v.value === 'number' ? v.value : 0)
         }));
         return { val, chartData: chartData.length > 0 ? chartData : [{date: "", value: 0}] };
     };
@@ -328,7 +392,7 @@ export function DashboardPage() {
 
             <AnimatePresence>
               {uploadStep === "uploading" && (
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="fixed inset-0 z-50 bg-white/80 backdrop-blur-md flex items-center justify-center p-6">
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="fixed inset-0 z-[110] bg-white/80 backdrop-blur-md flex items-center justify-center p-6">
                   <div className="w-full max-w-xs text-center space-y-4">
                     <div className="size-20 bg-emerald-100 rounded-full flex items-center justify-center mx-auto animate-pulse">
                       <UploadCloud className="text-emerald-600" size={32} />
@@ -344,7 +408,7 @@ export function DashboardPage() {
 
               {uploadStep === "form" && (
                 // Bottom-sheet modal — slides up from bottom, never clips on small screens
-                <div className="fixed inset-0 z-50 flex flex-col justify-end">
+                <div className="fixed inset-0 z-[110] flex flex-col justify-end">
                   <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
@@ -396,7 +460,7 @@ export function DashboardPage() {
               )}
 
               {uploadStep === "summary" && (
-                <div className="fixed inset-0 z-50 bg-white flex flex-col p-6 overflow-y-auto">
+                <div className="fixed inset-0 z-[110] bg-white flex flex-col p-6 overflow-y-auto">
                   <header className="flex items-center justify-between mb-8 flex-shrink-0">
                     <div className="flex items-center gap-2">
                        <Bot className="text-violet-600" />

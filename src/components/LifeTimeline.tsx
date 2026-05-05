@@ -191,7 +191,7 @@ export function LifeTimeline({ patient, onClose }: { patient: Patient, onClose: 
 
             {/* Add Event Modal */}
             {showAddEvent && (
-                <div className="absolute inset-0 z-[70] bg-black/40 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4">
+                <div className="absolute inset-0 z-[120] bg-black/40 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4">
                     <div className="w-full max-w-xl h-full sm:h-auto sm:max-h-[90vh] glass-card rounded-t-[2rem] sm:rounded-[2.5rem] flex flex-col shadow-2xl animate-in slide-in-from-bottom-5 duration-300 relative overflow-hidden">
                         <div className="p-6 border-b border-white/30 flex justify-between items-center bg-slate-50 relative z-10 flex-shrink-0">
                             <div>
