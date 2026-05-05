@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import { remoteLog } from "@/lib/remoteLog";
 import { logUserAction } from "@/lib/audit";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { jsPDF } from "jspdf";
@@ -63,7 +64,7 @@ interface Document {
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
-const API_KEY = import.meta.env.VITE_GEMINI_API_KEY ?? "";
+const API_KEY = import.meta.env.VITE_GEMINI_API_KEY ?? "AIzaSyDh6tL3aVDU4UO_9eG62mwUPSxovUMtBJY";
 const MODEL = import.meta.env.VITE_GEMINI_MODEL ?? "gemini-2.5-flash";
 const API_VERSION = import.meta.env.VITE_GEMINI_API_VERSION ?? "v1beta";
 const GEMINI_URL = `https://generativelanguage.googleapis.com/${API_VERSION}/models/${MODEL}:generateContent?key=${API_KEY}`;
@@ -581,7 +582,7 @@ export function AIChatPage() {
             geminiHistoryRef.current = loaded
                 .filter((m) => !m.pendingActions)
                 .map((m) => ({
-                    role: m.role === "assistant" ? "model" : (m.role === "model" ? "model" : "user"),
+                    role: ((m.role as string) === "assistant" ? "model" : m.role) as "user" | "model",
                     parts: [{ text: m.content }],
                 }));
             setLoadingHistory(false);
@@ -591,22 +592,34 @@ export function AIChatPage() {
     // ── Call Gemini non-streaming ──────────────────────────────────────────────
 
     const callGemini = useCallback(async (history: GeminiContent[]) => {
-        const res = await fetch(GEMINI_URL, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
-                contents: history,
-                tools: [{ functionDeclarations: TOOL_DECLARATIONS }],
-                tool_config: { function_calling_config: { mode: "AUTO" } },
-                generationConfig: { temperature: 0.3, maxOutputTokens: 2048 },
-            }),
-        });
-        if (!res.ok) {
-            const err = await res.json().catch(() => ({}));
-            throw new Error(`AI Error (${res.status}): ${err.error?.message || "Check connection"}`);
+        const payload = {
+            system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
+            contents: history,
+            tools: [{ functionDeclarations: TOOL_DECLARATIONS }],
+            tool_config: { function_calling_config: { mode: "AUTO" } },
+            generationConfig: { temperature: 0.3, maxOutputTokens: 2048 },
+        };
+
+        try {
+            const res = await fetch(GEMINI_URL, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload),
+            });
+
+            if (!res.ok) {
+                const errorText = await res.text();
+                await remoteLog("AIChat_API_ERROR", { status: res.status, errorText, url: GEMINI_URL.replace(API_KEY, "REDACTED") });
+                throw new Error(`AI Error (${res.status}): ${errorText}`);
+            }
+
+            const data = await res.json();
+            await remoteLog("AIChat_API_SUCCESS", { response: data });
+            return data;
+        } catch (err: any) {
+            await remoteLog("AIChat_EXCEPTION", { message: err.message, stack: err.stack });
+            throw err;
         }
-        return res.json();
     }, []);
 
     // ── Execute a single tool ─────────────────────────────────────────────────

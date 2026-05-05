@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { remoteLog } from "@/lib/remoteLog";
 import ReactMarkdown from "react-markdown";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
@@ -21,7 +22,7 @@ import { FamilyPulse } from "@/components/dashboard/FamilyPulse";
 import { VitalsQuickView } from "@/components/dashboard/VitalsQuickView";
 import { QuickActions } from "@/components/dashboard/QuickActions";
 
-const API_KEY = import.meta.env.VITE_GEMINI_API_KEY ?? "";
+const API_KEY = import.meta.env.VITE_GEMINI_API_KEY ?? "AIzaSyDh6tL3aVDU4UO_9eG62mwUPSxovUMtBJY";
 const MODEL_ID = import.meta.env.VITE_GEMINI_MODEL ?? "gemini-2.5-flash";
 const API_VERSION = import.meta.env.VITE_GEMINI_API_VERSION ?? "v1beta";
 const API_URL = `https://generativelanguage.googleapis.com/${API_VERSION}/models/${MODEL_ID}:streamGenerateContent?key=${API_KEY}&alt=sse`;
@@ -153,6 +154,7 @@ export function DashboardPage() {
         let firestoreDocId = "";
 
         try {
+            await remoteLog("Dashboard_UPLOAD_START", { fileName: selectedFile.name, type: selectedFile.type });
             const fileName = `${Date.now()}_${selectedFile.name}`;
             const storageRef = ref(storage, `documents/${user.uid}/${fileName}`);
             const uploadTask = uploadBytesResumable(storageRef, selectedFile);
@@ -185,7 +187,13 @@ export function DashboardPage() {
             if (form.generateSummary) {
                 setUploadStep("analyzing");
                 const base64Data = await getBase64(selectedFile);
-                const res = await fetch(API_URL, {
+                
+                // Use non-streaming for maximum compatibility during debug
+                const NON_STREAM_URL = API_URL.replace(":streamGenerateContent?alt=sse", ":generateContent");
+                
+                remoteLog("Dashboard_API_START", { url: NON_STREAM_URL.replace(API_KEY, "REDACTED") });
+                
+                const res = await fetch(NON_STREAM_URL, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
@@ -199,50 +207,24 @@ export function DashboardPage() {
                 });
 
                 if (res.ok) {
-                    const reader = res.body?.getReader();
-                    const decoder = new TextDecoder();
-                    let buffer = "";
-                    let fullText = "";
-
-                    if (reader) {
-                        while (true) {
-                            const { done, value } = await reader.read();
-                            if (done) break;
-
-                            buffer += decoder.decode(value, { stream: true });
-                            const lines = buffer.split("\n");
-                            buffer = lines.pop() || "";
-
-                            for (const line of lines) {
-                                const trimmed = line.trim();
-                                if (!trimmed.startsWith("data:")) continue;
-                                try {
-                                    const jsonStr = trimmed.replace(/^data:\s*/, "");
-                                    if (jsonStr === "[DONE]") continue;
-                                    const data = JSON.parse(jsonStr);
-                                    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
-                                    if (text) {
-                                        fullText += text;
-                                        setAiSummary(fullText);
-                                    }
-                                } catch (e) {
-                                    console.warn("Partial JSON parse error:", e);
-                                }
-                            }
-                        }
-                    }
+                    const data = await res.json();
+                    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
                     
-                    if (fullText) {
+                    if (text) {
+                        remoteLog("Dashboard_API_SUCCESS", { summaryLength: text.length });
+                        setAiSummary(text);
                         await updateDoc(doc(db, "documents", firestoreDocId), {
-                            aiSummary: fullText,
+                            aiSummary: text,
                             status: "completed"
                         });
                     } else {
+                        remoteLog("Dashboard_API_EMPTY", data);
                         throw new Error("AI analysis returned empty results.");
                     }
                 } else {
-                    const errorData = await res.json().catch(() => ({}));
-                    throw new Error(errorData?.error?.message || "AI Analysis Failed");
+                    const errorBody = await res.text();
+                    remoteLog("Dashboard_API_ERROR", { status: res.status, errorBody });
+                    throw new Error(`AI Analysis Failed (${res.status}): ${errorBody}`);
                 }
                 setUploadStep("summary");
             } else {
@@ -252,6 +234,7 @@ export function DashboardPage() {
 
         } catch (err: any) {
             console.error("Upload/Analyze error:", err);
+            await remoteLog("Dashboard_EXCEPTION", { message: err.message, stack: err.stack });
             setUploadStep("idle");
             setSelectedFile(null);
             // Show user-friendly error — never let errors silently leave a white screen
