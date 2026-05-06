@@ -10,6 +10,7 @@ export default defineConfig({
     // PWA with auto-update strategy — selfDestroying caused infinite reload loop (white screen)
     VitePWA({
       registerType: 'autoUpdate',
+      injectRegister: false,
       workbox: {
         clientsClaim: true,
         skipWaiting: true,
