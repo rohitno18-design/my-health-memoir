@@ -46,6 +46,7 @@ interface Document {
     name: string;
     type: string;
     url: string;
+    status?: string;
     aiSummary?: string;
     aiSummaries?: Record<string, string>;
     docType?: string;
@@ -392,8 +393,8 @@ export function DocumentsPage() {
 
         try {
             const sourceText = (docObj.aiSummaries && Object.values(docObj.aiSummaries)[0]) || docObj.aiSummary;
-            if (!sourceText || sourceText.includes("failed")) {
-                throw new Error("No existing summary found to translate. Please ensure an English summary exists first.");
+            if (!sourceText || docObj.status === "failed") {
+                throw new Error("No existing summary found to translate. This document's analysis may have failed. Please try re-uploading.");
             }
 
             setGenerationProgress(t("documents.translatingSummary", { lang }));
@@ -769,15 +770,15 @@ export function DocumentsPage() {
                                                             <Bot size={11} /> {l}
                                                         </button>
                                                     ))
-                                                ) : doc.aiSummary && !doc.aiSummary.includes("failed") ? (
+                                                ) : doc.aiSummary && doc.status !== "failed" ? (
                                                     <button onClick={() => setViewSummary({ text: doc.aiSummary || "", lang: "English" })} className="text-[10px] font-bold text-violet-700 bg-violet-100 hover:bg-violet-200 px-2 py-1 flex items-center gap-1 rounded-lg transition-colors">
                                                         <Bot size={11} /> EN
                                                     </button>
-                                                ) : doc.aiSummary?.includes("failed") ? (
+                                                ) : doc.status === "failed" ? (
                                                     <span className="text-[10px] font-bold text-rose-600 bg-rose-50 px-2 py-1 rounded-md">{t("documents.analysisFailed")}</span>
                                                 ) : null}
 
-                                                {!doc.aiSummary?.includes("failed") && (
+                                                {doc.status !== "failed" && (
                                                     <button onClick={() => setShowLanguageModalForDoc(doc)} disabled={summarizingDocId === doc.id} className="text-[10px] font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-2 py-1 flex items-center gap-1 rounded-lg transition-colors disabled:opacity-50">
                                                         {summarizingDocId === doc.id ? <Loader2 size={11} className="animate-spin" /> : <Globe size={11} />}
                                                         {summarizingDocId === doc.id ? "..." : t("common.translate")}
