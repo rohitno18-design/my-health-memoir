@@ -25,7 +25,7 @@ import { QuickActions } from "@/components/dashboard/QuickActions";
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 const MODEL_ID = import.meta.env.VITE_GEMINI_MODEL ?? "gemini-2.5-flash";
 const API_VERSION = import.meta.env.VITE_GEMINI_API_VERSION ?? "v1beta";
-const API_URL = `https://generativelanguage.googleapis.com/${API_VERSION}/models/${MODEL_ID}:streamGenerateContent?key=${API_KEY}&alt=sse`;
+const API_URL = `https://generativelanguage.googleapis.com/${API_VERSION}/models/${MODEL_ID}:generateContent?key=${API_KEY}`;
 
 const SUMMARY_PROMPT = (lang: string) => `You are a medical AI assistant for I M Smrti. Analyze the document and provide a summary in ${lang}. Use Markdown formatting.`;
 
@@ -188,12 +188,10 @@ export function DashboardPage() {
                 setUploadStep("analyzing");
                 const base64Data = await getBase64(selectedFile);
                 
-                // Use non-streaming for maximum compatibility during debug
-                const NON_STREAM_URL = API_URL.replace(":streamGenerateContent?alt=sse", ":generateContent");
-                
-                remoteLog("Dashboard_API_START", { url: NON_STREAM_URL.replace(API_KEY, "REDACTED") });
-                
-                const res = await fetch(NON_STREAM_URL, {
+                // Use non-streaming generateContent endpoint
+                remoteLog("Dashboard_API_START", { url: API_URL.replace(API_KEY, "REDACTED") });
+
+                const res = await fetch(API_URL, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
