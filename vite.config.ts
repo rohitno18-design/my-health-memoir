@@ -7,10 +7,9 @@ import { VitePWA } from 'vite-plugin-pwa'
 export default defineConfig({
   plugins: [
     react(),
-    // PWA with auto-update strategy — selfDestroying caused infinite reload loop (white screen)
+    // PWA with auto-update strategy
     VitePWA({
       registerType: 'autoUpdate',
-      injectRegister: false,
       workbox: {
         clientsClaim: true,
         skipWaiting: true,
