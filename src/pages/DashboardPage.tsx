@@ -3,9 +3,9 @@ import { remoteLog } from "@/lib/remoteLog";
 import ReactMarkdown from "react-markdown";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
-import { 
+import {
   Bot, UploadCloud, Loader2, X,
-  ChevronRight, Zap, WifiOff
+  ChevronRight, Zap, WifiOff, AlertTriangle
 } from "lucide-react";
 
 import { useNavigate } from "react-router-dom";
@@ -51,6 +51,26 @@ const getBase64 = (file: File): Promise<string> =>
         reader.onerror = error => reject(error);
     });
 
+// Gemini requires a valid MIME type — fall back to detecting from file extension
+const getSafeMimeType = (file: File): string => {
+    if (file.type && file.type !== "application/octet-stream") return file.type;
+    const ext = file.name.split('.').pop()?.toLowerCase() || "";
+    const mimeMap: Record<string, string> = {
+        pdf: "application/pdf",
+        png: "image/png",
+        jpg: "image/jpeg",
+        jpeg: "image/jpeg",
+        webp: "image/webp",
+        gif: "image/gif",
+        bmp: "image/bmp",
+        tiff: "image/tiff",
+        tif: "image/tiff",
+        doc: "application/msword",
+        docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    };
+    return mimeMap[ext] || "application/pdf"; // default to PDF as safest fallback
+};
+
 export function DashboardPage() {
     const { userProfile, user } = useAuth();
     const navigate = useNavigate();
@@ -67,6 +87,7 @@ export function DashboardPage() {
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [progress, setProgress] = useState(0);
     const [aiSummary, setAiSummary] = useState("");
+    const [error, setError] = useState("");
 
     const [form, setForm] = useState({
         patientId: "",
@@ -198,7 +219,7 @@ export function DashboardPage() {
                         contents: [{
                             parts: [
                                 { text: SUMMARY_PROMPT(form.language) },
-                                { inline_data: { mime_type: selectedFile.type, data: base64Data } }
+                                { inline_data: { mime_type: getSafeMimeType(selectedFile), data: base64Data } }
                             ]
                         }]
                     })
@@ -232,12 +253,19 @@ export function DashboardPage() {
 
         } catch (err: any) {
             console.error("Upload/Analyze error:", err);
-            await remoteLog("Dashboard_EXCEPTION", { message: err.message, stack: err.stack });
-            setUploadStep("idle");
-            setSelectedFile(null);
-            // Show user-friendly error — never let errors silently leave a white screen
             const msg = err?.message || "Upload failed. Please check your connection and try again.";
-            alert(msg);
+            // Update Firestore doc status so user can retry later
+            if (firestoreDocId) {
+                updateDoc(doc(db, "documents", firestoreDocId), {
+                    status: "failed",
+                    aiSummary: msg,
+                }).catch(() => {});
+            }
+            await remoteLog("Dashboard_EXCEPTION", { message: err.message, stack: err.stack });
+            // Show inline error instead of alert() — alerts are blocked on many mobile browsers
+            setAiSummary("");
+            setUploadStep("summary");
+            setError(msg);
         }
     };
 
@@ -245,6 +273,7 @@ export function DashboardPage() {
         setUploadStep("idle");
         setSelectedFile(null);
         setAiSummary("");
+        setError("");
     };
 
     const getVitalData = (type: string) => {
@@ -444,17 +473,32 @@ export function DashboardPage() {
                 <div className="fixed inset-0 z-[110] bg-white flex flex-col p-6 overflow-y-auto">
                   <header className="flex items-center justify-between mb-8 flex-shrink-0">
                     <div className="flex items-center gap-2">
-                       <Bot className="text-violet-600" />
-                       <h2 className="text-xl font-black">{t("dashboard.auditResults")}</h2>
+                       {error ? <AlertTriangle className="text-rose-600" /> : <Bot className="text-violet-600" />}
+                       <h2 className="text-xl font-black">{error ? "Analysis Failed" : t("dashboard.auditResults")}</h2>
                     </div>
                     <button onClick={resetUpload} className="size-10 bg-slate-100 rounded-full flex items-center justify-center"><X size={20} /></button>
                   </header>
-                  <div className="prose prose-slate max-w-none flex-1">
-                    <ReactMarkdown>{aiSummary}</ReactMarkdown>
-                  </div>
-                  <button onClick={() => navigate("/documents")} className="mt-8 w-full py-4 bg-slate-900 text-white rounded-xl font-black flex-shrink-0">
-                    {t("dashboard.viewInVault")}
-                  </button>
+                  {error ? (
+                    <div className="flex-1 flex flex-col items-center justify-center text-center gap-4">
+                      <div className="size-20 rounded-3xl bg-rose-100 text-rose-500 flex items-center justify-center">
+                        <AlertTriangle size={36} />
+                      </div>
+                      <p className="text-slate-700 font-bold text-lg">Summary Generation Failed</p>
+                      <p className="text-slate-500 text-sm max-w-xs leading-relaxed">{error}</p>
+                      <button onClick={resetUpload} className="mt-4 px-8 py-3 bg-rose-500 text-white rounded-xl font-black">
+                        Try Again
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="prose prose-slate max-w-none flex-1">
+                        <ReactMarkdown>{aiSummary}</ReactMarkdown>
+                      </div>
+                      <button onClick={() => navigate("/documents")} className="mt-8 w-full py-4 bg-slate-900 text-white rounded-xl font-black flex-shrink-0">
+                        {t("dashboard.viewInVault")}
+                      </button>
+                    </>
+                  )}
                 </div>
               )}
             </AnimatePresence>
