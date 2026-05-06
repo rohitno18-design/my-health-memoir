@@ -7,12 +7,12 @@ import { VitePWA } from 'vite-plugin-pwa'
 export default defineConfig({
   plugins: [
     react(),
-    // TEMPORARY: selfDestroying mode kills the old cached SW on user devices.
-    // After user confirms fresh code loads, revert to full PWA config.
+    // PWA with auto-update strategy — selfDestroying caused infinite reload loop (white screen)
     VitePWA({
-      selfDestroying: true,
-      devOptions: {
-        enabled: true
+      registerType: 'autoUpdate',
+      workbox: {
+        clientsClaim: true,
+        skipWaiting: true,
       },
       manifest: {
         name: 'I M Smrti',
