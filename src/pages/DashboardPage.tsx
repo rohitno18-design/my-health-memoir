@@ -5,14 +5,15 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   Bot, UploadCloud, Loader2, X,
-  ChevronRight, Zap, WifiOff, AlertTriangle
+  ChevronRight, Zap, WifiOff, AlertTriangle,
+  Activity, CheckCircle2
 } from "lucide-react";
 
 import { useNavigate } from "react-router-dom";
 import { db, storage } from "@/lib/firebase";
-import { 
-  collection, addDoc, serverTimestamp, query, where, 
-  doc, updateDoc, onSnapshot 
+import {
+  collection, addDoc, serverTimestamp, query, where,
+  doc, updateDoc, onSnapshot, getDocs
 } from "firebase/firestore";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { useTranslation } from "react-i18next";
@@ -99,6 +100,14 @@ export function DashboardPage() {
 
     const fileInputRef = useRef<HTMLInputElement>(null);
     const cameraInputRef = useRef<HTMLInputElement>(null);
+
+    // "Add to Timeline" state
+    const [lastUploadedDocId, setLastUploadedDocId] = useState("");
+    const [showAddToTimeline, setShowAddToTimeline] = useState(false);
+    const [lifeEvents, setLifeEvents] = useState<{ id: string; title: string; date: string; patientId: string }[]>([]);
+    const [selectedTimelineEventId, setSelectedTimelineEventId] = useState("");
+    const [addingToTimeline, setAddingToTimeline] = useState(false);
+    const [uploadSuccessBanner, setUploadSuccessBanner] = useState(false);
 
     // Track network status for offline-aware uploads
     useEffect(() => {
@@ -204,6 +213,7 @@ export function DashboardPage() {
                 createdAt: serverTimestamp(),
             });
             firestoreDocId = newDoc.id;
+            setLastUploadedDocId(newDoc.id);
 
             if (form.generateSummary) {
                 setUploadStep("analyzing");
@@ -276,6 +286,63 @@ export function DashboardPage() {
         setError("");
     };
 
+    const onDismissSummary = () => {
+        setUploadStep("idle");
+        setAiSummary("");
+        setError("");
+        setUploadSuccessBanner(true);
+    };
+
+    const fetchLifeEventsForTimeline = async () => {
+        if (!user) return;
+        const snap = await getDocs(
+            query(collection(db, "life_events"), where("userId", "==", user.uid))
+        );
+        setLifeEvents(
+            snap.docs.map(d => ({
+                id: d.id,
+                title: d.data().title || "Untitled Event",
+                date: d.data().date || "",
+                patientId: d.data().patientId || "",
+            }))
+        );
+    };
+
+    const handleAddDocToEvent = async () => {
+        if (!lastUploadedDocId || !user) return;
+        setAddingToTimeline(true);
+        try {
+            if (selectedTimelineEventId) {
+                const eventRef = doc(db, "life_events", selectedTimelineEventId);
+                const eventSnap = await getDocs(
+                    query(collection(db, "life_events"), where("userId", "==", user.uid))
+                );
+                const existingEvent = eventSnap.docs.find(d => d.id === selectedTimelineEventId);
+                const existingIds: string[] = existingEvent?.data().documentIds || [];
+                if (!existingIds.includes(lastUploadedDocId)) {
+                    await updateDoc(eventRef, { documentIds: [...existingIds, lastUploadedDocId] });
+                }
+            } else {
+                await addDoc(collection(db, "life_events"), {
+                    userId: user.uid,
+                    patientId: form.patientId,
+                    title: selectedFile?.name?.replace(/\.[^/.]+$/, "") || "Document Upload",
+                    category: "visit",
+                    date: form.docDate || new Date().toISOString().split("T")[0],
+                    description: "",
+                    documentIds: [lastUploadedDocId],
+                    createdAt: serverTimestamp(),
+                });
+            }
+            setShowAddToTimeline(false);
+            setSelectedTimelineEventId("");
+        } catch (e) {
+            console.error("Add to timeline error:", e);
+        } finally {
+            setAddingToTimeline(false);
+        }
+    };
+
     const getVitalData = (type: string) => {
         const filtered = vitals.filter(v => v.type === type).sort((a,b) => {
             const tA = a.timestamp?.toMillis?.() || (a.timestamp instanceof Date ? a.timestamp.getTime() : 0);
@@ -309,6 +376,19 @@ export function DashboardPage() {
         <div className="pb-24 w-full max-w-lg mx-auto relative">
 
             <main className="px-5 pt-5 space-y-6">
+                {/* Upload success banner */}
+                {uploadSuccessBanner && (
+                  <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="px-4 py-3 bg-emerald-50 border border-emerald-200 rounded-2xl flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 size={18} className="text-emerald-600 shrink-0" />
+                      <span className="text-sm font-bold text-emerald-800">Document saved successfully!</span>
+                    </div>
+                    <button onClick={() => setUploadSuccessBanner(false)} className="shrink-0">
+                      <X size={16} className="text-emerald-500" />
+                    </button>
+                  </motion.div>
+                )}
+
                 {/* Greeting */}
                 <section>
                     <motion.p initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">
@@ -416,6 +496,21 @@ export function DashboardPage() {
                 </motion.div>
               )}
 
+              {uploadStep === "analyzing" && (
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[110] bg-white/80 backdrop-blur-md flex items-center justify-center p-6">
+                  <div className="w-full max-w-xs text-center space-y-4">
+                    <div className="size-20 bg-violet-100 rounded-full flex items-center justify-center mx-auto animate-pulse">
+                      <Bot className="text-violet-600" size={32} />
+                    </div>
+                    <h3 className="font-black text-slate-900 text-lg">{t("dashboard.analyzingDoc") || "Analyzing Document..."}</h3>
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                      AI is reading your document...
+                    </p>
+                    <Loader2 className="animate-spin text-violet-500 mx-auto mt-2" size={24} />
+                  </div>
+                </motion.div>
+              )}
+
               {uploadStep === "form" && (
                 // Bottom-sheet modal — slides up from bottom, never clips on small screens
                 <div className="fixed inset-0 z-[110] flex flex-col justify-end">
@@ -470,38 +565,119 @@ export function DashboardPage() {
               )}
 
               {uploadStep === "summary" && (
-                <div className="fixed inset-0 z-[110] bg-white flex flex-col p-6 overflow-y-auto">
-                  <header className="flex items-center justify-between mb-8 flex-shrink-0">
-                    <div className="flex items-center gap-2">
-                       {error ? <AlertTriangle className="text-rose-600" /> : <Bot className="text-violet-600" />}
-                       <h2 className="text-xl font-black">{error ? "Analysis Failed" : t("dashboard.auditResults")}</h2>
-                    </div>
-                    <button onClick={resetUpload} className="size-10 bg-slate-100 rounded-full flex items-center justify-center"><X size={20} /></button>
-                  </header>
-                  {error ? (
-                    <div className="flex-1 flex flex-col items-center justify-center text-center gap-4">
-                      <div className="size-20 rounded-3xl bg-rose-100 text-rose-500 flex items-center justify-center">
-                        <AlertTriangle size={36} />
+                <div className="fixed inset-0 z-[110] flex flex-col justify-end">
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    onClick={onDismissSummary}
+                    className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+                  />
+                  <motion.div
+                    initial={{ y: "100%" }}
+                    animate={{ y: 0 }}
+                    exit={{ y: "100%" }}
+                    className="relative bg-white rounded-t-[2.5rem] px-6 pt-4 shadow-2xl max-h-[85vh] overflow-y-auto"
+                    style={{ paddingBottom: "calc(2rem + env(safe-area-inset-bottom, 0px))" }}
+                  >
+                    <div className="w-10 h-1 bg-slate-200 rounded-full mx-auto mb-4" />
+                    {error ? (
+                      <div className="flex flex-col items-center text-center gap-4 py-6">
+                        <div className="size-20 rounded-3xl bg-rose-100 text-rose-500 flex items-center justify-center">
+                          <AlertTriangle size={36} />
+                        </div>
+                        <p className="text-slate-700 font-bold text-lg">Summary Generation Failed</p>
+                        <p className="text-slate-500 text-sm max-w-xs leading-relaxed">{error}</p>
+                        <button onClick={resetUpload} className="mt-2 px-8 py-3 bg-rose-500 text-white rounded-xl font-black">
+                          Try Again
+                        </button>
                       </div>
-                      <p className="text-slate-700 font-bold text-lg">Summary Generation Failed</p>
-                      <p className="text-slate-500 text-sm max-w-xs leading-relaxed">{error}</p>
-                      <button onClick={resetUpload} className="mt-4 px-8 py-3 bg-rose-500 text-white rounded-xl font-black">
-                        Try Again
-                      </button>
-                    </div>
-                  ) : (
-                    <>
-                      <div className="prose prose-slate max-w-none flex-1">
-                        <ReactMarkdown>{aiSummary}</ReactMarkdown>
-                      </div>
-                      <button onClick={() => navigate("/documents")} className="mt-8 w-full py-4 bg-slate-900 text-white rounded-xl font-black flex-shrink-0">
-                        {t("dashboard.viewInVault")}
-                      </button>
-                    </>
-                  )}
+                    ) : (
+                      <>
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="flex items-center gap-2">
+                            <Bot className="text-violet-600" />
+                            <h2 className="text-xl font-black">{t("dashboard.auditResults")}</h2>
+                          </div>
+                          <button onClick={onDismissSummary} className="size-10 bg-slate-100 rounded-full flex items-center justify-center"><X size={20} /></button>
+                        </div>
+                        <div className="prose prose-slate max-w-none">
+                          <ReactMarkdown>{aiSummary}</ReactMarkdown>
+                        </div>
+                        <div className="flex flex-col gap-3 mt-6 pb-2">
+                          <button onClick={() => navigate("/documents")} className="w-full py-4 bg-slate-900 text-white rounded-xl font-black">
+                            {t("dashboard.viewInVault")}
+                          </button>
+                          <button onClick={() => { onDismissSummary(); fetchLifeEventsForTimeline(); setShowAddToTimeline(true); }} className="w-full py-4 bg-emerald-600 text-white rounded-xl font-black flex items-center justify-center gap-2">
+                            <Activity size={20} />
+                            Add to Timeline
+                          </button>
+                          <button onClick={onDismissSummary} className="w-full py-3 text-slate-500 font-bold text-sm">
+                            Dismiss
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </motion.div>
                 </div>
               )}
             </AnimatePresence>
+
+            {/* Add to Timeline Modal */}
+            {showAddToTimeline && (
+              <div className="fixed inset-0 z-[120] flex flex-col justify-end">
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  onClick={() => { setShowAddToTimeline(false); setSelectedTimelineEventId(""); }}
+                  className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+                />
+                <motion.div
+                  initial={{ y: "100%" }}
+                  animate={{ y: 0 }}
+                  className="relative bg-white rounded-t-[2.5rem] px-6 pt-4 shadow-2xl"
+                  style={{ paddingBottom: "calc(2rem + env(safe-area-inset-bottom, 0px))" }}
+                >
+                  <div className="w-10 h-1 bg-slate-200 rounded-full mx-auto mb-4" />
+                  <h3 className="text-xl font-black text-slate-900 mb-4">Add to Timeline</h3>
+                  <p className="text-sm text-slate-500 mb-4">Link this document to an existing health event or create a new one.</p>
+
+                  {lifeEvents.length > 0 && (
+                    <select
+                      value={selectedTimelineEventId}
+                      onChange={e => setSelectedTimelineEventId(e.target.value)}
+                      className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold text-slate-700 mb-4"
+                    >
+                      <option value="">Create New Event</option>
+                      {lifeEvents.map(ev => (
+                        <option key={ev.id} value={ev.id}>{ev.title} ({ev.date})</option>
+                      ))}
+                    </select>
+                  )}
+
+                  {selectedTimelineEventId === "" && (
+                    <p className="text-xs text-emerald-600 font-bold mb-4">A new timeline event will be created for this document.</p>
+                  )}
+
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => { setShowAddToTimeline(false); setSelectedTimelineEventId(""); }}
+                      className="flex-1 py-4 bg-slate-100 text-slate-700 rounded-xl font-bold"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleAddDocToEvent}
+                      disabled={addingToTimeline}
+                      className="flex-1 py-4 bg-emerald-600 text-white rounded-xl font-black flex items-center justify-center gap-2 disabled:opacity-50"
+                    >
+                      {addingToTimeline ? <Loader2 size={18} className="animate-spin" /> : <Activity size={18} />}
+                      {addingToTimeline ? "Adding..." : selectedTimelineEventId ? "Link to Event" : "Create Event"}
+                    </button>
+                  </div>
+                </motion.div>
+              </div>
+            )}
         </div>
     );
 }

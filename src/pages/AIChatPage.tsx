@@ -528,6 +528,7 @@ export function AIChatPage() {
 
     const geminiHistoryRef = useRef<GeminiContent[]>([]);
     const pendingDocResultsRef = useRef<DocumentResultCard[]>([]);
+    const internalNavigateRef = useRef(false);
     const bottomRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -564,6 +565,13 @@ export function AIChatPage() {
     // Load existing chat history
     useEffect(() => {
         if (isNewChat || !chatIdParam || !user) {
+            setLoadingHistory(false);
+            return;
+        }
+        // Skip reload when sendMessage() triggered an internal route change
+        // (from "new" to real chatId) — messages already in state from sendMessage
+        if (internalNavigateRef.current) {
+            internalNavigateRef.current = false;
             setLoadingHistory(false);
             return;
         }
@@ -1125,6 +1133,7 @@ export function AIChatPage() {
             });
             activeChatId = chatRef.id;
             setCurrentChatId(activeChatId);
+            internalNavigateRef.current = true;
             navigate(`/ai-chat/${activeChatId}`, { replace: true });
         }
 

@@ -80,8 +80,7 @@ function App() {
               <Route path="/vitals" element={<VitalsPage />} />
               <Route path="/notifications" element={<NotificationsPage />} />
               <Route path="/ai-chat" element={<ChatListPage />} />
-              <Route path="/ai-chat/new" element={<AIChatPage />} />
-              <Route path="/ai-chat/:chatId" element={<AIChatPage />} />
+              <Route path="/ai-chat/:chatId?" element={<AIChatPage />} />
               <Route path="/emergency" element={<EmergencyPage />} />
               <Route path="/admin">
                 <Route
