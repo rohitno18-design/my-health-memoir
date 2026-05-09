@@ -1,8 +1,14 @@
 [
   {
     "origin": ["*"],
-    "method": ["GET", "HEAD"],
-    "responseHeader": ["Content-Type", "Content-Disposition"],
+    "method": ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE", "OPTIONS"],
+    "responseHeader": [
+      "Content-Type",
+      "Content-Disposition",
+      "Content-Length",
+      "Cache-Control",
+      "x-goog-meta-*"
+    ],
     "maxAgeSeconds": 3600
   }
 ]

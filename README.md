@@ -1,73 +1,75 @@
-# React + TypeScript + Vite
+# I M Smrti — Universal Health OS
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Your family's complete health companion. Upload medical documents, get AI-powered summaries and translations, track vitals, and share emergency data with paramedics — all in English and Hindi.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **AI Document Analysis** — Upload PDFs, images, and reports. Gemini AI summarizes and translates them into 8 languages.
+- **AI Health Chat** — An intelligent assistant with 10 medical tools: vitals tracking, doctor visit prep, PDF health reports, and more.
+- **Emergency Pulse** — SOS QR code on your lock screen. Paramedics scan it to see blood type, allergies, meds, and ICE contacts — no login needed.
+- **Vitals Tracking** — Log and chart blood sugar, blood pressure, and heart rate with interactive Recharts graphs.
+- **Family Health Profiles** — Manage 35+ fields per patient across 5 tabs (overview, timeline, vitals, appointments, emergency).
+- **Life Timeline** — Log medical events: visits, diagnoses, procedures, milestones, and notes.
+- **Offline-First PWA** — Works without internet. Install on any device. iOS and Android ready via Capacitor.
+- **Multi-Language** — Full English and Hindi (Hinglish) support with live language toggle.
 
-## React Compiler
+## Tech Stack
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+| Layer | Technology |
+|-------|-----------|
+| Frontend | React 19, TypeScript, Vite 7 |
+| Styling | Tailwind CSS, shadcn/ui, Framer Motion |
+| Backend | Firebase (Auth, Firestore, Storage, Hosting) |
+| AI | Google Gemini 2.5 Flash |
+| Mobile | Capacitor 7 (Android + iOS) |
+| Charts | Recharts |
+| Icons | Lucide React |
+| i18n | i18next + react-i18next |
 
-## Expanding the ESLint configuration
+## Getting Started
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+```bash
+# Install dependencies
+npm install
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+# Set up environment variables (copy from .env.example)
+cp .env.example .env
+# Fill in your Firebase and Gemini API keys in .env
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+# Start development server
+npm run dev
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+# Build for production
+npm run build
+
+# Preview production build
+npm run preview
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Project Structure
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
 ```
+src/
+├── components/        # Reusable UI components
+│   └── dashboard/     # Dashboard bento widgets
+├── contexts/          # React contexts (Auth)
+├── lib/               # Firebase init, utils, audit, feature flags
+├── locales/           # i18n translation files (en.json, hi.json)
+├── pages/             # Route pages
+│   └── admin/         # Admin panel pages
+└── types/             # TypeScript type definitions
+```
+
+## Deployment
+
+The project auto-deploys to Firebase Hosting on push to `master` via GitHub Actions. PR previews are also deployed automatically.
+
+```bash
+# Manual deploy
+npm run build
+firebase deploy
+```
+
+## License
+
+Proprietary — all rights reserved.

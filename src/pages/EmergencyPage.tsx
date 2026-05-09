@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import {
   ShieldAlert, Phone, Droplets, AlertCircle,
   Heart, Loader2, Siren, UserCheck, Users,
-  Activity, Pill, User
+  Activity, Pill, User, AlertTriangle
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { QRCodeSVG } from "qrcode.react";
@@ -12,6 +12,7 @@ import { doc, onSnapshot, setDoc, query, collection, where } from "firebase/fire
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { useFeatureFlags } from "@/lib/featureFlags";
 
 interface EmergencyInfo {
   bloodType: string;
@@ -28,6 +29,7 @@ export function EmergencyPage() {
   const { t } = useTranslation();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { flags, loaded: flagsLoaded } = useFeatureFlags();
   const [info, setInfo] = useState<EmergencyInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [isSOSActive, setIsSOSActive] = useState(false);
@@ -96,6 +98,18 @@ export function EmergencyPage() {
       <Loader2 className="animate-spin text-rose-400" size={32} />
     </div>
   );
+
+  if (flagsLoaded && !flags.emergencyPulseEnabled) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[60vh] px-6 text-center">
+        <div className="p-4 bg-amber-50 border border-amber-200 rounded-2xl max-w-sm">
+          <AlertTriangle size={32} className="text-amber-500 mx-auto mb-3" />
+          <h2 className="text-lg font-bold text-amber-800">Emergency Pulse Disabled</h2>
+          <p className="text-sm text-amber-700 mt-2">This feature is temporarily disabled by the administrator.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="pb-32 px-4 rounded-3xl overflow-hidden" style={{ background: "linear-gradient(160deg, #0f172a 0%, #1e293b 100%)", minHeight: "calc(100vh - 8.5rem)" }}>

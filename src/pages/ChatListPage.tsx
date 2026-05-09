@@ -3,9 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { collection, query, orderBy, onSnapshot, doc, deleteDoc, updateDoc, writeBatch } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/contexts/AuthContext";
-import { Bot, Plus, MessageSquare, Clock, Trash2, Edit2, CheckCircle2, Circle, X } from "lucide-react";
+import { Bot, Plus, MessageSquare, Clock, Trash2, Edit2, CheckCircle2, Circle, X, AlertTriangle } from "lucide-react";
 import type { Chat } from "@/types/chat";
 import { useTranslation } from "react-i18next";
+import { useFeatureFlags } from "@/lib/featureFlags";
 
 function formatRelativeTime(timestamp: unknown, t: any): string {
     if (!timestamp) return "";
@@ -29,6 +30,7 @@ export function ChatListPage() {
     const { user } = useAuth();
     const navigate = useNavigate();
     const { t } = useTranslation();
+    const { flags, loaded: flagsLoaded } = useFeatureFlags();
     const [chats, setChats] = useState<Chat[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -113,6 +115,18 @@ export function ChatListPage() {
             alert("Failed to rename chat.");
         }
     };
+
+    if (flagsLoaded && !flags.aiChatEnabled) {
+        return (
+            <div className="flex flex-col items-center justify-center h-[60vh] px-6 text-center">
+                <div className="p-4 bg-amber-50 border border-amber-200 rounded-2xl max-w-sm">
+                    <AlertTriangle size={32} className="text-amber-500 mx-auto mb-3" />
+                    <h2 className="text-lg font-bold text-amber-800">AI Chat Unavailable</h2>
+                    <p className="text-sm text-amber-700 mt-2">AI Chat is temporarily disabled by the administrator.</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="flex flex-col h-[calc(100vh-8.5rem)] w-full relative overflow-hidden">

@@ -24,8 +24,8 @@ export function TermsPage() {
 
                 <div className="prose prose-slate max-w-none text-slate-600 space-y-6">
                     <p className="font-medium text-slate-800">
-                        Effective Date: [Insert Date]<br/>
-                        Company Name: [Enter Legal Company Name]
+                        Effective Date: May 9, 2026<br/>
+                        Company Name: I M Smrti
                     </p>
 
                     <section>

@@ -17,6 +17,7 @@ import {
 } from "firebase/firestore";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { useTranslation } from "react-i18next";
+import { useFeatureFlags } from "@/lib/featureFlags";
 
 // Bento Components
 import { FamilyPulse } from "@/components/dashboard/FamilyPulse";
@@ -74,6 +75,7 @@ const getSafeMimeType = (file: File): string => {
 
 export function DashboardPage() {
     const { userProfile, user } = useAuth();
+    const { flags } = useFeatureFlags();
     const navigate = useNavigate();
     const { t } = useTranslation();
 
@@ -401,7 +403,7 @@ export function DashboardPage() {
 
                 {/* 1. Quick Actions (Core Value Loop) */}
                 <section>
-                    <QuickActions onUpload={() => fileInputRef.current?.click()} onCamera={() => cameraInputRef.current?.click()} />
+                    <QuickActions onUpload={() => fileInputRef.current?.click()} onCamera={() => cameraInputRef.current?.click()} documentAnalysisEnabled={flags.documentAnalysisEnabled} />
                 </section>
 
                 {/* 2. Emergency Card (Safety) */}

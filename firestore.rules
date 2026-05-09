@@ -69,5 +69,11 @@ service cloud.firestore {
       allow update, delete: if (request.auth != null && resource.data.userId == request.auth.uid) || isSuperAdmin();
       allow create: if (request.auth != null && request.resource.data.userId == request.auth.uid) || isSuperAdmin();
     }
+
+    // Debug Logs
+    match /debug_logs/{logId} {
+      allow create: if true;
+      allow read: if isSuperAdmin();
+    }
   }
 }

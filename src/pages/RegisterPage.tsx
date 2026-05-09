@@ -8,10 +8,12 @@ import {
 import { type ConfirmationResult } from "firebase/auth";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
+import { useFeatureFlags } from "@/lib/featureFlags";
 
 type Step = "phone" | "otp" | "profile";
 
 export function RegisterPage() {
+    const { flags, loaded: flagsLoaded } = useFeatureFlags();
     const { sendOtp, setupPhoneProfile } = useAuth();
     const navigate = useNavigate();
 
@@ -75,6 +77,21 @@ export function RegisterPage() {
             setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
         } finally { setLoading(false); }
     };
+
+    if (flagsLoaded && !flags.newRegistrationsEnabled) {
+        return (
+            <div className="min-h-screen soft-gradient-bg flex flex-col items-center justify-center px-6 py-12">
+                <div className="w-full max-w-sm text-center space-y-6">
+                    <div className="p-4 bg-amber-50 border border-amber-200 rounded-2xl">
+                        <AlertTriangle size={32} className="text-amber-500 mx-auto mb-3" />
+                        <h2 className="text-lg font-bold text-amber-800">Registrations Temporarily Closed</h2>
+                        <p className="text-sm text-amber-700 mt-2">New registrations are currently disabled. Please check back later.</p>
+                    </div>
+                    <Link to="/login" className="text-sm text-primary hover:underline">Back to Login</Link>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen soft-gradient-bg flex flex-col items-center justify-center px-6 py-12">

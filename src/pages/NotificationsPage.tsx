@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
     Bell, 
@@ -8,10 +8,14 @@ import {
     ShieldCheck, 
     ChevronRight, 
     X,
-    CheckCircle2
+    CheckCircle2,
+    Loader2
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/AuthContext";
+import { db } from "@/lib/firebase";
+import { collection, query, orderBy, onSnapshot, doc, updateDoc, deleteDoc, writeBatch, Timestamp } from "firebase/firestore";
 
 interface Notification {
     id: string;
@@ -22,69 +26,97 @@ interface Notification {
     isRead: boolean;
     actionLabel?: string;
     actionPath?: string;
+    createdAt: Timestamp | null;
 }
 
-const MOCK_NOTIFICATIONS: Notification[] = [
-    {
-        id: "1",
-        type: "insight",
-        title: "AI Health Insight",
-        description: "Your HbA1c levels show a downward trend compared to last month. Great progress!",
-        time: "2h ago",
-        isRead: false,
-        actionLabel: "View Trend",
-        actionPath: "/timeline"
-    },
-    {
-        id: "2",
-        type: "reminder",
-        title: "Medication Reminder",
-        description: "Time for your morning dose of Metformin (500mg).",
-        time: "4h ago",
-        isRead: false,
-        actionLabel: "Mark as Taken"
-    },
-    {
-        id: "3",
-        type: "security",
-        title: "Login from New Device",
-        description: "Your account was accessed from a Chrome browser on Windows in Mumbai.",
-        time: "1d ago",
-        isRead: true,
-        actionLabel: "Review Security",
-        actionPath: "/profile"
-    },
-    {
-        id: "4",
-        type: "insight",
-        title: "Smart Document Summary",
-        description: "Gemini has finished summarizing your Apollo Labs report from yesterday.",
-        time: "2d ago",
-        isRead: true,
-        actionLabel: "View Summary",
-        actionPath: "/documents"
-    }
-];
+function formatRelativeTime(timestamp: Timestamp | null): string {
+    if (!timestamp) return "";
+    const date = timestamp.toDate();
+    const now = new Date();
+    const diff = now.getTime() - date.getTime();
+    const minutes = Math.floor(diff / 60000);
+    if (minutes < 1) return "Just now";
+    if (minutes < 60) return `${minutes}m ago`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}h ago`;
+    const days = Math.floor(hours / 24);
+    if (days < 7) return `${days}d ago`;
+    return date.toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" });
+}
 
 export function NotificationsPage() {
     const navigate = useNavigate();
     const { t } = useTranslation();
-    const [notifications, setNotifications] = useState<Notification[]>(MOCK_NOTIFICATIONS);
+    const { user } = useAuth();
+    const [notifications, setNotifications] = useState<Notification[]>([]);
+    const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState<"all" | "unread">("all");
+
+    useEffect(() => {
+        if (!user) return;
+        const q = query(
+            collection(db, "users", user.uid, "notifications"),
+            orderBy("createdAt", "desc")
+        );
+        const unsub = onSnapshot(q, (snap) => {
+            const items: Notification[] = [];
+            snap.forEach((d) => {
+                const data = d.data();
+                items.push({
+                    id: d.id,
+                    type: data.type || "insight",
+                    title: data.title || "",
+                    description: data.description || "",
+                    time: formatRelativeTime(data.createdAt),
+                    isRead: data.isRead ?? false,
+                    actionLabel: data.actionLabel || undefined,
+                    actionPath: data.actionPath || undefined,
+                    createdAt: data.createdAt || null,
+                });
+            });
+            setNotifications(items);
+            setLoading(false);
+        }, (err) => {
+            console.error("Failed to load notifications:", err);
+            setLoading(false);
+        });
+        return () => unsub();
+    }, [user]);
 
     const unreadCount = notifications.filter(n => !n.isRead).length;
 
-    const markAsRead = (id: string) => {
-        setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n));
+    const markAsRead = async (id: string) => {
+        if (!user) return;
+        try {
+            await updateDoc(doc(db, "users", user.uid, "notifications", id), { isRead: true });
+        } catch (e) {
+            console.error("Failed to mark notification as read:", e);
+        }
     };
 
-    const markAllRead = () => {
-        setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+    const markAllRead = async () => {
+        if (!user || notifications.length === 0) return;
+        try {
+            const batch = writeBatch(db);
+            notifications.forEach((n) => {
+                if (!n.isRead) {
+                    batch.update(doc(db, "users", user.uid, "notifications", n.id), { isRead: true });
+                }
+            });
+            await batch.commit();
+        } catch (e) {
+            console.error("Failed to mark all as read:", e);
+        }
     };
 
-    const removeNotification = (e: React.MouseEvent, id: string) => {
+    const removeNotification = async (e: React.MouseEvent, id: string) => {
         e.stopPropagation();
-        setNotifications(prev => prev.filter(n => n.id !== id));
+        if (!user) return;
+        try {
+            await deleteDoc(doc(db, "users", user.uid, "notifications", id));
+        } catch (err) {
+            console.error("Failed to delete notification:", err);
+        }
     };
 
     const filtered = notifications.filter(n => filter === "all" || !n.isRead);
@@ -145,7 +177,11 @@ export function NotificationsPage() {
 
             {/* Notification List */}
             <div className="flex-1 overflow-y-auto px-5 space-y-3 pb-6 custom-scrollbar">
-                {filtered.length === 0 ? (
+                {loading ? (
+                    <div className="flex items-center justify-center py-20">
+                        <Loader2 className="animate-spin text-primary" size={24} />
+                    </div>
+                ) : filtered.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-20 text-center">
                         <div className="w-16 h-16 rounded-3xl bg-slate-100 flex items-center justify-center mb-4 text-slate-300">
                             <Bell size={32} />

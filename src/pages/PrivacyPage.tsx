@@ -13,8 +13,8 @@ export function PrivacyPage() {
 
                 <div className="prose prose-slate max-w-none text-slate-600 space-y-6">
                     <p className="font-medium text-slate-800">
-                        Effective Date: [Insert Date]<br/>
-                        Company Name: [Enter Legal Company Name]
+                        Effective Date: May 9, 2026<br/>
+                        Company Name: I M Smrti
                     </p>
 
                     <section>
@@ -51,11 +51,11 @@ export function PrivacyPage() {
                         <h2 className="text-lg font-bold text-slate-900 mb-4">Contact Information</h2>
                         <div className="flex items-center gap-3 mb-2">
                             <Mail size={18} className="text-slate-400" />
-                            <span>[Insert Support Email]</span>
+                            <span>hii@imsmrti.app</span>
                         </div>
                         <div className="flex items-center gap-3">
                             <MapPin size={18} className="text-slate-400" />
-                            <span>[Insert Registered Business Address]</span>
+                            <span>Ashbag Road, Infront of Police Station, Chouwky, Barkhedi, Plot No J 59, Bhopal, Madhya Pradesh, India</span>
                         </div>
                     </section>
                 </div>
