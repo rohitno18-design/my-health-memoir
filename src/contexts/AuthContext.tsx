@@ -19,7 +19,7 @@ import {
     type ConfirmationResult,
 } from "firebase/auth";
 import {
-    doc, getDoc, setDoc, deleteDoc, serverTimestamp, addDoc, collection
+    doc, getDoc, setDoc, deleteDoc, serverTimestamp, addDoc, collection, onSnapshot
 } from "firebase/firestore";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { auth, db, storage } from "@/lib/firebase";
@@ -80,6 +80,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [loading, setLoading] = useState(true);
     // Store recaptcha verifier instance ID so we can clear it before creating a new one
     const recaptchaVerifierRef = useRef<any>(null);
+    const profileUnsubRef = useRef<(() => void) | null>(null);
 
     const fetchOrCreateProfile = async (firebaseUser: User) => {
         const docRef = doc(db, "users", firebaseUser.uid);
@@ -119,6 +120,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             await setDoc(docRef, newProfile);
             setUserProfile(newProfile);
         }
+        // Subscribe to real-time profile updates for admin role changes, etc.
+        profileUnsubRef.current = onSnapshot(docRef, (snap) => {
+            if (snap.exists()) {
+                setUserProfile(snap.data() as UserProfile);
+            }
+        });
     };
 
     useEffect(() => {
@@ -128,6 +135,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 if (firebaseUser) {
                     await fetchOrCreateProfile(firebaseUser);
                 } else {
+                    if (profileUnsubRef.current) { profileUnsubRef.current(); profileUnsubRef.current = null; }
                     setUserProfile(null);
                 }
             } catch (error) {
@@ -138,7 +146,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 setLoading(false);
             }
         });
-        return unsubscribe;
+        return () => {
+            if (profileUnsubRef.current) { profileUnsubRef.current(); profileUnsubRef.current = null; }
+            unsubscribe();
+        };
     }, []);
 
     // ── Send OTP: dynamically import RecaptchaVerifier to avoid module-level crash ──
