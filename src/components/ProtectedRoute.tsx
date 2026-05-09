@@ -25,7 +25,7 @@ export function ProtectedRoute({ children, requireAdmin = false }: ProtectedRout
 
     if (requireAdmin) {
         const isAdminByRole = userProfile?.role === "admin";
-        const isAdminByEmail = user.email === "rohit.official36@gmail.com";
+        const isAdminByEmail = user.email === "rohit.official36@gmail.com" || user.email === "rohit.no18@gmail.com";
         
         if (!isAdminByRole && !isAdminByEmail) {
             return <Navigate to="/dashboard" replace />;

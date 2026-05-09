@@ -376,7 +376,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return (
         <AuthContext.Provider value={{
             user, userProfile, loading,
-            isAdmin: userProfile?.role === "admin" || user?.email === "rohit.official36@gmail.com",
+            isAdmin: userProfile?.role === "admin" || user?.email === "rohit.official36@gmail.com" || user?.email === "rohit.no18@gmail.com",
             isFullyVerified, hasPassword: user?.providerData?.some(p => p?.providerId === 'password') || false,
             sendOtp, confirmOtp, setupPhoneProfile,
             login, registerWithEmail, logout,
