@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { collection, query, where, getDocs, addDoc, serverTimestamp } from "firebase/firestore";
+import { collection, query, where, getDocs, addDoc, updateDoc, deleteDoc, doc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/contexts/AuthContext";
 import type { LifeEvent, Patient } from "@/pages/PatientsPage";
-import { Loader2, Plus, Calendar, Activity, X, FileText, ScanLine, Stethoscope, CheckCircle2 } from "lucide-react";
+import { Loader2, Plus, Calendar, Activity, X, FileText, ScanLine, Stethoscope, CheckCircle2, Pencil, Trash2 } from "lucide-react";
+
+type EventCategory = "visit" | "diagnosis" | "procedure" | "milestone" | "note";
 
 export const EVENT_CATEGORIES = [
     { value: "visit", label: "timeline.cat_visit", icon: <Stethoscope size={18} />, desc: "timeline.cat_desc_visit", color: "text-blue-600 bg-blue-50 border-blue-200" },
@@ -21,13 +23,15 @@ export function LifeTimeline({ patient, onClose }: { patient: Patient, onClose: 
     const [loading, setLoading] = useState(true);
     const [filterCategory, setFilterCategory] = useState<string | null>(null);
 
-    // Modal state
+    // Add/Edit modal state
     const [showAddEvent, setShowAddEvent] = useState(false);
+    const [editingEvent, setEditingEvent] = useState<LifeEvent | null>(null);
     const [saving, setSaving] = useState(false);
+    const [deleting, setDeleting] = useState<string | null>(null);
 
     // Form State
     const [title, setTitle] = useState("");
-    const [category, setCategory] = useState("visit");
+    const [category, setCategory] = useState<EventCategory>("visit");
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
     const [description, setDescription] = useState("");
 
@@ -54,42 +58,82 @@ export function LifeTimeline({ patient, onClose }: { patient: Patient, onClose: 
         fetchDocs();
     }, [patient.id]);
 
+    const resetForm = () => {
+        setTitle("");
+        setCategory("visit");
+        setDate(new Date().toISOString().split('T')[0]);
+        setDescription("");
+        setSelectedDocs([]);
+    };
+
+    const openEdit = (event: LifeEvent) => {
+        setTitle(event.title || "");
+        setCategory((event.category as EventCategory) || "visit");
+        setDate(event.date || "");
+        setDescription(event.description || "");
+        setSelectedDocs(event.documentIds || []);
+        setEditingEvent(event);
+    };
+
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
         setSaving(true);
         try {
-            const newEvent = {
-                userId: user?.uid,
-                patientId: patient.id,
-                title,
-                category,
-                date,
-                description,
-                documentIds: selectedDocs,
-                createdAt: serverTimestamp()
-            };
-            const docRef = await addDoc(collection(db, "life_events"), newEvent);
-            setEvents(prev => [{ id: docRef.id, ...newEvent, createdAt: { seconds: Date.now() / 1000 } } as unknown as LifeEvent, ...prev].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
-            setShowAddEvent(false);
-            // Reset form
-            setTitle("");
-            setCategory("visit");
-            setDate(new Date().toISOString().split('T')[0]);
-            setDescription("");
-            setSelectedDocs([]);
+            if (editingEvent) {
+                await updateDoc(doc(db, "life_events", editingEvent.id), {
+                    title,
+                    category,
+                    date,
+                    description,
+                    documentIds: selectedDocs,
+                });
+                setEvents(prev => prev.map(ev =>
+                    ev.id === editingEvent.id ? { ...ev, title, category, date, description, documentIds: selectedDocs } as LifeEvent : ev
+                ).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+                setEditingEvent(null);
+            } else {
+                const newEvent = {
+                    userId: user?.uid,
+                    patientId: patient.id,
+                    title,
+                    category,
+                    date,
+                    description,
+                    documentIds: selectedDocs,
+                    createdAt: serverTimestamp()
+                };
+                const docRef = await addDoc(collection(db, "life_events"), newEvent);
+                setEvents(prev => [{ id: docRef.id, ...newEvent } as unknown as LifeEvent, ...prev].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+                setShowAddEvent(false);
+            }
+            resetForm();
         } catch (error) {
-            console.error("Error adding life event: ", error);
+            console.error("Error saving life event: ", error);
             alert(t("documents.addTimelineError"));
         } finally {
             setSaving(false);
         }
     };
 
+    const handleDelete = async (eventId: string) => {
+        if (!confirm(t("timeline.deleteConfirm") || "Delete this event?")) return;
+        setDeleting(eventId);
+        try {
+            await deleteDoc(doc(db, "life_events", eventId));
+            setEvents(prev => prev.filter(e => e.id !== eventId));
+        } catch (error) {
+            console.error("Error deleting event:", error);
+            alert(t("timeline.deleteError") || "Failed to delete event");
+        } finally {
+            setDeleting(null);
+        }
+    };
+
     const filteredEvents = filterCategory ? events.filter(e => e.category === filterCategory) : events;
+    const showModal = showAddEvent || editingEvent !== null;
 
     return (
         <div className="fixed inset-0 z-[110] bg-white sm:bg-black/40 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200">
-            {/* On mobile: full-height sheet but with safe-area top padding so header isn't clipped by notch/statusbar */}
             <div
                 className="w-full max-w-4xl sm:h-auto sm:max-h-[85vh] glass-card sm:rounded-[2.5rem] flex flex-col shadow-2xl relative overflow-hidden bg-white/95"
                 style={{ height: '100%', paddingTop: 'env(safe-area-inset-top, 0px)' }}
@@ -130,7 +174,7 @@ export function LifeTimeline({ patient, onClose }: { patient: Patient, onClose: 
                                 </button>
                             ))}
                         </div>
-                        <button onClick={() => setShowAddEvent(true)} className="flex items-center gap-2 px-5 py-2.5 bg-slate-900 text-white rounded-xl font-bold text-sm shadow-md hover:bg-slate-800 active:scale-95 transition-all flex-shrink-0">
+                        <button onClick={() => { resetForm(); setShowAddEvent(true); }} className="flex items-center gap-2 px-5 py-2.5 bg-slate-900 text-white rounded-xl font-bold text-sm shadow-md hover:bg-slate-800 active:scale-95 transition-all flex-shrink-0">
                             <Plus size={16} /> {t("timeline.addEvent")}
                         </button>
                     </div>
@@ -159,9 +203,27 @@ export function LifeTimeline({ patient, onClose }: { patient: Patient, onClose: 
                                             <span className={`text-[12px] font-extrabold uppercase tracking-wider block mb-1 ${catMetadata.color.split(' ')[0]}`}>{renderDate}</span>
                                             <div className="flex items-start justify-between gap-4">
                                                 <h3 className="font-bold text-lg text-slate-900 leading-tight">{event.title}</h3>
-                                                <div className={`px-3 py-1 bg-white/60 rounded-lg flex items-center gap-1.5 text-xs font-bold ${catMetadata.color.split(' ')[0]}`}>
-                                                    {catMetadata.icon}
-                                                    {t(catMetadata.label)}
+                                                <div className="flex items-center gap-1.5">
+                                                    <div className={`px-3 py-1 bg-white/60 rounded-lg flex items-center gap-1.5 text-xs font-bold ${catMetadata.color.split(' ')[0]}`}>
+                                                        {catMetadata.icon}
+                                                        {t(catMetadata.label)}
+                                                    </div>
+                                                    {/* Edit / Delete buttons */}
+                                                    <button
+                                                        onClick={() => openEdit(event)}
+                                                        className="p-1.5 rounded-lg hover:bg-white/80 text-slate-400 hover:text-slate-700 transition-colors"
+                                                        title={t("common.edit") || "Edit"}
+                                                    >
+                                                        <Pencil size={14} />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDelete(event.id)}
+                                                        disabled={deleting === event.id}
+                                                        className="p-1.5 rounded-lg hover:bg-rose-50 text-slate-400 hover:text-rose-500 transition-colors disabled:opacity-50"
+                                                        title={t("common.delete") || "Delete"}
+                                                    >
+                                                        {deleting === event.id ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+                                                    </button>
                                                 </div>
                                             </div>
 
@@ -189,16 +251,16 @@ export function LifeTimeline({ patient, onClose }: { patient: Patient, onClose: 
                 </div>
             </div>
 
-            {/* Add Event Modal */}
-            {showAddEvent && (
+            {/* Add / Edit Event Modal */}
+            {showModal && (
                 <div className="absolute inset-0 z-[120] bg-black/40 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4">
                     <div className="w-full max-w-xl h-full sm:h-auto sm:max-h-[90vh] glass-card rounded-t-[2rem] sm:rounded-[2.5rem] flex flex-col shadow-2xl animate-in slide-in-from-bottom-5 duration-300 relative overflow-hidden">
                         <div className="p-6 border-b border-white/30 flex justify-between items-center bg-slate-50 relative z-10 flex-shrink-0">
                             <div>
-                                <h3 className="font-extrabold text-xl text-slate-900">{t("timeline.addEvent")}</h3>
-                                <p className="text-xs font-semibold text-slate-500 mt-0.5">{t("timeline.addEventDesc")}</p>
+                                <h3 className="font-extrabold text-xl text-slate-900">{editingEvent ? t("timeline.editEvent") : t("timeline.addEvent")}</h3>
+                                <p className="text-xs font-semibold text-slate-500 mt-0.5">{editingEvent ? t("timeline.editEventDesc") : t("timeline.addEventDesc")}</p>
                             </div>
-                            <button onClick={() => setShowAddEvent(false)} className="text-slate-400 hover:text-slate-800 p-2 bg-slate-200/50 rounded-full transition-colors"><X size={20} /></button>
+                            <button onClick={() => { setShowAddEvent(false); setEditingEvent(null); }} className="text-slate-400 hover:text-slate-800 p-2 bg-slate-200/50 rounded-full transition-colors"><X size={20} /></button>
                         </div>
 
                         <div className="flex-1 overflow-y-auto p-6 scroll-smooth bg-white custom-scrollbar relative z-10">
@@ -266,7 +328,7 @@ export function LifeTimeline({ patient, onClose }: { patient: Patient, onClose: 
 
                         <div className="p-4 border-t border-slate-200 bg-slate-50 flex-shrink-0">
                             <button type="submit" form="add-event-form" disabled={saving} className="w-full py-3.5 bg-slate-900 text-white rounded-xl font-extrabold text-sm shadow-md hover:bg-slate-800 disabled:opacity-70 flex items-center justify-center gap-2 transition-all">
-                                {saving ? <Loader2 size={18} className="animate-spin" /> : <CheckCircle2 size={18} />} {t("timeline.saveChanges")}
+                                {saving ? <Loader2 size={18} className="animate-spin" /> : <CheckCircle2 size={18} />} {editingEvent ? t("timeline.saveChanges") : t("timeline.saveChanges")}
                             </button>
                         </div>
                     </div>

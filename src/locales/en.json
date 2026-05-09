@@ -114,7 +114,8 @@
     "vitals": "Health Vitals",
     "stability": "Stability Level",
     "stable": "Stable",
-    "viewingVitalsFor": "Viewing vitals for:"
+    "viewingVitalsFor": "Viewing vitals for:",
+    "analyzingDoc": "Analyzing Document..."
   },
   "vitals": {
     "title": "Health Vitals",
@@ -299,7 +300,11 @@
     "linkToExisting": "Link To Existing",
     "linkedEvents": "Linked Events",
     "linkedTimeline": "Linked Timeline",
-    "noLinkedEvents": "No Linked Events"
+    "noLinkedEvents": "No Linked Events",
+    "aiSummaryTitle": "AI Summary ({{lang}})",
+    "manageLinked": "Manage events linked to {{name}}",
+    "linkDocToEvent": "Link {{name}} to a timeline event",
+    "fileCount": "{{count}} file(s)"
   },
   "timeline": {
     "title1": "Global Family",

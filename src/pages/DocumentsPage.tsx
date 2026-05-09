@@ -97,6 +97,7 @@ export function DocumentsPage() {
 
     // Add to Timeline state
     const [addToTimelineDoc, setAddToTimelineDoc] = useState<Document | null>(null);
+    const [addToTimelineDate, setAddToTimelineDate] = useState("");
     const [lifeEvents, setLifeEvents] = useState<{ id: string, title: string, date: string, patientId: string }[]>([]);
     const [selectedEventId, setSelectedEventId] = useState("");
     const [addingToTimeline, setAddingToTimeline] = useState(false);
@@ -336,6 +337,7 @@ export function DocumentsPage() {
         setAddToTimelineDoc(doc);
         setSelectedEventId("");
         setAddToTimelineDone(null);
+        setAddToTimelineDate(doc.docDate || new Date().toISOString().split('T')[0]);
         // Fetch existing events for this doc's patient
         if (doc.patientId && user) {
             const snap = await getDocs(query(collection(db, "life_events"), where("userId", "==", user.uid), where("patientId", "==", doc.patientId)));
@@ -367,7 +369,7 @@ export function DocumentsPage() {
                     patientId: addToTimelineDoc.patientId,
                     title: addToTimelineDoc.name.replace(/\.[^/.]+$/, ""),
                     category: "visit",
-                    date: addToTimelineDoc.docDate || new Date().toISOString().split('T')[0],
+                    date: addToTimelineDate || addToTimelineDoc.docDate || new Date().toISOString().split('T')[0],
                     description: "",
                     documentIds: [addToTimelineDoc.id],
                     createdAt: serverTimestamp()
@@ -899,6 +901,12 @@ export function DocumentsPage() {
                                 </div>
                             ) : (
                                 <>
+                                    {!selectedEventId && (
+                                        <div className="mb-4">
+                                            <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 block">{t("timeline.eventDate")}</label>
+                                            <input type="date" value={addToTimelineDate} onChange={e => setAddToTimelineDate(e.target.value)} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold text-slate-700 outline-none" />
+                                        </div>
+                                    )}
                                     <div className="mb-4">
                                         <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 block">{t("documents.linkExisting")}</label>
                                         <select value={selectedEventId} onChange={e => setSelectedEventId(e.target.value)} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold text-slate-700 outline-none">

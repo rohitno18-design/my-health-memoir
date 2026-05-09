@@ -114,7 +114,8 @@
     "vitals": "हेल्थ वाइटल्स",
     "stability": "स्थिति (Stability)",
     "stable": "स्थिर (Stable)",
-    "viewingVitalsFor": "जिसके Vitals देख रहे हैं:"
+    "viewingVitalsFor": "जिसके Vitals देख रहे हैं:",
+    "analyzingDoc": "दस्तावेज़ का विश्लेषण हो रहा है... (Analyzing Document...)"
   },
   "vitals": {
     "title": "हेल्थ वाइटल्स",
@@ -299,7 +300,11 @@
     "linkToExisting": "Link To Existing",
     "linkedEvents": "Linked Events",
     "linkedTimeline": "Linked Timeline",
-    "noLinkedEvents": "No Linked Events"
+    "noLinkedEvents": "No Linked Events",
+    "aiSummaryTitle": "AI सारांश ({{lang}})",
+    "manageLinked": "{{name}} से जुड़े Events प्रबंधित करें",
+    "linkDocToEvent": "{{name}} को Timeline Event से जोड़ें",
+    "fileCount": "{{count}} फाइलें"
   },
   "timeline": {
     "title1": "ग्लोबल फैमिली",
