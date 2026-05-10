@@ -255,7 +255,7 @@ function ChangePasswordModal({ onClose }: { onClose: () => void }) {
         <div className="fixed inset-0 z-50 bg-black/40 flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
             <div className="w-full max-w-lg bg-white text-slate-900 border border-slate-200 rounded-t-[2rem] sm:rounded-[2rem] p-6 space-y-4 max-h-[90vh] overflow-y-auto shadow-2xl relative z-10" onClick={e => e.stopPropagation()}>
                 <div className="flex items-center justify-between">
-                    <h2 className="font-bold">{hasPassword ? t("account.changePassword") : "Create Password"}</h2>
+                    <h2 className="font-bold">{hasPassword ? t("account.changePassword") : t("account.createPassword")}</h2>
                     <button onClick={onClose}><X size={18} /></button>
                 </div>
                 {done ? (
@@ -276,7 +276,7 @@ function ChangePasswordModal({ onClose }: { onClose: () => void }) {
                             </div>
                         )}
                         {[
-                            { label: hasPassword ? t("account.newPassword") : "Create Password", val: next, set: setNext },
+                            { label: hasPassword ? t("account.newPassword") : t("account.createPassword"), val: next, set: setNext },
                             { label: t("account.confirmPassword"), val: confirm, set: setConfirm },
                         ].map(({ label, val, set }) => (
                             <div key={label}>
@@ -288,7 +288,7 @@ function ChangePasswordModal({ onClose }: { onClose: () => void }) {
                         <button type="submit" disabled={saving}
                             className="w-full py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-medium flex items-center justify-center gap-2 disabled:opacity-60">
                             {saving && <Loader2 size={14} className="animate-spin" />}
-                            {hasPassword ? t("account.updateBtn") : "Create Password"}
+                            {hasPassword ? t("account.updateBtn") : t("account.createPassword")}
                         </button>
                     </form>
                 )}
@@ -776,7 +776,7 @@ export function AccountPage() {
                                     <div className="flex items-center gap-4">
                                         <div className="size-11 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center"><Lock size={18} /></div>
                                         <div className="text-left font-lexend">
-                                            <p className="text-sm font-black uppercase tracking-tight text-slate-900">{hasPassword ? t("account.changePassword") : "Create Password"}</p>
+                                            <p className="text-sm font-black uppercase tracking-tight text-slate-900">{hasPassword ? t("account.changePassword") : t("account.createPassword")}</p>
                                             <p className="text-[10px] font-bold text-slate-400 mt-1">{hasPassword ? "••••••••" : "Not set"}</p>
                                         </div>
                                     </div>

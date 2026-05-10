@@ -561,6 +561,8 @@
     "myDocs": "My Documents",
     "saveChanges": "Save Changes",
     "changePassword": "Change Password",
+    "createPassword": "Create Password",
+    "notSet": "Not Set",
     "errPasswordMatch": "Passwords do not match",
     "errPasswordLength": "Password must be at least 6 characters",
     "errCurrentPassword": "Current password is incorrect",
