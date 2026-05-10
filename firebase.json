@@ -7,10 +7,23 @@
             "**/node_modules/**"
         ],
         "rewrites": [
-            {
-                "source": "**",
-                "destination": "/index.html"
-            }
+            { "source": "/login", "destination": "/index.html" },
+            { "source": "/register", "destination": "/index.html" },
+            { "source": "/dashboard", "destination": "/index.html" },
+            { "source": "/profile", "destination": "/index.html" },
+            { "source": "/patients", "destination": "/index.html" },
+            { "source": "/documents", "destination": "/index.html" },
+            { "source": "/vitals", "destination": "/index.html" },
+            { "source": "/ai-chat", "destination": "/index.html" },
+            { "source": "/ai-chat/*", "destination": "/index.html" },
+            { "source": "/timeline", "destination": "/index.html" },
+            { "source": "/notifications", "destination": "/index.html" },
+            { "source": "/emergency", "destination": "/index.html" },
+            { "source": "/admin", "destination": "/index.html" },
+            { "source": "/admin/*", "destination": "/index.html" },
+            { "source": "/privacy", "destination": "/index.html" },
+            { "source": "/terms", "destination": "/index.html" },
+            { "source": "/pulse/*", "destination": "/index.html" }
         ],
         "headers": [
             {
