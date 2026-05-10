@@ -49,7 +49,11 @@
                 "headers": [
                     {
                         "key": "Cache-Control",
-                        "value": "no-cache, no-store, must-revalidate"
+                        "value": "public, max-age=0, s-maxage=0, must-revalidate"
+                    },
+                    {
+                        "key": "Surrogate-Control",
+                        "value": "max-age=0, no-store"
                     }
                 ]
             },
@@ -58,7 +62,16 @@
                 "headers": [
                     {
                         "key": "Cache-Control",
-                        "value": "no-cache"
+                        "value": "no-store, max-age=0"
+                    }
+                ]
+            },
+            {
+                "source": "**",
+                "headers": [
+                    {
+                        "key": "Cache-Control",
+                        "value": "no-store, max-age=0"
                     }
                 ]
             },

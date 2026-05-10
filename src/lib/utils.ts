@@ -11,6 +11,9 @@ export function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs))
 }
 
+// Keep BUILD_ID referenced so tree-shaking doesn't remove it — forces hash change per build
+console.debug(BUILD_ID);
+
 function triggerBlobDownload(blob: Blob, filename: string) {
     const blobUrl = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
