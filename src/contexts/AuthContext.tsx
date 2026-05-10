@@ -209,6 +209,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         };
     }, []);
 
+    // Auto-refresh auth on visibility/focus — detects email verification when user returns
+    useEffect(() => {
+        const handleVisibility = async () => {
+            if (document.visibilityState === "visible" && auth.currentUser) {
+                try {
+                    await reload(auth.currentUser);
+                    setUser(auth.currentUser);
+                    await fetchOrCreateProfile(auth.currentUser);
+                } catch (_) {}
+            }
+        };
+        document.addEventListener("visibilitychange", handleVisibility);
+        window.addEventListener("focus", handleVisibility);
+        return () => {
+            document.removeEventListener("visibilitychange", handleVisibility);
+            window.removeEventListener("focus", handleVisibility);
+        };
+    }, []);
+
     // ── Send OTP: dynamically import RecaptchaVerifier to avoid module-level crash ──
     const sendOtp = async (phoneNumber: string, recaptchaContainerId: string): Promise<ConfirmationResult> => {
         // Destroy old verifier if it exists
