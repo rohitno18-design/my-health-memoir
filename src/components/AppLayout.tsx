@@ -3,14 +3,25 @@ import { Header } from "@/components/Header";
 import { BottomNav } from "@/components/BottomNav";
 import { useAuth } from "@/contexts/AuthContext";
 import { AlertCircle, Loader2 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 function VerificationBanner() {
-    const { userProfile, resendVerification } = useAuth();
+    const { user, userProfile, resendVerification, refreshUser } = useAuth();
     const [sending, setSending] = useState(false);
     const [sent, setSent] = useState(false);
 
-    if (!userProfile || userProfile.emailVerified) return null;
+    // Check both Firestore profile AND Firebase Auth user for email verified status
+    const isEmailVerified = userProfile?.emailVerified || user?.emailVerified || false;
+    if (!userProfile || isEmailVerified) return null;
+
+    // Auto-refresh every 5 seconds to check for email verification
+    useEffect(() => {
+        if (!user) return;
+        const interval = setInterval(async () => {
+            try { await refreshUser(); } catch (_) {}
+        }, 5000);
+        return () => clearInterval(interval);
+    }, [user]);
 
     const handleResend = async () => {
         setSending(true);
