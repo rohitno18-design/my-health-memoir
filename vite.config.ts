@@ -5,6 +5,9 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vite.dev/config/
 export default defineConfig({
+  define: {
+    __BUILD_TIME__: JSON.stringify(new Date().toISOString()),
+  },
   plugins: [
     react(),
     // PWA with auto-update strategy
@@ -45,5 +48,14 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        entryFileNames: 'assets/[name]-BUILD-[hash].js',
+        chunkFileNames: 'assets/[name]-BUILD-[hash].js',
+        assetFileNames: 'assets/[name]-BUILD-[hash][extname]',
+      }
+    }
+  }
 })
 

@@ -1,7 +1,11 @@
+declare const __BUILD_TIME__: string;
+
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 import { ref, getBlob, updateMetadata, getDownloadURL } from "firebase/storage";
 import { storage } from "@/lib/firebase";
+
+export const BUILD_ID = __BUILD_TIME__;
 
 export function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs))
