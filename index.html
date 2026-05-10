@@ -20,13 +20,10 @@
   <body>
     <div id="root"></div>
     <script>
-      // Nuclear cache buster — runs BEFORE service worker intercepts
-      // Increment V on each deploy to force fresh code on all devices
       var V = 'v14';
       (function() {
-        if (localStorage.getItem('_cv') !== V || navigator.serviceWorker) {
+        if (localStorage.getItem('_cv') !== V) {
           localStorage.setItem('_cv', V);
-          // Always unregister ALL SWs and clear ALL caches on version change
           if (navigator.serviceWorker) {
             navigator.serviceWorker.getRegistrations().then(function(regs) {
               regs.forEach(function(r) { r.unregister(); });
@@ -37,8 +34,7 @@
               keys.forEach(function(k) { caches.delete(k); });
             });
           }
-          // Force reload after clearing — ensures fresh HTML is never served by SW
-          setTimeout(function() { window.location.reload(); }, 300);
+          window.location.reload();
         }
       })();
     </script>
