@@ -26,6 +26,8 @@ export default defineConfig({
         display: 'standalone',
         orientation: 'portrait',
         display_override: ['standalone', 'minimal-ui'],
+        start_url: 'https://imsmrti.app',
+        scope: 'https://imsmrti.app',
         icons: [
           {
             src: '/pwa-192x192.png',
