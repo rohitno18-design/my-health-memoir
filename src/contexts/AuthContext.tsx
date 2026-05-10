@@ -104,7 +104,53 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             }
             if (Object.keys(updates).length > 0) await setDoc(docRef, updates, { merge: true });
             setUserProfile({ ...data, ...updates });
+            // Ensure lookup entries exist for existing profiles
+            const email = firebaseUser.email || data.email;
+            const phone = firebaseUser.phoneNumber || (data as any).phoneNumber;
+            if (email) {
+                const lookupRef = doc(db, "user_lookup", "email_" + btoa(email));
+                const lookupSnap = await getDoc(lookupRef);
+                if (!lookupSnap.exists()) {
+                    await setDoc(lookupRef, { uid: firebaseUser.uid, email });
+                }
+            }
+            if (phone) {
+                const lookupRef = doc(db, "user_lookup", "phone_" + phone);
+                const lookupSnap = await getDoc(lookupRef);
+                if (!lookupSnap.exists()) {
+                    await setDoc(lookupRef, { uid: firebaseUser.uid, phone });
+                }
+            }
         } else {
+            // Before creating a new profile, check if this email/phone already belongs to another user
+            let existingProfile: UserProfile | null = null;
+            if (firebaseUser.email) {
+                const emailLookup = await getDoc(doc(db, "user_lookup", "email_" + btoa(firebaseUser.email)));
+                if (emailLookup.exists()) {
+                    const existingUid = emailLookup.data().uid;
+                    const existingSnap = await getDoc(doc(db, "users", existingUid));
+                    if (existingSnap.exists()) {
+                        existingProfile = existingSnap.data() as UserProfile;
+                    }
+                }
+            }
+            if (!existingProfile && firebaseUser.phoneNumber) {
+                const phoneLookup = await getDoc(doc(db, "user_lookup", "phone_" + firebaseUser.phoneNumber));
+                if (phoneLookup.exists()) {
+                    const existingUid = phoneLookup.data().uid;
+                    const existingSnap = await getDoc(doc(db, "users", existingUid));
+                    if (existingSnap.exists()) {
+                        existingProfile = existingSnap.data() as UserProfile;
+                    }
+                }
+            }
+
+            if (existingProfile) {
+                // Email/phone already registered — use the existing profile, don't duplicate
+                setUserProfile(existingProfile);
+                return;
+            }
+
             const newProfile: UserProfile = {
                 uid: firebaseUser.uid,
                 email: firebaseUser.email,
@@ -118,6 +164,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 createdAt: serverTimestamp(),
             };
             await setDoc(docRef, newProfile);
+            // Create lookup entries for uniqueness checks
+            if (firebaseUser.email) {
+                await setDoc(doc(db, "user_lookup", "email_" + btoa(firebaseUser.email)), { uid: firebaseUser.uid, email: firebaseUser.email });
+            }
+            if (firebaseUser.phoneNumber) {
+                await setDoc(doc(db, "user_lookup", "phone_" + firebaseUser.phoneNumber), { uid: firebaseUser.uid, phone: firebaseUser.phoneNumber });
+            }
             setUserProfile(newProfile);
         }
         // Subscribe to real-time profile updates for admin role changes, etc.

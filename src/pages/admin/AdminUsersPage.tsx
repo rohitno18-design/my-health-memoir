@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { collection, getDocs, query, orderBy, doc, updateDoc, deleteDoc, getCountFromServer, where } from "firebase/firestore";
+import { collection, getDocs, getDoc, setDoc, query, orderBy, doc, updateDoc, deleteDoc, getCountFromServer, where } from "firebase/firestore";
 import { createUserWithEmailAndPassword, sendSignInLinkToEmail } from "firebase/auth";
 import { auth, adminAuth, db } from "@/lib/firebase";
 import { Loader2, ArrowLeft, Search, ShieldAlert, Key, X, CheckSquare, Square, Trash2, Plus, Activity, FileText, Users, MessageSquare } from "lucide-react";
@@ -178,16 +178,27 @@ export function AdminUsersPage() {
         e.preventDefault();
         setActionLoading(true);
         try {
+            // Check for duplicate email first
+            const existingLookup = await getDoc(doc(db, "user_lookup", "email_" + btoa(newUserForm.email)));
+            if (existingLookup.exists()) {
+                alert("A user with this email already exists. Duplicate email not allowed.");
+                setActionLoading(false);
+                return;
+            }
+
             // Use admin instance so primary session isn't killed
             const { user } = await createUserWithEmailAndPassword(adminAuth, newUserForm.email, newUserForm.password);
             
-            // Create their database record manualy
+            // Create their database record manually
             await updateDoc(doc(db, "users", user.uid), {
                 email: newUserForm.email,
                 displayName: newUserForm.name,
                 role: "patient",
                 createdAt: new Date()
             });
+
+            // Create lookup entry for uniqueness enforcement
+            await setDoc(doc(db, "user_lookup", "email_" + btoa(newUserForm.email)), { uid: user.uid, email: newUserForm.email });
             
             // Log out the secondary instance to maintain clean state
             await adminAuth.signOut();

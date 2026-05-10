@@ -12,6 +12,13 @@ service cloud.firestore {
       allow write: if isSuperAdmin();
     }
 
+    // User Lookup (uniqueness enforcement by email/phone)
+    match /user_lookup/{key} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update, delete: if isSuperAdmin();
+    }
+
     // Audit Logs (Telemetry Engine)
     match /audit_logs/{logId} {
       allow read: if isSuperAdmin();
