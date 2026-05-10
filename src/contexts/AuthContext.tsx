@@ -12,6 +12,8 @@ import {
     sendPasswordResetEmail,
     deleteUser,
     EmailAuthProvider,
+    PhoneAuthProvider,
+    linkWithCredential as firebaseLinkWithCredential,
     reauthenticateWithCredential,
     reload,
     verifyBeforeUpdateEmail,
@@ -57,6 +59,8 @@ interface AuthContextType {
     sendOtp: (phoneNumber: string, recaptchaContainerId: string) => Promise<ConfirmationResult>;
     confirmOtp: (confirmationResult: ConfirmationResult, otp: string, name: string, email?: string) => Promise<void>;
     setupPhoneProfile: (name: string, email?: string) => Promise<void>;
+    sendPhoneChangeOtp: (phoneNumber: string, recaptchaContainerId: string) => Promise<string>;
+    verifyPhoneChangeOtp: (verificationId: string, otp: string) => Promise<void>;
     // Email auth (fallback)
     login: (email: string, password: string) => Promise<void>;
     registerWithEmail: (email: string, password: string, name: string) => Promise<void>;
@@ -424,6 +428,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         await internalLogActivity(auth.currentUser.uid, type, oldValue, newValue, metadata);
     };
 
+    // ── Phone Number Change (OTP on new number, links to existing user) ──
+    const sendPhoneChangeOtp = async (phoneNumber: string, recaptchaContainerId: string): Promise<string> => {
+        if (recaptchaVerifierRef.current) {
+            try { recaptchaVerifierRef.current.clear(); } catch (_) {}
+            recaptchaVerifierRef.current = null;
+        }
+        const { RecaptchaVerifier } = await import("firebase/auth");
+        const verifier = new RecaptchaVerifier(auth, recaptchaContainerId, {
+            size: "invisible",
+            callback: () => {},
+        });
+        recaptchaVerifierRef.current = verifier;
+        const provider = new PhoneAuthProvider(auth);
+        const verificationId = await provider.verifyPhoneNumber(phoneNumber, verifier);
+        return verificationId;
+    };
+
+    const verifyPhoneChangeOtp = async (verificationId: string, otp: string): Promise<void> => {
+        const currentUser = auth.currentUser;
+        if (!currentUser) throw new Error("Not authenticated");
+        const credential = PhoneAuthProvider.credential(verificationId, otp);
+        await firebaseLinkWithCredential(currentUser, credential);
+        await reload(currentUser);
+        setUser(auth.currentUser);
+
+        const newPhone = auth.currentUser?.phoneNumber;
+        if (newPhone) {
+            const docRef = doc(db, "users", currentUser.uid);
+            await setDoc(docRef, { phoneNumber: newPhone, phoneVerified: true }, { merge: true });
+            await setDoc(doc(db, "user_lookup", "phone_" + newPhone), { uid: currentUser.uid, phone: newPhone });
+        }
+        await fetchOrCreateProfile(currentUser);
+    };
+
     const isFullyVerified = !!(userProfile?.emailVerified || userProfile?.phoneVerified);
 
     return (
@@ -431,7 +469,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             user, userProfile, loading,
             isAdmin: userProfile?.role === "admin" || user?.email === "rohit.official36@gmail.com" || user?.email === "rohit.no18@gmail.com",
             isFullyVerified, hasPassword: user?.providerData?.some(p => p?.providerId === 'password') || false,
-            sendOtp, confirmOtp, setupPhoneProfile,
+            sendOtp, confirmOtp, setupPhoneProfile, sendPhoneChangeOtp, verifyPhoneChangeOtp,
             login, registerWithEmail, logout,
             resetPassword, deleteAccount,
             resendVerification, refreshUser,

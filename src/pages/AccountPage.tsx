@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import {
-    Camera, User, Mail, Lock, ChevronRight,
+    Camera, User, Mail, Lock, ChevronRight, Smartphone,
     Check, Loader2, LogOut, Pencil, ShieldCheck,
     Calendar, Droplets, UserCircle, AlertTriangle, X,
     Bell, Share2, Sparkles, CheckCircle2, RefreshCw,
@@ -388,6 +388,92 @@ function ChangeEmailModal({ onClose, onSuccess }: { onClose: () => void; onSucce
 }
 
 
+// ─── ChangePhoneModal ─────────────────────────────────────────────────────────
+function ChangePhoneModal({ onClose, onSuccess }: { onClose: () => void; onSuccess: (msg: string) => void }) {
+    const { t } = useTranslation();
+    const { sendPhoneChangeOtp, verifyPhoneChangeOtp } = useAuth();
+    const [phone, setPhone] = useState("");
+    const [otpSent, setOtpSent] = useState(false);
+    const [verificationId, setVerificationId] = useState("");
+    const [otp, setOtp] = useState("");
+    const [error, setError] = useState("");
+    const [loading, setLoading] = useState(false);
+    const [done, setDone] = useState(false);
+    const recaptchaId = "recaptcha-phone-change";
+
+    const handleSendOtp = async () => {
+        if (!phone.trim()) return;
+        setLoading(true); setError("");
+        try {
+            const vId = await sendPhoneChangeOtp(phone, recaptchaId);
+            setVerificationId(vId);
+            setOtpSent(true);
+        } catch (err: any) {
+            setError(err.message || t("account.errUpdateFailed"));
+        } finally { setLoading(false); }
+    };
+
+    const handleVerifyOtp = async () => {
+        if (!otp.trim()) return;
+        setLoading(true); setError("");
+        try {
+            await verifyPhoneChangeOtp(verificationId, otp);
+            setDone(true);
+            onSuccess(t("account.msgPhoneUpdated"));
+        } catch (err: any) {
+            setError(err.message || t("account.errUpdateFailed"));
+        } finally { setLoading(false); }
+    };
+
+    return (
+        <div className="fixed inset-0 z-50 bg-black/40 flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
+            <div className="w-full max-w-lg bg-white text-slate-900 border border-slate-200 rounded-t-[2rem] sm:rounded-[2rem] p-6 space-y-4 max-h-[90vh] overflow-y-auto shadow-2xl relative z-10" onClick={e => e.stopPropagation()}>
+                <div id={recaptchaId} />
+                <div className="flex items-center justify-between">
+                    <h2 className="font-bold">{t("account.changePhone")}</h2>
+                    <button onClick={onClose}><X size={18} /></button>
+                </div>
+                {done ? (
+                    <div className="text-center py-6 space-y-4">
+                        <div className="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center mx-auto"><Smartphone size={32} className="text-emerald-600" /></div>
+                        <p className="font-bold text-lg">{t("account.done")}</p>
+                        <p className="text-sm text-muted-foreground">{t("account.msgPhoneUpdated")}</p>
+                        <button onClick={onClose} className="w-full py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-medium">{t("common.ok")}</button>
+                    </div>
+                ) : !otpSent ? (
+                    <div className="space-y-3">
+                        {error && <div className="bg-destructive/10 text-destructive text-xs rounded-lg p-2.5 flex items-center gap-2"><AlertTriangle size={13} /> {error}</div>}
+                        <div>
+                            <label className="block text-xs font-medium mb-1">{t("account.newPhone")}</label>
+                            <input type="tel" value={phone} onChange={e => setPhone(e.target.value)} placeholder="+919584772682"
+                                className="w-full px-3 py-2.5 rounded-xl border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
+                        </div>
+                        <button onClick={handleSendOtp} disabled={loading || !phone.trim()} className="w-full py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-medium flex items-center justify-center gap-2">
+                            {loading && <Loader2 size={14} className="animate-spin" />}
+                            {t("account.sendCode")}
+                        </button>
+                    </div>
+                ) : (
+                    <div className="space-y-3">
+                        {error && <div className="bg-destructive/10 text-destructive text-xs rounded-lg p-2.5 flex items-center gap-2"><AlertTriangle size={13} /> {error}</div>}
+                        <p className="text-xs text-muted-foreground">{t("account.enterCode")}</p>
+                        <div>
+                            <label className="block text-xs font-medium mb-1">{t("account.otp")}</label>
+                            <input type="text" value={otp} onChange={e => setOtp(e.target.value)} placeholder="000000" maxLength={6}
+                                className="w-full px-3 py-2.5 rounded-xl border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring tracking-[0.5em] text-center font-bold" />
+                        </div>
+                        <button onClick={handleVerifyOtp} disabled={loading || otp.length < 4} className="w-full py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-medium flex items-center justify-center gap-2">
+                            {loading && <Loader2 size={14} className="animate-spin" />}
+                            {t("account.verifyBtn")}
+                        </button>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+}
+
+
 // ─── DeleteAccountModal ────────────────────────────────────────────────────────
 function DeleteAccountModal({ onClose }: { onClose: () => void }) {
     const { deleteAccount } = useAuth();
@@ -556,6 +642,7 @@ export function AccountPage() {
     const [photoUploading, setPhotoUploading] = useState(false);
     const [showPwModal, setShowPwModal] = useState(false);
     const [showEmailModal, setShowEmailModal] = useState(false);
+    const [showPhoneModal, setShowPhoneModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
     const fileRef = useRef<HTMLInputElement>(null);
@@ -674,6 +761,17 @@ export function AccountPage() {
                                     <ChevronRight size={16} className="text-slate-300" />
                                 </button>
 
+                                <button onClick={() => setShowPhoneModal(true)} className="w-full flex items-center justify-between p-5 hover:bg-slate-50 transition-colors">
+                                    <div className="flex items-center gap-4">
+                                        <div className="size-11 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center"><Smartphone size={18} /></div>
+                                        <div className="text-left font-lexend">
+                                            <p className="text-sm font-black uppercase tracking-tight text-slate-900">{t("account.changePhone")}</p>
+                                            <p className="text-[10px] font-bold text-slate-400 mt-1">{userProfile?.phoneNumber || t("account.notSet")}</p>
+                                        </div>
+                                    </div>
+                                    <ChevronRight size={16} className="text-slate-300" />
+                                </button>
+
                                 <button onClick={() => setShowPwModal(true)} className="w-full flex items-center justify-between p-5 hover:bg-slate-50 transition-colors">
                                     <div className="flex items-center gap-4">
                                         <div className="size-11 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center"><Lock size={18} /></div>
@@ -704,6 +802,7 @@ export function AccountPage() {
 
             {showPwModal && <ChangePasswordModal onClose={() => setShowPwModal(false)} />}
             {showEmailModal && <ChangeEmailModal onClose={() => setShowEmailModal(false)} onSuccess={(m) => setToast({ message: m, type: "success" })} />}
+            {showPhoneModal && <ChangePhoneModal onClose={() => setShowPhoneModal(false)} onSuccess={(m) => setToast({ message: m, type: "success" })} />}
             {showDeleteModal && <DeleteAccountModal onClose={() => setShowDeleteModal(false)} />}
         </div>
     );
