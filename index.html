@@ -22,7 +22,7 @@
     <script>
       // Nuclear cache buster — increment CACHE_VERSION on each deploy to force fresh code
       (async function() {
-        var V = 'v12';
+        var V = 'v13';
         if (localStorage.getItem('_cv') !== V) {
           try {
             var regs = await (navigator.serviceWorker ? navigator.serviceWorker.getRegistrations() : Promise.resolve([]));
