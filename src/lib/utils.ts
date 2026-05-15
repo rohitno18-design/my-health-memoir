@@ -2,8 +2,11 @@ declare const __BUILD_TIME__: string;
 
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
-import { ref, getBlob, updateMetadata, getDownloadURL } from "firebase/storage";
+import { ref, getBlob } from "firebase/storage";
 import { storage } from "@/lib/firebase";
+import { getFunctions, httpsCallable } from "firebase/functions";
+const utilFunctions = getFunctions();
+const getSigned = httpsCallable(utilFunctions, 'getSignedUrl');
 
 export const BUILD_ID = __BUILD_TIME__;
 
@@ -28,9 +31,8 @@ function triggerBlobDownload(blob: Blob, filename: string) {
 }
 
 export async function downloadFile(url: string, filename: string): Promise<boolean> {
-    console.log(`[Download V3] Starting for: ${filename}`);
+    console.log(`[Download] Starting: ${filename}`);
     
-    // Check if it's a Firebase URL
     const isFirebase = url.includes('firebasestorage.googleapis.com');
     
     if (isFirebase) {
@@ -39,64 +41,29 @@ export async function downloadFile(url: string, filename: string): Promise<boole
             const pathPart = urlObj.pathname.split('/o/')[1];
             if (pathPart) {
                 const storagePath = decodeURIComponent(pathPart.split('?')[0]);
-                const storageRef = ref(storage, storagePath);
                 
-                console.log(`[Download V3] Step 1: Forcing Server-Side Headers`);
-                // Force Content-Disposition: attachment on the server
-                await updateMetadata(storageRef, {
-                    contentDisposition: `attachment; filename="${filename}"`
-                });
+                // Get a secure signed URL (10min expiry) via Cloud Function
+                const result = await getSigned({ storagePath, expiryMinutes: 10 });
+                const signedUrl = (result.data as any).url as string;
 
-                // Wait a tiny bit for the metadata to propagate in the backend/cache
-                await new Promise(resolve => setTimeout(resolve, 500));
-
-                // Get a fresh download URL that includes the attachment instruction
-                const freshUrl = await getDownloadURL(storageRef);
-                
-                console.log(`[Download V3] Step 2: Aggressive Triggering`);
-                
-                // Detection for mobile
-                const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-                
-                if (isMobile) {
-                    console.log(`[Download V3] Mobile detected - using direct link`);
+                if (signedUrl) {
                     const link = document.createElement('a');
-                    link.href = freshUrl;
+                    link.href = signedUrl;
                     link.download = filename;
-                    // Mobile browsers often require direct navigation to trigger the download prompt
-                    link.target = "_blank"; 
+                    link.target = "_blank";
                     document.body.appendChild(link);
                     link.click();
-                    // Clean up after a delay
                     setTimeout(() => document.body.removeChild(link), 100);
-                } else {
-                    console.log(`[Download V3] Desktop detected - using hidden iframe`);
-                    // Method A: Try hidden iframe first (cleanest on PC, no tab flash)
-                    const iframe = document.createElement('iframe');
-                    iframe.style.display = 'none';
-                    iframe.src = freshUrl;
-                    document.body.appendChild(iframe);
-                    
-                    // Periodically check if we should fall back to window.open
-                    setTimeout(() => {
-                        if (document.body.contains(iframe)) {
-                            document.body.removeChild(iframe);
-                        }
-                    }, 3000);
+                    return true;
                 }
-
-                return true;
             }
         } catch (e) {
-            console.error("[Download V3] Aggressive approach failed:", e);
+            console.error("[Download] Signed URL failed:", e);
         }
-    }
 
-    // FALLBACK 1: The "Legacy" SDK Way (requires CORS)
-    if (isFirebase) {
+        // Fallback: use SDK blob download
         try {
-            const urlObj = new URL(url);
-            const pathPart = urlObj.pathname.split('/o/')[1];
+            const pathPart = new URL(url).pathname.split('/o/')[1];
             if (pathPart) {
                 const storagePath = decodeURIComponent(pathPart.split('?')[0]);
                 const storageRef = ref(storage, storagePath);
@@ -105,12 +72,11 @@ export async function downloadFile(url: string, filename: string): Promise<boole
                 return true;
             }
         } catch (e) {
-            console.warn("[Download V3] SDK Blob fallback failed:", e);
+            console.warn("[Download] Blob fallback failed:", e);
         }
     }
 
-    // FALLBACK 2: Direct Open (User will see a new tab, but better than nothing)
-    console.warn("[Download V3] Using final fallback: window.open");
+    // Final fallback
     const link = document.createElement('a');
     link.href = url;
     link.target = "_blank";

@@ -3,6 +3,7 @@ import { getAuth } from "firebase/auth";
 import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 import { getAnalytics } from "firebase/analytics";
+import { initializeAppCheck, ReCaptchaV3Provider } from "firebase/app-check";
 
 // ─── PROJECT CONFIG: im-smrti ─────────────────────────────────────────────────
 // Env vars are injected at build time. Fallback values ensure CI builds without
@@ -39,6 +40,15 @@ export const storage = getStorage(app);
 let analytics = null;
 if (typeof window !== "undefined") {
     analytics = getAnalytics(app);
+}
+
+// Initialize App Check (reCAPTCHA v3) — prevents unverified clients
+const recaptchaKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
+if (recaptchaKey && typeof window !== "undefined") {
+    initializeAppCheck(app, {
+        provider: new ReCaptchaV3Provider(recaptchaKey),
+        isTokenAutoRefreshEnabled: true,
+    });
 }
 
 export { analytics };

@@ -2,10 +2,13 @@ import { onCall } from "firebase-functions/v2/https";
 import { initializeApp } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
 import { getAuth } from "firebase-admin/auth";
+import { getStorage } from "firebase-admin/storage";
 
 initializeApp();
 const adminDb = getFirestore();
 const fAdminAuth = getAuth();
+const adminStorage = getStorage();
+const bucket = adminStorage.bucket("im-smrti.firebasestorage.app");
 
 // ── proxyGemini — secure API key server-side ──────────────────────────────
 export const proxyGemini = onCall(async (request) => {
@@ -98,4 +101,22 @@ export const setAdminClaim = onCall(async (request) => {
   }
 
   return { success: true };
+});
+
+// ── getSignedUrl — generate time-limited download URL for documents ──────
+export const getSignedUrl = onCall(async (request) => {
+  const { storagePath, expiryMinutes } = request.data as { storagePath: string; expiryMinutes?: number };
+  if (!storagePath) throw new Error("storagePath is required");
+
+  // Only authenticated users can get signed URLs
+  if (!request.auth?.uid) throw new Error("Authentication required");
+
+  const expires = Date.now() + (expiryMinutes || 10) * 60 * 1000;
+
+  const [signedUrl] = await bucket.file(storagePath).getSignedUrl({
+    action: "read",
+    expires,
+  });
+
+  return { url: signedUrl, expires };
 });
