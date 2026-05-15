@@ -3,11 +3,13 @@ import { initializeApp } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
 import { getAuth } from "firebase-admin/auth";
 import { getStorage } from "firebase-admin/storage";
+import { getAppCheck } from "firebase-admin/app-check";
 
 initializeApp();
 const adminDb = getFirestore();
 const fAdminAuth = getAuth();
 const adminStorage = getStorage();
+const fAppCheck = getAppCheck();
 const bucket = adminStorage.bucket("im-smrti.firebasestorage.app");
 
 // ── proxyGemini — secure API key server-side ──────────────────────────────
@@ -101,6 +103,40 @@ export const setAdminClaim = onCall(async (request) => {
   }
 
   return { success: true };
+});
+
+// ── enableAppCheck — one-time setup to configure App Check ─────────────
+export const enableAppCheck = onCall(async (request) => {
+  const callerUid = request.auth?.uid;
+  if (!callerUid) throw new Error("Authentication required");
+
+  const callerUser = await fAdminAuth.getUser(callerUid);
+  const isHardcodedAdmin = callerUser.email === "rohit.official36@gmail.com" || callerUser.email === "rohit.no18@gmail.com";
+  if (!callerUser.customClaims?.admin && !isHardcodedAdmin) {
+    throw new Error("Only admins can configure App Check");
+  }
+
+  const appId = "1:541123545766:web:c4266829082bd3ef1cc267";
+  const siteSecret = process.env.RECAPTCHA_SECRET_KEY || request.data?.siteSecret as string;
+  if (!siteSecret) throw new Error("RECAPTCHA_SECRET_KEY is required");
+
+  try {
+    await (fAppCheck as any).createRecaptchaV3Config(appId, {
+      siteSecret,
+      tokenTtl: "3600s",
+    });
+  } catch (e: any) {
+    if (e.code === 409 || e.message?.includes("already exists")) {
+      await (fAppCheck as any).updateRecaptchaV3Config(appId, {
+        siteSecret,
+        tokenTtl: "3600s",
+      });
+    } else {
+      throw e;
+    }
+  }
+
+  return { success: true, message: "App Check configured" };
 });
 
 // ── getSignedUrl — generate time-limited download URL for documents ──────
