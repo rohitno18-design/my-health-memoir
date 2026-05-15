@@ -49,6 +49,9 @@ import {
 import { cn, downloadFile } from "@/lib/utils";
 import type { ChatMessage, DocumentResultCard, PendingAction } from "@/types/chat";
 import { useTranslation } from "react-i18next";
+import { getFunctions, httpsCallable } from "firebase/functions";
+const aiFunctions = getFunctions();
+const proxyGemini = httpsCallable<Record<string, unknown>, Record<string, unknown>>(aiFunctions, 'proxyGemini');
 
 interface Document {
     id: string;
@@ -64,10 +67,6 @@ interface Document {
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
-const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
-const MODEL = import.meta.env.VITE_GEMINI_MODEL ?? "gemini-2.5-flash";
-const API_VERSION = import.meta.env.VITE_GEMINI_API_VERSION ?? "v1beta";
-const GEMINI_URL = `https://generativelanguage.googleapis.com/${API_VERSION}/models/${MODEL}:generateContent?key=${API_KEY}`;
 const MAX_TOOL_ROUNDS = 8;
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -601,29 +600,16 @@ export function AIChatPage() {
 
     const callGemini = useCallback(async (history: GeminiContent[]) => {
         const payload = {
-            system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
+            systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
             contents: history,
             tools: [{ functionDeclarations: TOOL_DECLARATIONS }],
-            tool_config: { function_calling_config: { mode: "AUTO" } },
+            toolConfig: { function_calling_config: { mode: "AUTO" } },
             generationConfig: { temperature: 0.3, maxOutputTokens: 2048 },
         };
 
         try {
-            const res = await fetch(GEMINI_URL, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload),
-            });
-
-            if (!res.ok) {
-                const errorText = await res.text();
-                await remoteLog("AIChat_API_ERROR", { status: res.status, errorText, url: GEMINI_URL.replace(API_KEY, "REDACTED") });
-                throw new Error(`AI Error (${res.status}): ${errorText}`);
-            }
-
-            const data = await res.json();
-            await remoteLog("AIChat_API_SUCCESS", { response: data });
-            return data;
+            const result = await proxyGemini(payload as any);
+            return result.data;
         } catch (err: any) {
             await remoteLog("AIChat_EXCEPTION", { message: err.message, stack: err.stack });
             throw err;
@@ -943,7 +929,7 @@ export function AIChatPage() {
                 return;
             }
 
-            let response;
+            let response: Record<string, unknown> | undefined;
             try {
                 response = await callGemini(geminiHistoryRef.current);
             } catch (err) {
@@ -952,7 +938,7 @@ export function AIChatPage() {
                 return;
             }
 
-            const parts: GeminiPart[] = response?.candidates?.[0]?.content?.parts ?? [];
+            const parts: GeminiPart[] = (response as any)?.candidates?.[0]?.content?.parts ?? [];
             if (parts.length === 0) {
                 await saveModelMessage(chatId, "I didn't get a valid response. Please try again.");
                 return;

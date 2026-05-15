@@ -23,11 +23,9 @@ import { useFeatureFlags } from "@/lib/featureFlags";
 import { FamilyPulse } from "@/components/dashboard/FamilyPulse";
 import { VitalsQuickView } from "@/components/dashboard/VitalsQuickView";
 import { QuickActions } from "@/components/dashboard/QuickActions";
-
-const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
-const MODEL_ID = import.meta.env.VITE_GEMINI_MODEL ?? "gemini-2.5-flash";
-const API_VERSION = import.meta.env.VITE_GEMINI_API_VERSION ?? "v1beta";
-const API_URL = `https://generativelanguage.googleapis.com/${API_VERSION}/models/${MODEL_ID}:generateContent?key=${API_KEY}`;
+import { getFunctions, httpsCallable } from "firebase/functions";
+const pgFunctions = getFunctions();
+const proxyGemini = httpsCallable<Record<string, unknown>, Record<string, unknown>>(pgFunctions, 'proxyGemini');
 
 const SUMMARY_PROMPT = (lang: string) => `You are a medical AI assistant for I M Smrti. Analyze the document and provide a summary in ${lang}. Use Markdown formatting.`;
 
@@ -221,41 +219,26 @@ export function DashboardPage() {
                 setUploadStep("analyzing");
                 const base64Data = await getBase64(selectedFile);
                 
-                // Use non-streaming generateContent endpoint
-                remoteLog("Dashboard_API_START", { url: API_URL.replace(API_KEY, "REDACTED") });
-
-                const res = await fetch(API_URL, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        contents: [{
-                            parts: [
-                                { text: SUMMARY_PROMPT(form.language) },
-                                { inline_data: { mime_type: getSafeMimeType(selectedFile), data: base64Data } }
-                            ]
-                        }]
-                    })
+                const result = await proxyGemini({
+                    contents: [{
+                        parts: [
+                            { text: SUMMARY_PROMPT(form.language) },
+                            { inline_data: { mime_type: getSafeMimeType(selectedFile), data: base64Data } }
+                        ]
+                    }],
+                    generationConfig: { temperature: 0.2, maxOutputTokens: 2048 }
                 });
-
-                if (res.ok) {
-                    const data = await res.json();
-                    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
+                const data = result.data as any;
+                const text = data?.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
                     
-                    if (text) {
-                        remoteLog("Dashboard_API_SUCCESS", { summaryLength: text.length });
-                        setAiSummary(text);
-                        await updateDoc(doc(db, "documents", firestoreDocId), {
-                            aiSummary: text,
-                            status: "completed"
-                        });
-                    } else {
-                        remoteLog("Dashboard_API_EMPTY", data);
-                        throw new Error("AI analysis returned empty results.");
-                    }
+                if (text) {
+                    setAiSummary(text);
+                    await updateDoc(doc(db, "documents", firestoreDocId), {
+                        aiSummary: text,
+                        status: "completed"
+                    });
                 } else {
-                    const errorBody = await res.text();
-                    remoteLog("Dashboard_API_ERROR", { status: res.status, errorBody });
-                    throw new Error(`AI Analysis Failed (${res.status}): ${errorBody}`);
+                    throw new Error("AI analysis returned empty results.");
                 }
                 setUploadStep("summary");
             } else {

@@ -10,11 +10,9 @@ import { downloadFile } from "@/lib/utils";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { DocumentViewerModal } from "@/components/DocumentViewerModal";
 import { useTranslation } from "react-i18next";
-
-const API_KEY = import.meta.env.VITE_GEMINI_API_KEY ?? "";
-const MODEL_ID = import.meta.env.VITE_GEMINI_MODEL ?? "gemini-2.5-flash";
-const API_VERSION = import.meta.env.VITE_GEMINI_API_VERSION ?? "v1beta";
-const API_URL = `https://generativelanguage.googleapis.com/${API_VERSION}/models/${MODEL_ID}:streamGenerateContent?key=${API_KEY}&alt=sse`;
+import { getFunctions, httpsCallable } from "firebase/functions";
+const docFunctions = getFunctions();
+const proxyGemini = httpsCallable<Record<string, unknown>, Record<string, unknown>>(docFunctions, 'proxyGemini');
 
 const TRANSLATION_PROMPT = (lang: string) => `You are a medical & general AI assistant. Translate the following document summary into ${lang}.
 Maintain the exact same structure, bullet points, and emojis. Keep the tone simple, clear, and reassuring so a non-medical person can easily understand.
@@ -400,57 +398,16 @@ export function DocumentsPage() {
             }
 
             setGenerationProgress(t("documents.translatingSummary", { lang }));
-            const res = await fetch(API_URL, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    contents: [{
-                        parts: [
-                            { text: `${TRANSLATION_PROMPT(lang)}\n\nOriginal Summary:\n${sourceText}` }
-                        ]
-                    }],
-                    generationConfig: { temperature: 0.2 },
-                })
+            const result = await proxyGemini({
+                contents: [{
+                    parts: [
+                        { text: `${TRANSLATION_PROMPT(lang)}\n\nOriginal Summary:\n${sourceText}` }
+                    ]
+                }],
+                generationConfig: { temperature: 0.2, maxOutputTokens: 2048 },
             });
-
-            if (!res.ok) {
-                const errorData = await res.json().catch(() => ({}));
-                throw new Error(errorData?.error?.message || "API Error: AI Generation Failed");
-            }
-
-            let newSummary = "";
-            const reader = res.body?.getReader();
-            const decoder = new TextDecoder();
-            let buffer = "";
-
-            if (reader) {
-                while (true) {
-                    const { done, value } = await reader.read();
-                    if (done) break;
-
-                    buffer += decoder.decode(value, { stream: true });
-                    const lines = buffer.split("\n");
-                    buffer = lines.pop() || ""; // Keep the last partial line in buffer
-
-                    for (const line of lines) {
-                        const trimmed = line.trim();
-                        if (!trimmed.startsWith("data:")) continue;
-
-                        try {
-                            const jsonStr = trimmed.replace(/^data:\s*/, "");
-                            if (jsonStr === "[DONE]") continue;
-                            const data = JSON.parse(jsonStr);
-                            const text = data?.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
-                            if (text) {
-                                newSummary += text;
-                                setGenerationProgress(t("documents.typingTranslation"));
-                            }
-                        } catch (e) {
-                            // Ignore partial JSON errors within a line if any
-                        }
-                    }
-                }
-            }
+            const data = result.data as any;
+            const newSummary = data?.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
 
             if (newSummary) {
                 const safeCurrentSummaries = docObj.aiSummaries || {};
