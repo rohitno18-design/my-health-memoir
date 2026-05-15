@@ -23,6 +23,7 @@ interface EmergencyInfo {
   organDonor: boolean;
   notifiedOnSOS: boolean;
   userId?: string;
+  pulseToken?: string;
 }
 
 export function EmergencyPage() {
@@ -60,8 +61,9 @@ export function EmergencyPage() {
       if (snap.exists()) {
         setInfo(snap.data() as EmergencyInfo);
       } else {
-        // Create a blank record WITH userId so future updates work
-        const blank: EmergencyInfo & { userId: string } = {
+        // Create a blank record with pulseToken for secure public access
+        const token = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2);
+        const blank: EmergencyInfo & { userId: string; pulseToken: string } = {
           bloodType: "",
           allergies: [],
           conditions: [],
@@ -70,6 +72,7 @@ export function EmergencyPage() {
           organDonor: false,
           notifiedOnSOS: true,
           userId: user.uid,
+          pulseToken: token,
         };
         setDoc(doc(db, "emergency_info", selectedPatientId), blank);
         setInfo(blank);
@@ -82,7 +85,9 @@ export function EmergencyPage() {
     return () => unsub();
   }, [user, selectedPatientId]);
 
-  const pulseUrl = `${window.location.origin}/pulse/${selectedPatientId}`;
+  const pulseUrl = info?.pulseToken
+    ? `${window.location.origin}/pulse/${selectedPatientId}?token=${encodeURIComponent(info.pulseToken)}`
+    : `${window.location.origin}/pulse/${selectedPatientId}`;
   const selectedPatient = patients.find(p => p.id === selectedPatientId);
 
   const handleSOS = () => {

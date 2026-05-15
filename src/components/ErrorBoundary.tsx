@@ -24,29 +24,11 @@ export class ErrorBoundary extends React.Component<Props, State> {
         return { hasError: true, error };
     }
 
-    componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-        this.setState({ errorInfo });
-        console.error("🔴 ErrorBoundary caught:", error, errorInfo);
-        
-        // Try to log to Firestore for remote debugging
-        try {
-            // Fire-and-forget fetch to avoid importing firebase here
-            fetch("https://firestore.googleapis.com/v1/projects/im-smrti/databases/(default)/documents/debug_logs", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ fields: { 
-                    type: { stringValue: "REACT_CRASH" },
-                    message: { stringValue: error.message },
-                    stack: { stringValue: (error.stack || "").substring(0, 2000) },
-                    componentStack: { stringValue: (errorInfo.componentStack || "").substring(0, 2000) },
-                    url: { stringValue: window.location.href },
-                    timestamp: { stringValue: new Date().toISOString() },
-                }})
-            }).catch(() => {});
-        } catch (_) {
-            // Silently fail — we never want the error reporter to crash
-        }
-    }
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    this.setState({ errorInfo });
+    console.error("ErrorBoundary caught:", error, errorInfo);
+    // Crash reporting handled securely via Firebase Functions if needed
+  }
 
     render() {
         if (this.state.hasError) {

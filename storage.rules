@@ -2,15 +2,23 @@ rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
 
-    // Profile photos — each user can read/write their own
+    // Helper — superadmin check (same emails as Firestore rules)
+    function isSuperAdmin() {
+      return request.auth != null && (
+        request.auth.token.email == "rohit.official36@gmail.com" ||
+        request.auth.token.email == "rohit.no18@gmail.com"
+      );
+    }
+
+    // Profile photos — only the owner (or superadmin) can read
     match /profile-photos/{userId} {
-      allow read: if request.auth != null;
+      allow read: if request.auth != null && request.auth.uid == userId || isSuperAdmin();
       allow write: if request.auth != null && request.auth.uid == userId;
     }
 
-    // Documents — each user can read/write files in their own folder
+    // Documents — only the owner (or superadmin) can read/write
     match /documents/{userId}/{allPaths=**} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read, write: if (request.auth != null && request.auth.uid == userId) || isSuperAdmin();
     }
   }
 }

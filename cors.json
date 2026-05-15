@@ -1,13 +1,17 @@
 [
   {
-    "origin": ["*"],
-    "method": ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE", "OPTIONS"],
+    "origin": [
+      "https://imsmrti.app",
+      "https://im-smrti.web.app",
+      "https://im-smrti.firebaseapp.com",
+      "https://localhost"
+    ],
+    "method": ["GET", "HEAD"],
     "responseHeader": [
       "Content-Type",
       "Content-Disposition",
       "Content-Length",
-      "Cache-Control",
-      "x-goog-meta-*"
+      "Cache-Control"
     ],
     "maxAgeSeconds": 3600
   }

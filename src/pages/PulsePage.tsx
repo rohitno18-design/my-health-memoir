@@ -1,13 +1,14 @@
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import {
   ShieldAlert, Phone, Droplets, AlertCircle, 
   Loader2, Info, User, Pill
 } from "lucide-react";
-import { db } from "@/lib/firebase";
-import { doc, getDoc } from "firebase/firestore";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "react-i18next";
+import { getFunctions, httpsCallable } from "firebase/functions";
+const pulseFunctions = getFunctions();
+const getEmergency = httpsCallable(pulseFunctions, 'getEmergencyInfo');
 
 interface EmergencyInfo {
   patientName?: string;
@@ -37,6 +38,8 @@ function calcAge(dob: string): number | null {
 export function PulsePage() {
   const { t } = useTranslation();
   const { userId } = useParams();
+  const [searchParams] = useSearchParams();
+  const pulseToken = searchParams.get("token") || undefined;
   const [info, setInfo] = useState<EmergencyInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -45,13 +48,8 @@ export function PulsePage() {
     if (!userId) return;
     const fetchInfo = async () => {
       try {
-        // Fetch emergency info (this doc is public and now contains Name/Photo)
-        const snap = await getDoc(doc(db, "emergency_info", userId));
-        if (snap.exists()) {
-          setInfo(snap.data() as EmergencyInfo);
-        } else {
-          setError(true);
-        }
+        const result = await getEmergency({ userId, pulseToken });
+        setInfo(result.data as EmergencyInfo);
       } catch (e) {
         console.error("Pulse fetch error:", e);
         setError(true);
