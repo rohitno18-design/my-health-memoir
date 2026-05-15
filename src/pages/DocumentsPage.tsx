@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { logUserAction } from "@/lib/audit";
 import ReactMarkdown from "react-markdown";
+import rehypeSanitize from "rehype-sanitize";
 import { collection, query, where, getDocs, updateDoc, doc as fsDoc, addDoc, serverTimestamp, deleteDoc } from "firebase/firestore";
 import { ref, deleteObject } from "firebase/storage";
 import { db, storage } from "@/lib/firebase";
@@ -783,6 +784,7 @@ export function DocumentsPage() {
                         <div className="overflow-y-auto p-6 scroll-smooth custom-scrollbar flex-1 bg-white">
                             <div className="text-[13px] text-slate-600 font-medium">
                                 <ReactMarkdown
+                                    rehypePlugins={[rehypeSanitize]}
                                     components={{
                                         h1: ({ node, ...props }) => <h1 className="text-[18px] font-extrabold text-slate-900 mt-5 mb-2 leading-tight" {...props} />,
                                         h2: ({ node, ...props }) => <h2 className="text-[16px] font-bold text-slate-800 mt-5 mb-2 leading-tight" {...props} />,

@@ -3,7 +3,11 @@ service cloud.firestore {
   match /databases/{database}/documents {
     // Helper function for the hardcoded superadmin
     function isSuperAdmin() {
-      return request.auth != null && (request.auth.token.email == "rohit.official36@gmail.com" || request.auth.token.email == "rohit.no18@gmail.com");
+      return request.auth != null && (
+        request.auth.token.email == "rohit.official36@gmail.com" ||
+        request.auth.token.email == "rohit.no18@gmail.com" ||
+        request.auth.token.admin == true
+      );
     }
 
     // App Configuration & Toggles

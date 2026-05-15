@@ -2,11 +2,12 @@ rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
 
-    // Helper — superadmin check (same emails as Firestore rules)
+    // Helper — superadmin check (email fallback + custom claims)
     function isSuperAdmin() {
       return request.auth != null && (
         request.auth.token.email == "rohit.official36@gmail.com" ||
-        request.auth.token.email == "rohit.no18@gmail.com"
+        request.auth.token.email == "rohit.no18@gmail.com" ||
+        request.auth.token.admin == true
       );
     }
 

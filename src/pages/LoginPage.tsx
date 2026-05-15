@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -33,6 +33,14 @@ export function LoginPage() {
 
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
+    const [cooldown, setCooldown] = useState(0);
+
+    useEffect(() => {
+        if (cooldown > 0) {
+            const t = setTimeout(() => setCooldown(c => c - 1), 1000);
+            return () => clearTimeout(t);
+        }
+    }, [cooldown]);
 
     const recaptchaContainerId = "recaptcha-container-login";
 
@@ -44,6 +52,7 @@ export function LoginPage() {
         try {
             const result = await sendOtp("+" + phone, recaptchaContainerId);
             setConfirmationResult(result);
+            setCooldown(30);
             setPhoneStep("otp");
         } catch (err: unknown) {
             const code = (err as { code?: string })?.code;
@@ -152,10 +161,10 @@ export function LoginPage() {
                                 buttonStyle={{ borderRadius: "12px 0 0 12px", border: "1px solid rgba(255,255,255,0.4)", background: "rgba(255,255,255,0.5)" }}
                                 containerStyle={{ width: "100%" }}
                             />
-                            <button type="submit" disabled={loading || phone.length < 10}
+                            <button type="submit" disabled={loading || phone.length < 10 || cooldown > 0}
                                 className="w-full py-3 bg-primary text-primary-foreground rounded-xl font-bold text-sm disabled:opacity-60 flex items-center justify-center gap-2 active:scale-95 transition-all">
                                 {loading ? <Loader2 size={16} className="animate-spin" /> : <ArrowRight size={16} />}
-                                {loading ? "Sending..." : "Send OTP"}
+                                {loading ? "Sending..." : cooldown > 0 ? `Resend in ${cooldown}s` : "Send OTP"}
                             </button>
                         </form>
                     )}

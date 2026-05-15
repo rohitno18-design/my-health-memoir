@@ -4,8 +4,6 @@ import { logUserAction } from "@/lib/audit";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
-// @ts-ignore
-import "jspdf-autotable";
 import { DocumentViewerModal } from "@/components/DocumentViewerModal";
 import {
     collection,
@@ -26,6 +24,7 @@ import { db, storage } from "@/lib/firebase";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { useAuth } from "@/contexts/AuthContext";
 import ReactMarkdown from "react-markdown";
+import rehypeSanitize from "rehype-sanitize";
 import {
     Bot,
     Send,
@@ -1337,7 +1336,7 @@ export function AIChatPage() {
                             >
                                 {msg.role === "model" ? (
                                     <div className="prose prose-sm prose-slate max-w-none [&>p]:mb-2 [&>p:last-child]:mb-0 [&>ul]:mb-2 [&>ol]:mb-2">
-                                        <ReactMarkdown>{msg.content}</ReactMarkdown>
+                                        <ReactMarkdown rehypePlugins={[rehypeSanitize]}>{msg.content}</ReactMarkdown>
                                     </div>
                                 ) : (
                                     msg.content

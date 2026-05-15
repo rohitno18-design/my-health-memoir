@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { remoteLog } from "@/lib/remoteLog";
 import ReactMarkdown from "react-markdown";
+import rehypeSanitize from "rehype-sanitize";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -587,7 +588,7 @@ export function DashboardPage() {
                           <button onClick={onDismissSummary} className="size-10 bg-slate-100 rounded-full flex items-center justify-center"><X size={20} /></button>
                         </div>
                         <div className="prose prose-slate max-w-none">
-                          <ReactMarkdown>{aiSummary}</ReactMarkdown>
+                          <ReactMarkdown rehypePlugins={[rehypeSanitize]}>{aiSummary}</ReactMarkdown>
                         </div>
                         <div className="flex flex-col gap-3 mt-6 pb-2">
                           <button onClick={() => navigate("/documents")} className="w-full py-4 bg-slate-900 text-white rounded-xl font-black">

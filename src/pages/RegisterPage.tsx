@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -25,6 +25,15 @@ export function RegisterPage() {
     const [consent, setConsent] = useState(false);
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
+    const [cooldown, setCooldown] = useState(0);
+
+    useEffect(() => {
+        if (cooldown > 0) {
+            const t = setTimeout(() => setCooldown(c => c - 1), 1000);
+            return () => clearTimeout(t);
+        }
+    }, [cooldown]);
+
     const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
     const recaptchaContainerId = "recaptcha-container-register";
 
@@ -36,6 +45,7 @@ export function RegisterPage() {
         try {
             const result = await sendOtp("+" + phone, recaptchaContainerId);
             setConfirmationResult(result);
+            setCooldown(30);
             setStep("otp");
         } catch (err: unknown) {
             const code = (err as { code?: string })?.code;
@@ -160,10 +170,10 @@ export function RegisterPage() {
                                 <ShieldCheck size={14} className="mt-0.5 flex-shrink-0" />
                                 We'll send a 6-digit OTP to verify your number. Standard SMS rates may apply.
                             </div>
-                            <button type="submit" disabled={loading || phone.length < 10}
+                            <button type="submit" disabled={loading || phone.length < 10 || cooldown > 0}
                                 className="w-full py-3 bg-primary text-primary-foreground rounded-xl font-bold text-sm hover:bg-primary/90 transition-all shadow-md disabled:opacity-60 flex items-center justify-center gap-2 active:scale-95">
                                 {loading ? <Loader2 size={16} className="animate-spin" /> : <ArrowRight size={16} />}
-                                {loading ? "Sending OTP..." : "Send OTP"}
+                                {loading ? "Sending OTP..." : cooldown > 0 ? `Resend in ${cooldown}s` : "Send OTP"}
                             </button>
                         </form>
                     )}

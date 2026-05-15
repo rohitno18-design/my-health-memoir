@@ -6,6 +6,7 @@ import type { LifeEvent, Patient } from "@/pages/PatientsPage";
 import { Loader2, Activity, FileText, User as UserIcon, ChevronDown, ChevronUp, ExternalLink, Bot, X, Edit2, Trash2, Save } from "lucide-react";
 import { EVENT_CATEGORIES } from "@/components/LifeTimeline";
 import ReactMarkdown from "react-markdown";
+import rehypeSanitize from "rehype-sanitize";
 import { useTranslation } from "react-i18next";
 
 interface Doc {
@@ -289,6 +290,7 @@ export function GlobalTimelinePage() {
                         </div>
                         <div className="overflow-y-auto p-6 flex-1">
                             <ReactMarkdown
+                                rehypePlugins={[rehypeSanitize]}
                                 components={{
                                     h3: ({ ...p }) => <h3 className="text-[15px] font-bold text-slate-800 mt-4 mb-2 border-b pb-1 border-slate-100" {...p} />,
                                     ul: ({ ...p }) => <ul className="list-disc pl-5 my-2 space-y-1 text-slate-700 text-sm" {...p} />,
