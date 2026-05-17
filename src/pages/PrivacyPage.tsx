@@ -44,7 +44,59 @@ export function PrivacyPage() {
                     
                     <section>
                         <h2 className="text-xl font-bold text-slate-900 mb-3">4. Data Deletion</h2>
-                        <p>You have the right to request the deletion of all your data. You can delete your account and all associated medical records directly within the App's Account Settings.</p>
+                        <p>You have the right to request the deletion of all your data. You can delete your account and all associated medical records directly within the App's Account Settings. Data is permanently deleted within 30 days of account termination.</p>
+                    </section>
+
+                    <section>
+                        <h2 className="text-xl font-bold text-slate-900 mb-3">5. Your Data Rights</h2>
+                        <p>Depending on your jurisdiction, you may have the following rights:</p>
+                        <ul className="list-disc pl-5 mt-2 space-y-2">
+                            <li><strong>Right to Access:</strong> Request a copy of all personal data we hold about you.</li>
+                            <li><strong>Right to Rectification:</strong> Correct inaccurate or incomplete data.</li>
+                            <li><strong>Right to Erasure:</strong> Request permanent deletion of your data ("Right to be Forgotten").</li>
+                            <li><strong>Right to Data Portability:</strong> Receive your data in a structured, machine-readable format.</li>
+                            <li><strong>Right to Object:</strong> Object to processing of your data for specific purposes.</li>
+                            <li><strong>Right to Withdraw Consent:</strong> Withdraw consent at any time without affecting prior lawful processing.</li>
+                        </ul>
+                        <p className="mt-2">To exercise any of these rights, contact us at <strong>hii@imsmrti.app</strong>. We respond within 30 days.</p>
+                    </section>
+
+                    <section>
+                        <h2 className="text-xl font-bold text-slate-900 mb-3">6. GDPR Compliance (EU Users)</h2>
+                        <p>If you are located in the European Economic Area (EEA), we process your personal data under the following lawful bases:</p>
+                        <ul className="list-disc pl-5 mt-2 space-y-2">
+                            <li><strong>Consent:</strong> You have given clear consent for us to process your personal data for healthcare management.</li>
+                            <li><strong>Legitimate Interest:</strong> Processing is necessary for our legitimate interests in providing the service.</li>
+                            <li><strong>Legal Obligation:</strong> Processing is necessary for compliance with applicable laws.</li>
+                        </ul>
+                        <p className="mt-2">Data may be transferred outside the EEA to our servers in the United States and India. We ensure appropriate safeguards through Google Cloud's GDPR-compliant infrastructure and standard contractual clauses.</p>
+                    </section>
+
+                    <section>
+                        <h2 className="text-xl font-bold text-slate-900 mb-3">7. DPDP Act (India Users)</h2>
+                        <p>Under the Digital Personal Data Protection (DPDP) Act, 2023 of India:</p>
+                        <ul className="list-disc pl-5 mt-2 space-y-2">
+                            <li>Your personal data is processed with your consent, which you provide during account registration.</li>
+                            <li>You have the right to access, correct, and erase your data at any time.</li>
+                            <li>A Data Protection Officer (DPO) is available at <strong>hii@imsmrti.app</strong> for grievance redressal.</li>
+                            <li>In the event of a data breach, we will notify affected users and the Data Protection Board of India as required by law.</li>
+                        </ul>
+                    </section>
+
+                    <section>
+                        <h2 className="text-xl font-bold text-slate-900 mb-3">8. Cookies & Tracking</h2>
+                        <p>This application uses essential cookies and local storage to:</p>
+                        <ul className="list-disc pl-5 mt-2 space-y-2">
+                            <li>Maintain your login session securely</li>
+                            <li>Remember your language preference (English/Hindi)</li>
+                            <li>Store service worker cache version for offline access</li>
+                        </ul>
+                        <p className="mt-2">We do not use third-party tracking cookies, advertising cookies, or analytics cookies that identify individual users. You can clear application data through your browser settings at any time.</p>
+                    </section>
+
+                    <section>
+                        <h2 className="text-xl font-bold text-slate-900 mb-3">9. Children's Privacy</h2>
+                        <p>I M Smrti is not intended for use by individuals under the age of 13 without parental consent. We do not knowingly collect personal data from children under 13. If you believe a child has provided us with personal data, please contact us immediately.</p>
                     </section>
 
                     <section className="bg-slate-50 p-6 rounded-2xl mt-8">
