@@ -34,6 +34,11 @@ firebase-debug.log*
 .env.*
 !.env.example
 
+# Agent / IDE configs
+.claude/
+.agent/
+.gemini/
+
 # Build outputs
 build/
 dist/
