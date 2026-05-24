@@ -5,7 +5,7 @@ import {
     Camera, User, Mail, Lock, ChevronRight, Smartphone,
     Check, Loader2, LogOut, Pencil, ShieldCheck,
     Calendar, Droplets, UserCircle, AlertTriangle, X,
-    Bell, Share2, Sparkles, CheckCircle2, RefreshCw,
+    Bell, Share2, Sparkles, CheckCircle2, RefreshCw, ScanLine,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -13,6 +13,7 @@ import {
 } from "firebase/firestore";
 import { useTranslation } from "react-i18next";
 import { db } from "@/lib/firebase";
+import { isBiometricEnabled, setBiometricEnabled, checkBiometricAvailability } from "@/lib/biometric";
 
 
 interface UserSettings {
@@ -633,6 +634,39 @@ function SecurityHistory({ userId }: { userId: string }) {
     );
 }
 
+// ─── BiometricLockToggle ───────────────────────────────────────────────────────
+function BiometricLockToggle() {
+    const [available, setAvailable] = useState(false);
+    const [enabled, setEnabled] = useState(isBiometricEnabled());
+
+    useEffect(() => {
+        checkBiometricAvailability().then(r => { setAvailable(r.available); if (r.available) setEnabled(isBiometricEnabled()); });
+    }, []);
+
+    if (!available) return null;
+
+    const toggle = () => {
+        const next = !enabled;
+        setEnabled(next);
+        setBiometricEnabled(next);
+    };
+
+    return (
+        <div className="w-full flex items-center justify-between p-5 hover:bg-slate-50 transition-colors cursor-pointer" onClick={toggle}>
+            <div className="flex items-center gap-4">
+                <div className="size-11 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center"><ScanLine size={18} /></div>
+                <div className="text-left font-lexend">
+                    <p className="text-sm font-black uppercase tracking-tight text-slate-900">Biometric Lock</p>
+                    <p className="text-[10px] font-bold text-slate-400 mt-1">{enabled ? "Face ID / Fingerprint enabled" : "Require biometrics to open app"}</p>
+                </div>
+            </div>
+            <div className={`w-11 h-6 rounded-full transition-colors ${enabled ? 'bg-emerald-500' : 'bg-slate-300'}`}>
+                <div className={`w-5 h-5 bg-white rounded-full shadow transition-transform mt-0.5 ${enabled ? 'translate-x-5' : 'translate-x-[2px]'}`} />
+            </div>
+        </div>
+    );
+}
+
 // ─── AccountPage ──────────────────────────────────────────────────────────────
 export function AccountPage() {
     const { user, userProfile, logout, refreshUser, updateUserProfile, uploadProfilePhoto, hasPassword } = useAuth();
@@ -784,6 +818,10 @@ export function AccountPage() {
                                 </button>
                             </div>
                             
+                            <div className="bg-white rounded-[2rem] overflow-hidden divide-y divide-slate-50 shadow-sm border border-slate-100 mt-6">
+                                <BiometricLockToggle />
+                            </div>
+
                             <div className="pt-2">
                                 <button onClick={() => setShowDeleteModal(true)} className="w-full py-3 rounded-xl border border-destructive/20 text-destructive text-sm font-bold bg-destructive/5 hover:bg-destructive/10 transition-colors">
                                     Delete Account permanently
