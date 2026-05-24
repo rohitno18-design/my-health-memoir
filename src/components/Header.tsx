@@ -37,7 +37,10 @@ export function Header() {
                         )}
                     </button>
                     <div>
-                        <h1 className="text-sm font-black tracking-tight text-slate-800">{t('header.title')}</h1>
+                        <div className="flex items-center gap-2">
+                            <img src="/favicon-64.png" alt="Logo" className="size-5 rounded-lg" />
+                            <h1 className="text-sm font-black tracking-tight text-slate-800">{t('header.title')}</h1>
+                        </div>
                         <div className="flex items-center gap-1">
                             <span className="shrink-0 size-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                             <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">{t('header.liveSyncing')}</span>

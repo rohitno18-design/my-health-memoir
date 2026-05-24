@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Shield, Activity, Brain, Server, ShieldAlert } from "lucide-react";
+import { ArrowRight, Shield, Brain, Server, ShieldAlert } from "lucide-react";
 
 export function LandingPage() {
     const navigate = useNavigate();
@@ -15,9 +15,7 @@ export function LandingPage() {
             <nav className="fixed top-0 inset-x-0 z-50 glass-morphism border-b border-white/20">
             <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 sm:h-20 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <div className="size-10 rounded-2xl bg-gradient-to-tr from-primary to-health-teal flex items-center justify-center text-white shadow-lg shadow-primary/20">
-                            <Activity size={20} strokeWidth={3} />
-                        </div>
+                        <img src="/logo.png" alt="I M Smrti" className="size-10 rounded-2xl object-cover" />
                         <span className="text-xl font-black tracking-tight text-slate-800">
                             I M <span className="text-primary">Smrti</span>
                         </span>
