@@ -599,6 +599,7 @@ export function AIChatPage() {
 
     const callGemini = useCallback(async (history: GeminiContent[]) => {
         const payload = {
+            userId: user?.uid,
             systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
             contents: history,
             tools: [{ functionDeclarations: TOOL_DECLARATIONS }],

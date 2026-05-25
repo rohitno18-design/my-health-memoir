@@ -221,6 +221,7 @@ export function DashboardPage() {
                 const base64Data = await getBase64(selectedFile);
                 
                 const result = await proxyGemini({
+                    userId: user?.uid,
                     contents: [{
                         parts: [
                             { text: SUMMARY_PROMPT(form.language) },

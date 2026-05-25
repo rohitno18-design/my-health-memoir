@@ -12,15 +12,38 @@ const adminStorage = getStorage();
 const fAppCheck = getAppCheck();
 const bucket = adminStorage.bucket("im-smrti.firebasestorage.app");
 
-// ── proxyGemini — secure API key server-side ──────────────────────────────
+// ── proxyGemini — secure API key server-side with per-user daily limits ──
+const MAX_CALLS_PER_DAY = 100; // ~$0.50-$1.00 per user per day, well under $2 cap
+
 export const proxyGemini = onCall(async (request) => {
   const data = request.data as {
     contents: unknown[];
+    userId?: string;
     systemInstruction?: { parts: { text: string }[] };
     tools?: unknown[];
     toolConfig?: unknown;
     generationConfig?: Record<string, unknown>;
   };
+
+  // ── Per-user daily rate limit ──
+  if (data.userId) {
+    const today = new Date().toISOString().split("T")[0];
+    const usageRef = adminDb.collection("user_usage").doc(data.userId).collection("daily").doc(today);
+
+    const usageDoc = await usageRef.get();
+    const currentCalls = usageDoc.exists ? (usageDoc.data()?.calls || 0) : 0;
+
+    if (currentCalls >= MAX_CALLS_PER_DAY) {
+      throw new Error(`DAILY_LIMIT: You have reached your daily AI usage limit (${MAX_CALLS_PER_DAY} requests). Limit resets at midnight UTC.`);
+    }
+
+    // Increment counter — fire-and-forget, don't block the response
+    usageRef.set({
+      calls: currentCalls + 1,
+      lastCallAt: new Date().toISOString(),
+    }).catch(() => {});
+  }
+
   const apiKey = process.env.GEMINI_API_KEY || "";
   const model = process.env.GEMINI_MODEL || "gemini-2.5-flash";
   const version = process.env.GEMINI_API_VERSION || "v1beta";

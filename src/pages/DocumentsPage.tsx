@@ -400,6 +400,7 @@ export function DocumentsPage() {
 
             setGenerationProgress(t("documents.translatingSummary", { lang }));
             const result = await proxyGemini({
+                userId: user?.uid,
                 contents: [{
                     parts: [
                         { text: `${TRANSLATION_PROMPT(lang)}\n\nOriginal Summary:\n${sourceText}` }
