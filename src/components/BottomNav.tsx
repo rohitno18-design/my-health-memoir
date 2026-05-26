@@ -30,7 +30,7 @@ export function BottomNav() {
             style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
         >
             <div className="px-4 pb-3 pt-1 max-w-lg mx-auto">
-                <div className="glass-card rounded-[2rem] p-2 px-3 flex items-center justify-between shadow-2xl shadow-primary/10 border border-white/60 bg-white/80 backdrop-blur-xl">
+                <div className="glass-morphism rounded-[2rem] p-2 px-3 flex items-center justify-between shadow-xl border border-white/60 bg-white/85 backdrop-blur-xl">
                     {items.map(({ path, mIcon, labelKey }) => {
                         const active =
                             location.pathname === path ||
@@ -41,9 +41,8 @@ export function BottomNav() {
                                 key={path}
                                 onClick={() => navigate(path)}
                                 className={cn(
-                                    // 56px minimum height satisfies Apple HIG tap target guidelines
                                     "flex flex-col items-center justify-center flex-1 min-h-[56px] rounded-[1.25rem] transition-all duration-300 active:scale-95",
-                                    active ? "bg-primary text-white shadow-md shadow-primary/20" : "text-slate-500 hover:text-primary hover:bg-primary/5"
+                                    active ? "bg-brand-gradient text-white shadow-glow-sm" : "text-slate-400 hover:text-brand-indigo hover:bg-indigo-50/50"
                                 )}
                             >
                                 <span className={cn("material-symbols-outlined text-[22px] mb-[2px] transition-transform", active && "fill-1 scale-110")}>{mIcon}</span>
