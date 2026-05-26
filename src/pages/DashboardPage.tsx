@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+﻿import { useState, useRef, useEffect } from "react";
 import { remoteLog } from "@/lib/remoteLog";
 import ReactMarkdown from "react-markdown";
 import rehypeSanitize from "rehype-sanitize";
@@ -354,7 +354,7 @@ export function DashboardPage() {
     if (loading) {
       return (
         <div className="flex items-center justify-center min-h-dvh bg-slate-50">
-          <Loader2 className="animate-spin text-emerald-500" size={32} />
+          <Loader2 className="animate-spin text-blue-500" size={32} />
         </div>
       );
     }
@@ -365,13 +365,13 @@ export function DashboardPage() {
             <main className="px-5 pt-5 space-y-6">
                 {/* Upload success banner */}
                 {uploadSuccessBanner && (
-                  <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="px-4 py-3 bg-emerald-50 border border-emerald-200 rounded-2xl flex items-center justify-between">
+                  <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="px-4 py-3 bg-blue-50 border border-blue-200 rounded-2xl flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <CheckCircle2 size={18} className="text-emerald-600 shrink-0" />
-                      <span className="text-sm font-bold text-emerald-800">Document saved successfully!</span>
+                      <CheckCircle2 size={18} className="text-blue-600 shrink-0" />
+                      <span className="text-sm font-bold text-blue-800">Document saved successfully!</span>
                     </div>
                     <button onClick={() => setUploadSuccessBanner(false)} className="shrink-0">
-                      <X size={16} className="text-emerald-500" />
+                      <X size={16} className="text-blue-500" />
                     </button>
                   </motion.div>
                 )}
@@ -382,7 +382,7 @@ export function DashboardPage() {
                         {formatGreeting()}, {userProfile?.displayName?.split(' ')[0] || t("dashboard.guest")}
                     </motion.p>
                     <motion.h2 initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="text-3xl font-black text-slate-900 leading-tight tracking-tighter">
-                        {t("dashboard.healthAtAGlance1")} <br /> <span className="text-emerald-600">{t("dashboard.healthAtAGlance2")}</span>
+                        {t("dashboard.healthAtAGlance1")} <br /> <span className="text-blue-600">{t("dashboard.healthAtAGlance2")}</span>
                     </motion.h2>
                 </section>
 
@@ -418,9 +418,9 @@ export function DashboardPage() {
                                     <button
                                         key={p.id}
                                         onClick={() => setForm(f => ({ ...f, patientId: p.id }))}
-                                        className={`flex items-center gap-2 px-3 py-1.5 rounded-full border-2 text-xs font-bold whitespace-nowrap flex-shrink-0 transition-all active:scale-95 ${isActive ? 'bg-emerald-50 border-emerald-400 text-emerald-700 shadow-sm' : 'bg-white border-slate-200 text-slate-500 hover:border-slate-300'}`}
+                                        className={`flex items-center gap-2 px-3 py-1.5 rounded-full border-2 text-xs font-bold whitespace-nowrap flex-shrink-0 transition-all active:scale-95 ${isActive ? 'bg-blue-50 border-blue-400 text-blue-700 shadow-sm' : 'bg-white border-slate-200 text-slate-500 hover:border-slate-300'}`}
                                     >
-                                        <div className={`size-5 rounded-full overflow-hidden flex items-center justify-center text-[10px] font-black ${isActive ? 'bg-emerald-500 text-white' : 'bg-slate-200 text-slate-500'}`}>
+                                        <div className={`size-5 rounded-full overflow-hidden flex items-center justify-center text-[10px] font-black ${isActive ? 'bg-blue-500 text-white' : 'bg-slate-200 text-slate-500'}`}>
                                             {(p.name)?.[0]?.toUpperCase() ?? "?"}
                                         </div>
                                         {p.name?.split(" ")[0]}
@@ -441,7 +441,7 @@ export function DashboardPage() {
                         className="bento-card col-span-1 cursor-pointer active:scale-95 transition-all"
                         onClick={() => navigate("/vitals")}
                     >
-                        <VitalsQuickView type="Sugar" value={glucose.val} unit="mg/dL" trend={glucose.val === "--" ? "stable" : "stable"} data={glucose.chartData} color="#10B981" />
+                        <VitalsQuickView type="Sugar" value={glucose.val} unit="mg/dL" trend={glucose.val === "--" ? "stable" : "stable"} data={glucose.chartData} color="#3B82F6" />
                     </motion.div>
 
                     <motion.div 
@@ -471,12 +471,12 @@ export function DashboardPage() {
               {uploadStep === "uploading" && (
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="fixed inset-0 z-[110] bg-white/80 backdrop-blur-md flex items-center justify-center p-6">
                   <div className="w-full max-w-xs text-center space-y-4">
-                    <div className="size-20 bg-emerald-100 rounded-full flex items-center justify-center mx-auto animate-pulse">
-                      <UploadCloud className="text-emerald-600" size={32} />
+                    <div className="size-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto animate-pulse">
+                      <UploadCloud className="text-blue-600" size={32} />
                     </div>
                     <h3 className="font-black text-slate-900 text-lg">{t("dashboard.uploading")}</h3>
                     <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
-                      <div className="h-full bg-emerald-500 transition-all duration-300" style={{ width: `${progress}%` }} />
+                      <div className="h-full bg-blue-500 transition-all duration-300" style={{ width: `${progress}%` }} />
                     </div>
                     <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{progress}% {t("common.complete")}</p>
                   </div>
@@ -543,7 +543,7 @@ export function DashboardPage() {
                           {CATEGORIES.map(c => <option key={c} value={c}>{t(`documents.${c}`)}</option>)}
                         </select>
                       </div>
-                      <button type="submit" className="w-full py-4 bg-emerald-600 text-white rounded-xl font-black shadow-lg shadow-emerald-500/20 active:scale-95 transition-all">
+                      <button type="submit" className="w-full py-4 bg-blue-600 text-white rounded-xl font-black shadow-lg shadow-blue-500/20 active:scale-95 transition-all">
                         {isOffline ? "Save & Queue for Analysis" : t("dashboard.beginAnalysis")}
                       </button>
                     </form>
@@ -595,7 +595,7 @@ export function DashboardPage() {
                           <button onClick={() => navigate("/documents")} className="w-full py-4 bg-slate-900 text-white rounded-xl font-black">
                             {t("dashboard.viewInVault")}
                           </button>
-                          <button onClick={() => { onDismissSummary(); fetchLifeEventsForTimeline(); setShowAddToTimeline(true); }} className="w-full py-4 bg-emerald-600 text-white rounded-xl font-black flex items-center justify-center gap-2">
+                          <button onClick={() => { onDismissSummary(); fetchLifeEventsForTimeline(); setShowAddToTimeline(true); }} className="w-full py-4 bg-blue-600 text-white rounded-xl font-black flex items-center justify-center gap-2">
                             <Activity size={20} />
                             Add to Timeline
                           </button>
@@ -643,7 +643,7 @@ export function DashboardPage() {
                   )}
 
                   {selectedTimelineEventId === "" && (
-                    <p className="text-xs text-emerald-600 font-bold mb-4">A new timeline event will be created for this document.</p>
+                    <p className="text-xs text-blue-600 font-bold mb-4">A new timeline event will be created for this document.</p>
                   )}
 
                   <div className="flex gap-3">
@@ -656,7 +656,7 @@ export function DashboardPage() {
                     <button
                       onClick={handleAddDocToEvent}
                       disabled={addingToTimeline}
-                      className="flex-1 py-4 bg-emerald-600 text-white rounded-xl font-black flex items-center justify-center gap-2 disabled:opacity-50"
+                      className="flex-1 py-4 bg-blue-600 text-white rounded-xl font-black flex items-center justify-center gap-2 disabled:opacity-50"
                     >
                       {addingToTimeline ? <Loader2 size={18} className="animate-spin" /> : <Activity size={18} />}
                       {addingToTimeline ? "Adding..." : selectedTimelineEventId ? "Link to Event" : "Create Event"}

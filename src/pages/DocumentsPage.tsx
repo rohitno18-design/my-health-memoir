@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+﻿import { useState, useEffect, useMemo } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { logUserAction } from "@/lib/audit";
 import ReactMarkdown from "react-markdown";
@@ -33,7 +33,7 @@ const languages = [
 const CATEGORIES = [
     { name: "Prescription", key: "documents.cat_prescription", icon: "pill", color: "text-purple-600 bg-purple-50" },
     { name: "Lab Report", key: "documents.cat_labreport", icon: "water_drop", color: "text-red-600 bg-red-50" },
-    { name: "Imaging (X-ray/MRI)", key: "documents.cat_imagingxraymri", icon: "personal_injury", color: "text-teal-600 bg-teal-50" },
+    { name: "Imaging (X-ray/MRI)", key: "documents.cat_imagingxraymri", icon: "personal_injury", color: "text-blue-600 bg-blue-50" },
     { name: "Clinical Note", key: "documents.cat_clinicalnote", icon: "stethoscope", color: "text-blue-600 bg-blue-50" },
     { name: "Billing/Insurance", key: "documents.cat_billinginsurance", icon: "receipt_long", color: "text-amber-600 bg-amber-50" },
     { name: "Other", key: "documents.cat_other", icon: "folder", color: "text-slate-600 bg-slate-50" },
@@ -553,10 +553,10 @@ export function DocumentsPage() {
                                         <button
                                             key={ep.id}
                                             onClick={() => openEpisodeTimeline(ep.id)}
-                                            className="bg-white/60 backdrop-blur-md border border-white/60 rounded-[1.25rem] px-5 py-4 flex items-center justify-between shadow-sm hover:shadow-md hover:border-emerald-500/30 transition-all text-left group"
+                                            className="bg-white/60 backdrop-blur-md border border-white/60 rounded-[1.25rem] px-5 py-4 flex items-center justify-between shadow-sm hover:shadow-md hover:border-blue-500/30 transition-all text-left group"
                                         >
                                             <div className="flex items-center gap-4">
-                                                <div className="size-10 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 group-hover:scale-110 transition-transform">
+                                                <div className="size-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 group-hover:scale-110 transition-transform">
                                                     <span className="material-symbols-outlined text-[20px]">medical_services</span>
                                                 </div>
                                                 <div>
@@ -564,7 +564,7 @@ export function DocumentsPage() {
                                                     <span className="text-[12px] font-bold text-slate-500">{t("documents.fileCount", { count })}</span>
                                                 </div>
                                             </div>
-                                            <span className="material-symbols-outlined text-slate-300 group-hover:text-emerald-500 transition-colors">chevron_right</span>
+                                            <span className="material-symbols-outlined text-slate-300 group-hover:text-blue-500 transition-colors">chevron_right</span>
                                         </button>
                                     )
                                 })}
@@ -706,7 +706,7 @@ export function DocumentsPage() {
                                                     {doc.type.split("/")[1] ?? doc.type}
                                                 </span>
                                                 {patient && (
-                                                    <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-100 px-1.5 py-0.5 rounded-md truncate max-w-[80px]">
+                                                    <span className="text-[10px] font-bold text-blue-700 bg-blue-50 border border-blue-100 px-1.5 py-0.5 rounded-md truncate max-w-[80px]">
                                                         {patient.name}
                                                     </span>
                                                 )}
@@ -740,7 +740,7 @@ export function DocumentsPage() {
                                                 ) : null}
 
                                                 {doc.status !== "failed" && (
-                                                    <button onClick={() => setShowLanguageModalForDoc(doc)} disabled={summarizingDocId === doc.id} className="text-[10px] font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-2 py-1 flex items-center gap-1 rounded-lg transition-colors disabled:opacity-50">
+                                                    <button onClick={() => setShowLanguageModalForDoc(doc)} disabled={summarizingDocId === doc.id} className="text-[10px] font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 px-2 py-1 flex items-center gap-1 rounded-lg transition-colors disabled:opacity-50">
                                                         {summarizingDocId === doc.id ? <Loader2 size={11} className="animate-spin" /> : <Globe size={11} />}
                                                         {summarizingDocId === doc.id ? "..." : t("common.translate")}
                                                     </button>
@@ -756,7 +756,7 @@ export function DocumentsPage() {
                                             <button onClick={() => handleDocDownload(doc)} disabled={downloadingDocId === doc.id} className="size-9 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center hover:bg-slate-200 transition-colors disabled:opacity-60" title="Download">
                                                 {downloadingDocId === doc.id ? <Loader2 size={15} className="animate-spin" /> : <Download size={15} />}
                                             </button>
-                                            <button onClick={() => openAddToTimeline(doc)} className="size-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center hover:bg-emerald-100 transition-colors" title="Add to Timeline">
+                                            <button onClick={() => openAddToTimeline(doc)} className="size-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center hover:bg-blue-100 transition-colors" title="Add to Timeline">
                                                 <Activity size={15} />
                                             </button>
                                         </div>
@@ -815,16 +815,16 @@ export function DocumentsPage() {
                 showLanguageModalForDoc && (
                     <div className="fixed inset-0 z-[110] bg-black/40 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4">
                         <div className="w-full max-w-sm glass-card border border-white/50 rounded-t-[2.5rem] sm:rounded-3xl p-6 shadow-2xl animate-in slide-in-from-bottom-5 sm:zoom-in-95 duration-200 relative overflow-hidden">
-                            <div className="absolute top-0 right-0 size-32 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none -z-10"></div>
+                            <div className="absolute top-0 right-0 size-32 bg-blue-500/10 rounded-full blur-3xl pointer-events-none -z-10"></div>
                             <div className="flex justify-between items-center mb-5 relative z-10">
-                                <h3 className="font-extrabold text-[19px] text-slate-900 flex items-center gap-2"><Globe size={22} className="text-emerald-500 mb-0.5" /> {t("documents.chooseLanguage")}</h3>
+                                <h3 className="font-extrabold text-[19px] text-slate-900 flex items-center gap-2"><Globe size={22} className="text-blue-500 mb-0.5" /> {t("documents.chooseLanguage")}</h3>
                                 <button onClick={() => setShowLanguageModalForDoc(null)} className="text-slate-400 hover:text-slate-600 hover:bg-white/50 p-1.5 rounded-full transition-colors"><X size={20} /></button>
                             </div>
                             <p className="text-[13px] text-slate-500 font-semibold mb-5 leading-relaxed relative z-10">{t("documents.chooseLanguageDesc")}</p>
                             <select
                                 value={summaryLanguage}
                                 onChange={(e) => setSummaryLanguage(e.target.value)}
-                                className="w-full px-4 py-3.5 rounded-[1.5rem] border border-white/40 bg-white/40 backdrop-blur-md focus:bg-white/80 focus:ring-2 focus:ring-emerald-500/30 font-bold outline-none mb-6 cursor-pointer text-slate-800 transition-colors shadow-sm relative z-10"
+                                className="w-full px-4 py-3.5 rounded-[1.5rem] border border-white/40 bg-white/40 backdrop-blur-md focus:bg-white/80 focus:ring-2 focus:ring-blue-500/30 font-bold outline-none mb-6 cursor-pointer text-slate-800 transition-colors shadow-sm relative z-10"
                             >
                                 {languages.map(lang => (
                                     <option key={lang.id} value={lang.id}>{t(lang.tKey)}</option>
@@ -833,7 +833,7 @@ export function DocumentsPage() {
                             <button
                                 onClick={handleGenerateNewSummary}
                                 disabled={summarizingDocId !== null}
-                                className="w-full py-3.5 bg-emerald-500 text-white hover:bg-emerald-600 font-extrabold rounded-[1.25rem] transition-colors flex items-center justify-center gap-2 shadow-md relative z-10 disabled:opacity-70 disabled:hover:bg-emerald-500"
+                                className="w-full py-3.5 bg-blue-500 text-white hover:bg-blue-600 font-extrabold rounded-[1.25rem] transition-colors flex items-center justify-center gap-2 shadow-md relative z-10 disabled:opacity-70 disabled:hover:bg-blue-500"
                             >
                                 {summarizingDocId !== null ? <Loader2 size={18} className="animate-spin" /> : <Bot size={18} />}
                                 {t("documents.generateTranslation")}
@@ -849,14 +849,14 @@ export function DocumentsPage() {
                     <div className="fixed inset-0 z-[110] bg-black/50 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={() => setAddToTimelineDoc(null)}>
                         <div className="w-full max-w-sm bg-white rounded-t-[2.5rem] sm:rounded-[2.5rem] p-6 shadow-2xl animate-in slide-in-from-bottom-5 duration-200" onClick={e => e.stopPropagation()}>
                             <div className="flex items-center justify-between mb-1">
-                                <h3 className="font-extrabold text-lg text-slate-900 flex items-center gap-2"><Activity size={20} className="text-emerald-500" /> {t("documents.addToTimeline")}</h3>
+                                <h3 className="font-extrabold text-lg text-slate-900 flex items-center gap-2"><Activity size={20} className="text-blue-500" /> {t("documents.addToTimeline")}</h3>
                                 <button onClick={() => setAddToTimelineDoc(null)} className="size-9 rounded-full bg-slate-100 flex items-center justify-center hover:bg-slate-200"><X size={18} /></button>
                             </div>
                             <p className="text-[13px] text-slate-500 font-semibold mb-5">{t("documents.linkDocToEvent", { name: addToTimelineDoc.name })}</p>
 
                             {addToTimelineDone ? (
-                                <div className="flex items-center gap-3 p-4 bg-emerald-50 border border-emerald-200 rounded-2xl text-emerald-800 font-bold text-sm">
-                                    <span className="material-symbols-outlined text-emerald-600">check_circle</span>
+                                <div className="flex items-center gap-3 p-4 bg-blue-50 border border-blue-200 rounded-2xl text-blue-800 font-bold text-sm">
+                                    <span className="material-symbols-outlined text-blue-600">check_circle</span>
                                     {addToTimelineDone}
                                 </div>
                             ) : (
@@ -877,7 +877,7 @@ export function DocumentsPage() {
                                     <button
                                         onClick={handleAddDocToEvent}
                                         disabled={addingToTimeline}
-                                        className="w-full py-3.5 bg-emerald-600 text-white font-bold rounded-2xl flex items-center justify-center gap-2 hover:bg-emerald-700 disabled:opacity-70 transition-colors"
+                                        className="w-full py-3.5 bg-blue-600 text-white font-bold rounded-2xl flex items-center justify-center gap-2 hover:bg-blue-700 disabled:opacity-70 transition-colors"
                                     >
                                         {addingToTimeline ? <Loader2 size={16} className="animate-spin" /> : <Activity size={16} />}
                                         {selectedEventId ? t("documents.linkToExisting") : t("documents.createNewEvent")}
@@ -895,7 +895,7 @@ export function DocumentsPage() {
                     <div className="w-full max-w-xl bg-white rounded-t-[2.5rem] sm:rounded-[2.5rem] flex flex-col shadow-2xl max-h-[88dvh]" onClick={e => e.stopPropagation()}>
                         <div className="p-6 border-b flex justify-between items-center bg-slate-50 rounded-t-[2.5rem] flex-shrink-0">
                             <div>
-                                <h3 className="font-bold text-slate-900 flex items-center gap-2"><Edit2 size={18} className="text-emerald-600" /> {t("documents.editTitle")}</h3>
+                                <h3 className="font-bold text-slate-900 flex items-center gap-2"><Edit2 size={18} className="text-blue-600" /> {t("documents.editTitle")}</h3>
                             </div>
                             <button onClick={() => setEditingDoc(null)} className="size-9 rounded-full bg-slate-200 flex items-center justify-center hover:bg-slate-300 text-slate-600"><X size={18} /></button>
                         </div>
@@ -903,16 +903,16 @@ export function DocumentsPage() {
                         <div className="overflow-y-auto p-6 flex-1 space-y-4">
                             <div>
                                 <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">{t("documents.editName")}</label>
-                                <input type="text" value={editDocDraft.name} onChange={e => setEditDocDraft({ ...editDocDraft, name: e.target.value })} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-semibold outline-none focus:border-emerald-500" />
+                                <input type="text" value={editDocDraft.name} onChange={e => setEditDocDraft({ ...editDocDraft, name: e.target.value })} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-semibold outline-none focus:border-blue-500" />
                             </div>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
                                     <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">{t("documents.editDate")}</label>
-                                    <input type="date" value={editDocDraft.docDate} onChange={e => setEditDocDraft({ ...editDocDraft, docDate: e.target.value })} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-semibold outline-none focus:border-emerald-500" />
+                                    <input type="date" value={editDocDraft.docDate} onChange={e => setEditDocDraft({ ...editDocDraft, docDate: e.target.value })} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-semibold outline-none focus:border-blue-500" />
                                 </div>
                                 <div>
                                     <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">{t("documents.editPatient")}</label>
-                                    <select value={editDocDraft.patientId} onChange={e => setEditDocDraft({ ...editDocDraft, patientId: e.target.value })} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-semibold outline-none focus:border-emerald-500">
+                                    <select value={editDocDraft.patientId} onChange={e => setEditDocDraft({ ...editDocDraft, patientId: e.target.value })} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-semibold outline-none focus:border-blue-500">
                                         {patients.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                                     </select>
                                 </div>
@@ -920,15 +920,15 @@ export function DocumentsPage() {
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div>
                                     <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">{t("documents.editDoctor")}</label>
-                                    <input type="text" value={editDocDraft.doctorName} onChange={e => setEditDocDraft({ ...editDocDraft, doctorName: e.target.value })} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-semibold outline-none focus:border-emerald-500" />
+                                    <input type="text" value={editDocDraft.doctorName} onChange={e => setEditDocDraft({ ...editDocDraft, doctorName: e.target.value })} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-semibold outline-none focus:border-blue-500" />
                                 </div>
                                 <div>
                                     <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">{t("documents.editHospital")}</label>
-                                    <input type="text" value={editDocDraft.hospital} onChange={e => setEditDocDraft({ ...editDocDraft, hospital: e.target.value })} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-semibold outline-none focus:border-emerald-500" />
+                                    <input type="text" value={editDocDraft.hospital} onChange={e => setEditDocDraft({ ...editDocDraft, hospital: e.target.value })} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-semibold outline-none focus:border-blue-500" />
                                 </div>
                                 <div>
                                     <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">{t("documents.editLab")}</label>
-                                    <input type="text" value={editDocDraft.lab} onChange={e => setEditDocDraft({ ...editDocDraft, lab: e.target.value })} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-semibold outline-none focus:border-emerald-500" />
+                                    <input type="text" value={editDocDraft.lab} onChange={e => setEditDocDraft({ ...editDocDraft, lab: e.target.value })} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-semibold outline-none focus:border-blue-500" />
                                 </div>
                             </div>
                             <div className="pt-4 border-t border-slate-100 flex items-center gap-3">
@@ -973,7 +973,7 @@ export function DocumentsPage() {
                                         setEditingDoc(null);
                                         openAddToTimeline(editingDoc);
                                     }}
-                                    className="mt-3 w-full py-2.5 border-2 border-dashed border-slate-200 rounded-xl text-xs font-bold text-slate-500 hover:border-emerald-300 hover:text-emerald-600 hover:bg-emerald-50/30 transition-all flex items-center justify-center gap-2"
+                                    className="mt-3 w-full py-2.5 border-2 border-dashed border-slate-200 rounded-xl text-xs font-bold text-slate-500 hover:border-blue-300 hover:text-blue-600 hover:bg-blue-50/30 transition-all flex items-center justify-center gap-2"
                                 >
                                     <Activity size={14} /> {t("documents.linkAnother")}
                                 </button>
@@ -993,7 +993,7 @@ export function DocumentsPage() {
                             <button
                                 onClick={handleSaveDocEdit}
                                 disabled={isDeletingDoc || isSavingDocEdit}
-                                className="px-6 py-2.5 bg-emerald-600 text-white font-bold rounded-xl text-sm hover:bg-emerald-700 transition-colors flex items-center gap-2 shadow-sm"
+                                className="px-6 py-2.5 bg-blue-600 text-white font-bold rounded-xl text-sm hover:bg-blue-700 transition-colors flex items-center gap-2 shadow-sm"
                             >
                                 {isSavingDocEdit ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
                                 {t("common.saveChanges")}
@@ -1041,7 +1041,7 @@ export function DocumentsPage() {
                                 setViewingLinksDoc(null);
                                 openAddToTimeline(viewingLinksDoc);
                             }}
-                            className="w-full mt-6 py-3.5 bg-emerald-600 text-white font-bold rounded-2xl flex items-center justify-center gap-2 hover:bg-emerald-700 transition-colors shadow-lg active:scale-95"
+                            className="w-full mt-6 py-3.5 bg-blue-600 text-white font-bold rounded-2xl flex items-center justify-center gap-2 hover:bg-blue-700 transition-colors shadow-lg active:scale-95"
                         >
                             <Activity size={16} /> {t("documents.linkAnother")}
                         </button>

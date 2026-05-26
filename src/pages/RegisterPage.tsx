@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -124,18 +124,18 @@ export function RegisterPage() {
                         <div key={s} className="flex items-center gap-2">
                             <div className={`w-7 h-7 rounded-full text-xs font-bold flex items-center justify-center transition-all ${
                                 step === s ? "bg-primary text-white scale-110" :
-                                (["phone", "otp", "profile"].indexOf(step) > i) ? "bg-emerald-500 text-white" : "bg-muted text-muted-foreground"
+                                (["phone", "otp", "profile"].indexOf(step) > i) ? "bg-blue-500 text-white" : "bg-muted text-muted-foreground"
                             }`}>
                                 {(["phone", "otp", "profile"].indexOf(step) > i) ? <CheckCircle2 size={14} /> : i + 1}
                             </div>
-                            {i < 2 && <div className={`w-8 h-0.5 ${(["phone", "otp", "profile"].indexOf(step) > i) ? "bg-emerald-500" : "bg-muted"}`} />}
+                            {i < 2 && <div className={`w-8 h-0.5 ${(["phone", "otp", "profile"].indexOf(step) > i) ? "bg-blue-500" : "bg-muted"}`} />}
                         </div>
                     ))}
                 </div>
 
                 <div className="glass-card rounded-[2rem] shadow-2xl border border-white/50 p-6 sm:p-8 relative overflow-hidden">
                     <div className="absolute top-0 right-0 size-32 bg-primary/10 rounded-full blur-3xl pointer-events-none -z-10" />
-                    <div className="absolute bottom-0 left-0 size-32 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none -z-10" />
+                    <div className="absolute bottom-0 left-0 size-32 bg-blue-500/10 rounded-full blur-3xl pointer-events-none -z-10" />
 
                     {error && (
                         <div className="bg-destructive/10 text-destructive text-sm rounded-lg p-3 mb-4 flex items-center gap-2">
@@ -245,7 +245,7 @@ export function RegisterPage() {
                                 </div>
                                 {email && (
                                     <p className="text-xs text-muted-foreground mt-1.5 flex items-center gap-1">
-                                        <ShieldCheck size={11} className="text-emerald-500" />
+                                        <ShieldCheck size={11} className="text-blue-500" />
                                         A verification link will be sent silently in background
                                     </p>
                                 )}

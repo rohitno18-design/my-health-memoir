@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Activity, Heart, Droplets, Plus,
@@ -32,20 +32,20 @@ interface VitalLog {
 const HEALTH_RANGES = {
   "Sugar": [
     { max: 70, label: "low", color: "#F97316", bg: "bg-orange-100", text: "text-orange-600" },
-    { max: 100, label: "normal", color: "#10B981", bg: "bg-emerald-100", text: "text-emerald-600" },
+    { max: 100, label: "normal", color: "#3B82F6", bg: "bg-blue-100", text: "text-blue-600" },
     { max: 125, label: "preDiabetic", color: "#F59E0B", bg: "bg-amber-100", text: "text-amber-600" },
     { max: Infinity, label: "high", color: "#EF4444", bg: "bg-rose-100", text: "text-rose-600" },
   ],
   "Blood Pressure": [
     { max: 90, label: "low", color: "#F97316", bg: "bg-orange-100", text: "text-orange-600" },
-    { max: 120, label: "normal", color: "#10B981", bg: "bg-emerald-100", text: "text-emerald-600" },
+    { max: 120, label: "normal", color: "#3B82F6", bg: "bg-blue-100", text: "text-blue-600" },
     { max: 130, label: "elevated", color: "#F59E0B", bg: "bg-amber-100", text: "text-amber-600" },
     { max: 140, label: "high", color: "#F97316", bg: "bg-orange-100", text: "text-orange-600" },
     { max: Infinity, label: "hypertensive", color: "#EF4444", bg: "bg-rose-100", text: "text-rose-600" },
   ],
   "Heart Rate": [
     { max: 60, label: "low", color: "#F97316", bg: "bg-orange-100", text: "text-orange-600" },
-    { max: 100, label: "normal", color: "#10B981", bg: "bg-emerald-100", text: "text-emerald-600" },
+    { max: 100, label: "normal", color: "#3B82F6", bg: "bg-blue-100", text: "text-blue-600" },
     { max: Infinity, label: "high", color: "#EF4444", bg: "bg-rose-100", text: "text-rose-600" },
   ],
 } as const;
@@ -56,7 +56,7 @@ function getHealthStatus(type: VitalType, value: number) {
 }
 
 const VITAL_CONFIG = {
-  "Sugar": { unit: "mg/dL", color: "#10B981", icon: Droplets, bg: "bg-emerald-50", tKey: "sugar" },
+  "Sugar": { unit: "mg/dL", color: "#3B82F6", icon: Droplets, bg: "bg-blue-50", tKey: "sugar" },
   "Blood Pressure": { unit: "mmHg", color: "#3B82F6", icon: Activity, bg: "bg-blue-50", tKey: "bp" },
   "Heart Rate": { unit: "bpm", color: "#F43F5E", icon: Heart, bg: "bg-rose-50", tKey: "heartRate" }
 };
@@ -160,7 +160,7 @@ export function VitalsPage() {
           <select
             value={selectedPatientId}
             onChange={(e) => setSelectedPatientId(e.target.value)}
-            className="appearance-none bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold px-3 py-2 rounded-xl outline-none focus:border-emerald-400 cursor-pointer"
+            className="appearance-none bg-blue-50 border border-blue-200 text-blue-700 text-xs font-bold px-3 py-2 rounded-xl outline-none focus:border-blue-400 cursor-pointer"
             disabled={patients.length === 0}
           >
             {patients.length === 0 && <option value="">{t("vitals.selectPatient")}</option>}
@@ -263,14 +263,14 @@ export function VitalsPage() {
             </h3>
             <button
               onClick={() => setIsLogModalOpen(true)}
-              className="flex items-center gap-1.5 bg-emerald-500 text-white text-xs font-bold px-4 py-2 rounded-xl shadow-sm active:scale-95 transition-transform"
+              className="flex items-center gap-1.5 bg-blue-500 text-white text-xs font-bold px-4 py-2 rounded-xl shadow-sm active:scale-95 transition-transform"
             >
               <Plus size={14} /> {t("vitals.addReading")}
             </button>
           </div>
 
           {loading ? (
-            <div className="py-10 flex justify-center"><Loader2 className="animate-spin text-emerald-400" size={24} /></div>
+            <div className="py-10 flex justify-center"><Loader2 className="animate-spin text-blue-400" size={24} /></div>
           ) : logs.length > 0 ? logs.map((log) => (
             <div key={log.id} className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm flex items-center justify-between">
               <div className="flex items-center gap-4">
@@ -329,7 +329,7 @@ export function VitalsPage() {
                 <button
                   type="submit"
                   disabled={isSaving || !newVal || !selectedPatientId}
-                  className="w-full py-4 bg-emerald-500 text-white rounded-2xl font-black flex items-center justify-center gap-2"
+                  className="w-full py-4 bg-blue-500 text-white rounded-2xl font-black flex items-center justify-center gap-2"
                 >
                   {isSaving ? <Loader2 className="animate-spin" size={18} /> : <Check size={18} />}
                   {t("vitals.saveReading")}

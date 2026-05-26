@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -124,7 +124,7 @@ export function LoginPage() {
 
                 <div className="glass-card rounded-[2rem] shadow-2xl border border-white/50 p-6 sm:p-8 relative overflow-hidden">
                     <div className="absolute top-0 right-0 size-32 bg-primary/10 rounded-full blur-3xl pointer-events-none -z-10" />
-                    <div className="absolute bottom-0 left-0 size-32 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none -z-10" />
+                    <div className="absolute bottom-0 left-0 size-32 bg-blue-500/10 rounded-full blur-3xl pointer-events-none -z-10" />
 
                     {/* Method toggle */}
                     <div className="flex bg-muted/50 p-1 rounded-2xl mb-6">
@@ -248,7 +248,7 @@ export function LoginPage() {
                             </button>
                             <h2 className="text-lg font-bold mb-1">Reset Password</h2>
                             {resetSent ? (
-                                <div className="bg-emerald-50 border border-emerald-100 text-emerald-700 text-sm p-4 rounded-xl text-center">
+                                <div className="bg-blue-50 border border-blue-100 text-blue-700 text-sm p-4 rounded-xl text-center">
                                     ✅ Reset link sent! Check your inbox.
                                 </div>
                             ) : (

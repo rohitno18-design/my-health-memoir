@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { ShieldCheck, Users, FileText, KeyRound, Globe, ArrowRight, Loader2, Sparkles } from "lucide-react";
@@ -45,7 +45,7 @@ export function AdminPage() {
             title: "Content & Toggles",
             description: "Edit dictionary, announcements, site policies.",
             icon: Globe,
-            color: "text-emerald-600 bg-emerald-50",
+            color: "text-blue-600 bg-blue-50",
             path: "/admin/content"
         },
         {

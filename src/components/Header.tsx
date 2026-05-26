@@ -1,4 +1,4 @@
-import { useAuth } from "@/contexts/AuthContext";
+﻿import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Bell, Search } from "lucide-react";
@@ -49,20 +49,20 @@ export function Header() {
                 <div className="flex gap-2">
                     <button
                         onClick={toggleLanguage}
-                        className="size-9 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full bg-slate-100 text-slate-600 hover:bg-emerald-50 hover:text-emerald-600 transition-colors active:scale-95 font-bold text-sm"
+                        className="size-9 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full bg-slate-100 text-slate-600 hover:bg-blue-50 hover:text-blue-600 transition-colors active:scale-95 font-bold text-sm"
                         title="Toggle Language"
                     >
                         {i18n.language.startsWith('en') ? 'अ' : 'A'}
                     </button>
                     <button
                         onClick={() => navigate("/documents")}
-                        className="size-9 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full bg-slate-100 text-slate-600 hover:bg-emerald-50 hover:text-emerald-600 transition-colors active:scale-95"
+                        className="size-9 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full bg-slate-100 text-slate-600 hover:bg-blue-50 hover:text-blue-600 transition-colors active:scale-95"
                     >
                         <Search size={17} />
                     </button>
                     <button
                         onClick={() => navigate("/notifications")}
-                        className="size-9 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full bg-slate-100 text-slate-600 hover:bg-emerald-50 hover:text-emerald-600 transition-colors active:scale-95 relative"
+                        className="size-9 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full bg-slate-100 text-slate-600 hover:bg-blue-50 hover:text-blue-600 transition-colors active:scale-95 relative"
                     >
                         <Bell size={17} />
                         <span className="absolute top-1.5 right-1.5 size-2 bg-brand-purple rounded-full border-2 border-white"></span>

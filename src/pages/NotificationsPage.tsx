@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
     Bell, 
@@ -254,7 +254,7 @@ export function NotificationsPage() {
             {/* Footer Tip */}
             <div className="px-6 py-4 bg-white/20 backdrop-blur-md border-t border-white/40">
                 <div className="flex items-center gap-2 text-[11px] text-slate-500 font-medium">
-                    <CheckCircle2 size={13} className="text-emerald-500" />
+                    <CheckCircle2 size={13} className="text-blue-500" />
                     {t("notifications.secureNote")}
                 </div>
             </div>

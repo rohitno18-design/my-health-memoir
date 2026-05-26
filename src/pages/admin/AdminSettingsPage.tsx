@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { ArrowLeft, ToggleLeft, ToggleRight, ServerCrash, RefreshCw } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { doc, getDoc, setDoc, collection, query, orderBy, limit, getDocs, Timestamp } from "firebase/firestore";
@@ -125,7 +125,7 @@ export function AdminSettingsPage() {
                                     <span>{icon}</span> {label}
                                 </span>
                                 {flags[key] ? (
-                                    <ToggleRight size={24} className="text-emerald-500" />
+                                    <ToggleRight size={24} className="text-blue-500" />
                                 ) : (
                                     <ToggleLeft size={24} className="text-muted-foreground" />
                                 )}

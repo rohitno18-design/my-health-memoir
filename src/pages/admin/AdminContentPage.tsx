@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { ArrowLeft, Megaphone, FileText, Languages, Plus, Trash2, Send } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { doc, getDoc, setDoc } from "firebase/firestore";
@@ -95,13 +95,13 @@ export function AdminContentPage() {
             {/* Global Announcements */}
             <div className="bg-card border border-border rounded-2xl p-5 shadow-sm">
                 <div className="flex items-center gap-3 mb-4">
-                    <div className="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-700">
+                    <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center text-blue-700">
                         <Megaphone size={16} />
                     </div>
                     <h3 className="font-semibold text-foreground">Global Announcements</h3>
                     <button
                         onClick={() => setShowNew(!showNew)}
-                        className="ml-auto p-2 rounded-lg hover:bg-emerald-50 transition-colors text-emerald-600"
+                        className="ml-auto p-2 rounded-lg hover:bg-blue-50 transition-colors text-blue-600"
                     >
                         <Plus size={18} />
                     </button>
@@ -114,19 +114,19 @@ export function AdminContentPage() {
                             placeholder="Announcement title..."
                             value={newTitle}
                             onChange={(e) => setNewTitle(e.target.value)}
-                            className="w-full text-sm bg-muted rounded-xl px-4 py-2.5 border border-border focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                            className="w-full text-sm bg-muted rounded-xl px-4 py-2.5 border border-border focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                         />
                         <textarea
                             placeholder="Announcement body..."
                             value={newBody}
                             onChange={(e) => setNewBody(e.target.value)}
                             rows={3}
-                            className="w-full text-sm bg-muted rounded-xl px-4 py-2.5 border border-border focus:outline-none focus:ring-2 focus:ring-emerald-500/20 resize-none"
+                            className="w-full text-sm bg-muted rounded-xl px-4 py-2.5 border border-border focus:outline-none focus:ring-2 focus:ring-blue-500/20 resize-none"
                         />
                         <button
                             onClick={addAnnouncement}
                             disabled={saving || !newTitle.trim() || !newBody.trim()}
-                            className="flex items-center gap-2 text-sm bg-emerald-600 text-white px-4 py-2 rounded-xl font-medium disabled:opacity-50 hover:bg-emerald-700 transition-colors"
+                            className="flex items-center gap-2 text-sm bg-blue-600 text-white px-4 py-2 rounded-xl font-medium disabled:opacity-50 hover:bg-blue-700 transition-colors"
                         >
                             <Send size={14} /> {saving ? "Sending..." : "Send Announcement"}
                         </button>
@@ -142,7 +142,7 @@ export function AdminContentPage() {
                         {announcements.map((a) => (
                             <div
                                 key={a.id}
-                                className={`p-3 rounded-xl border transition-all ${a.active ? "border-emerald-200 bg-emerald-50/50" : "border-muted bg-muted/30 opacity-60"}`}
+                                className={`p-3 rounded-xl border transition-all ${a.active ? "border-blue-200 bg-blue-50/50" : "border-muted bg-muted/30 opacity-60"}`}
                             >
                                 <div className="flex items-start justify-between gap-2">
                                     <div className="flex-1 min-w-0">
@@ -155,7 +155,7 @@ export function AdminContentPage() {
                                             onClick={() => toggleAnnouncement(a.id)}
                                             className="p-1.5 rounded-lg hover:bg-white transition-colors text-muted-foreground hover:text-foreground"
                                         >
-                                            {a.active ? <Megaphone size={14} className="text-emerald-500" /> : <Megaphone size={14} />}
+                                            {a.active ? <Megaphone size={14} className="text-blue-500" /> : <Megaphone size={14} />}
                                         </button>
                                         <button
                                             onClick={() => deleteAnnouncement(a.id)}

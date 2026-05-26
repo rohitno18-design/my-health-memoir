@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { WifiOff, RefreshCw, CheckCircle } from "lucide-react";
 import { db } from "@/lib/firebase";
 import { enableNetwork, disableNetwork } from "firebase/firestore";
@@ -58,7 +58,7 @@ export function OfflineIndicator() {
       text: "Back Online — Syncing…",
     },
     online: {
-      bg: "bg-emerald-500",
+      bg: "bg-blue-500",
       icon: <CheckCircle size={13} />,
       text: "All Data Synced",
     },

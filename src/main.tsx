@@ -1,4 +1,4 @@
-import { StrictMode } from 'react'
+﻿import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 
@@ -34,7 +34,7 @@ if (typeof window !== 'undefined') {
       root.innerHTML = `<div style="padding: 40px; color: #0f172a; font-family: sans-serif; text-align: center;">
         <h1 style="font-weight: 900;">Application Stuck</h1>
         <p>The application is taking too long to start. This might be due to a slow connection or a service worker loop.</p>
-        <button onclick="localStorage.clear(); sessionStorage.clear(); window.location.reload();" style="margin-top: 20px; padding: 10px 20px; background: #059669; color: white; border-radius: 12px; border: none; font-weight: bold;">Clear Cache & Reload</button>
+        <button onclick="localStorage.clear(); sessionStorage.clear(); window.location.reload();" style="margin-top: 20px; padding: 10px 20px; background: #2563EB; color: white; border-radius: 12px; border: none; font-weight: bold;">Clear Cache & Reload</button>
       </div>`;
     }
   }, 5000);

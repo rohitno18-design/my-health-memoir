@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { collection, query, where, getDocs, addDoc, updateDoc, deleteDoc, doc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
@@ -11,7 +11,7 @@ type EventCategory = "visit" | "diagnosis" | "procedure" | "milestone" | "note";
 export const EVENT_CATEGORIES = [
     { value: "visit", label: "timeline.cat_visit", icon: <Stethoscope size={18} />, desc: "timeline.cat_desc_visit", color: "text-blue-600 bg-blue-50 border-blue-200" },
     { value: "diagnosis", label: "timeline.cat_diagnosis", icon: <Activity size={18} />, desc: "timeline.cat_desc_diagnosis", color: "text-red-600 bg-red-50 border-red-200" },
-    { value: "procedure", label: "timeline.cat_procedure", icon: <ScanLine size={18} />, desc: "timeline.cat_desc_procedure", color: "text-teal-600 bg-teal-50 border-teal-200" },
+    { value: "procedure", label: "timeline.cat_procedure", icon: <ScanLine size={18} />, desc: "timeline.cat_desc_procedure", color: "text-blue-600 bg-blue-50 border-blue-200" },
     { value: "milestone", label: "timeline.cat_milestone", icon: <Calendar size={18} />, desc: "timeline.cat_desc_milestone", color: "text-amber-600 bg-amber-50 border-amber-200" },
     { value: "note", label: "timeline.cat_note", icon: <FileText size={18} />, desc: "timeline.cat_desc_note", color: "text-slate-600 bg-slate-50 border-slate-200" },
 ] as const;
@@ -138,13 +138,13 @@ export function LifeTimeline({ patient, onClose }: { patient: Patient, onClose: 
                 className="w-full max-w-4xl sm:h-auto sm:max-h-[85vh] glass-card sm:rounded-[2.5rem] flex flex-col shadow-2xl relative overflow-hidden bg-white/95"
                 style={{ height: '100%', paddingTop: 'env(safe-area-inset-top, 0px)' }}
             >
-                <div className="absolute top-0 right-0 size-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none -z-10"></div>
+                <div className="absolute top-0 right-0 size-64 bg-blue-500/10 rounded-full blur-3xl pointer-events-none -z-10"></div>
 
                 {/* Header */}
                 <div className="flex items-center justify-between p-6 pb-4 border-b border-slate-200/50 flex-shrink-0">
                     <div>
                         <h2 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
-                            <Activity className="text-emerald-500" />
+                            <Activity className="text-blue-500" />
                             {t("timeline.patient", { name: patient.name })}
                         </h2>
                         <p className="text-sm font-semibold text-slate-500 mt-1">{t("timeline.timelineDesc")}</p>
@@ -160,7 +160,7 @@ export function LifeTimeline({ patient, onClose }: { patient: Patient, onClose: 
                         <div className="flex flex-wrap gap-2">
                             <button
                                 onClick={() => setFilterCategory(null)}
-                                className={`px-4 py-2 rounded-xl text-sm font-bold transition-colors ${!filterCategory ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+                                className={`px-4 py-2 rounded-xl text-sm font-bold transition-colors ${!filterCategory ? 'bg-blue-100 text-blue-800' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
                             >
                                 {t("timeline.allEvents")}
                             </button>
@@ -310,7 +310,7 @@ export function LifeTimeline({ patient, onClose }: { patient: Patient, onClose: 
                                                 <label key={doc.id} className="flex items-center gap-3 p-2 hover:bg-white rounded-lg cursor-pointer transition-colors user-select-none">
                                                     <input
                                                         type="checkbox"
-                                                        className="w-4 h-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                                                        className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
                                                         checked={selectedDocs.includes(doc.id)}
                                                         onChange={(e) => {
                                                             if (e.target.checked) setSelectedDocs([...selectedDocs, doc.id]);

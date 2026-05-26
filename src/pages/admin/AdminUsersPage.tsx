@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { collection, getDocs, getDoc, setDoc, query, orderBy, doc, updateDoc, deleteDoc, getCountFromServer, where } from "firebase/firestore";
 import { createUserWithEmailAndPassword, sendSignInLinkToEmail } from "firebase/auth";
 import { auth, adminAuth, db } from "@/lib/firebase";
@@ -439,8 +439,8 @@ export function AdminUsersPage() {
                                         <span className="text-xl font-extrabold text-foreground">{userMetrics.patients}</span>
                                         <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Patients</span>
                                     </div>
-                                    <div className="bg-emerald-500/5 p-3 rounded-2xl flex flex-col items-center justify-center border border-emerald-500/10">
-                                        <FileText size={18} className="text-emerald-600 mb-1" />
+                                    <div className="bg-blue-500/5 p-3 rounded-2xl flex flex-col items-center justify-center border border-blue-500/10">
+                                        <FileText size={18} className="text-blue-600 mb-1" />
                                         <span className="text-xl font-extrabold text-foreground">{userMetrics.documents}</span>
                                         <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Docs</span>
                                     </div>
@@ -454,7 +454,7 @@ export function AdminUsersPage() {
                                 <div className="space-y-4 mb-8">
                                     <div className="bg-muted/30 p-3 rounded-xl border border-border/50">
                                         <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider mb-1">Email</p>
-                                        <p className="font-medium text-sm">{selectedUser.email || "Not set"} {selectedUser.emailVerified && <span className="text-emerald-600 text-[10px] ml-2 font-bold uppercase tracking-wider">Verified</span>}</p>
+                                        <p className="font-medium text-sm">{selectedUser.email || "Not set"} {selectedUser.emailVerified && <span className="text-blue-600 text-[10px] ml-2 font-bold uppercase tracking-wider">Verified</span>}</p>
                                     </div>
                                     
                                     <div className="bg-muted/30 p-3 rounded-xl border border-border/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -504,7 +504,7 @@ export function AdminUsersPage() {
                                         disabled={actionLoading}
                                         className={`flex items-center justify-center gap-2 w-full py-3 rounded-xl font-semibold text-sm disabled:opacity-50 ${
                                             selectedUser.suspended 
-                                            ? 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100' 
+                                            ? 'bg-blue-50 text-blue-600 hover:bg-blue-100' 
                                             : 'bg-red-50 text-red-600 hover:bg-red-100'
                                         }`}
                                     >

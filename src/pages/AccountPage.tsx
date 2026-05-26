@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+﻿import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import {
@@ -35,7 +35,7 @@ function Toast({ message, type, onDismiss }: { message: string; type: "success" 
     return (
         <div className={cn(
             "fixed top-4 left-1/2 -translate-x-1/2 z-[100] flex items-center gap-2 px-4 py-3 rounded-2xl shadow-lg text-sm font-medium max-w-xs w-full",
-            type === "success" ? "bg-green-600 text-white" : "bg-destructive text-white"
+            type === "success" ? "bg-blue-600 text-white" : "bg-destructive text-white"
         )}>
             {type === "success" ? <CheckCircle2 size={16} /> : <AlertTriangle size={16} />}
             <span className="flex-1">{message}</span>
@@ -212,7 +212,7 @@ function GenderSelect({ value, onSave }: { value: string; onSave: (v: string) =>
                 {error && <p className="text-xs text-destructive mt-0.5">{error}</p>}
             </div>
             {saving && <Loader2 size={14} className="animate-spin text-muted-foreground flex-shrink-0" />}
-            {saved && <Check size={14} className="text-green-600 flex-shrink-0" />}
+            {saved && <Check size={14} className="text-blue-600 flex-shrink-0" />}
         </div>
     );
 }
@@ -261,8 +261,8 @@ function ChangePasswordModal({ onClose }: { onClose: () => void }) {
                 </div>
                 {done ? (
                     <div className="text-center py-6">
-                        <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-2">
-                            <Check size={22} className="text-green-600" />
+                        <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center mx-auto mb-2">
+                            <Check size={22} className="text-blue-600" />
                         </div>
                         <p className="font-medium text-sm">{t("account.msgPasswordUpdated")}</p>
                     </div>
@@ -436,7 +436,7 @@ function ChangePhoneModal({ onClose, onSuccess }: { onClose: () => void; onSucce
                 </div>
                 {done ? (
                     <div className="text-center py-6 space-y-4">
-                        <div className="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center mx-auto"><Smartphone size={32} className="text-emerald-600" /></div>
+                        <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center mx-auto"><Smartphone size={32} className="text-blue-600" /></div>
                         <p className="font-bold text-lg">{t("account.done")}</p>
                         <p className="text-sm text-muted-foreground">{t("account.msgPhoneUpdated")}</p>
                         <button onClick={onClose} className="w-full py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-medium">{t("common.ok")}</button>
@@ -660,7 +660,7 @@ function BiometricLockToggle() {
                     <p className="text-[10px] font-bold text-slate-400 mt-1">{enabled ? "Face ID / Fingerprint enabled" : "Require biometrics to open app"}</p>
                 </div>
             </div>
-            <div className={`w-11 h-6 rounded-full transition-colors ${enabled ? 'bg-emerald-500' : 'bg-slate-300'}`}>
+            <div className={`w-11 h-6 rounded-full transition-colors ${enabled ? 'bg-blue-500' : 'bg-slate-300'}`}>
                 <div className={`w-5 h-5 bg-white rounded-full shadow transition-transform mt-0.5 ${enabled ? 'translate-x-5' : 'translate-x-[2px]'}`} />
             </div>
         </div>
@@ -733,7 +733,7 @@ export function AccountPage() {
                         <p className="text-xs font-bold text-slate-400">{user?.email}</p>
                         <div className="mt-4 flex items-center gap-3">
                             <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                                <div className="h-full bg-emerald-500 rounded-full" style={{ width: "65%" }} />
+                                <div className="h-full bg-blue-500 rounded-full" style={{ width: "65%" }} />
                             </div>
                             <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{t("account.profileComplete")}</span>
                         </div>
@@ -797,7 +797,7 @@ export function AccountPage() {
 
                                 <button onClick={() => setShowPhoneModal(true)} className="w-full flex items-center justify-between p-5 hover:bg-slate-50 transition-colors">
                                     <div className="flex items-center gap-4">
-                                        <div className="size-11 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center"><Smartphone size={18} /></div>
+                                        <div className="size-11 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center"><Smartphone size={18} /></div>
                                         <div className="text-left font-lexend">
                                             <p className="text-sm font-black uppercase tracking-tight text-slate-900">{t("account.changePhone")}</p>
                                             <p className="text-[10px] font-bold text-slate-400 mt-1">{userProfile?.phoneNumber || t("account.notSet")}</p>

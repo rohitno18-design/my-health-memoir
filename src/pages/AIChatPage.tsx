@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+﻿import { useState, useEffect, useRef, useCallback } from "react";
 import { remoteLog } from "@/lib/remoteLog";
 import { logUserAction } from "@/lib/audit";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
@@ -1391,7 +1391,7 @@ export function AIChatPage() {
                                             }
                                         }}
                                         disabled={isDownloadingPdf}
-                                        className="flex items-center gap-2 bg-emerald-600 text-white px-4 py-2.5 rounded-xl text-xs font-bold shadow-lg shadow-emerald-600/20 hover:bg-emerald-700 transition-all active:scale-95 disabled:opacity-50"
+                                        className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2.5 rounded-xl text-xs font-bold shadow-lg shadow-blue-600/20 hover:bg-blue-700 transition-all active:scale-95 disabled:opacity-50"
                                     >
                                         {isDownloadingPdf ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
                                         {isDownloadingPdf ? t("chat.compilingPdf") : t("chat.downloadReport")}

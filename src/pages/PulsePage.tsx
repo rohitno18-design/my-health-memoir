@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import {
   ShieldAlert, Phone, Droplets, AlertCircle, 
@@ -96,7 +96,7 @@ export function PulsePage() {
             <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/80">{t("pulse.liveId")}</span>
           </div>
           <div className="bg-white/10 backdrop-blur-md px-3 py-1 rounded-full flex items-center gap-2 border border-white/10">
-             <div className="size-1.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.6)]"></div>
+             <div className="size-1.5 rounded-full bg-blue-400 animate-pulse shadow-[0_0_8px_rgba(96,165,250,0.6)]"></div>
              <span className="text-[9px] font-black uppercase tracking-widest">{t("pulse.activeLabel")}</span>
           </div>
         </div>
@@ -161,7 +161,7 @@ export function PulsePage() {
            </div>
            <div className={cn(
              "p-6 rounded-[2rem] shadow-sm flex flex-col items-center text-center border transition-colors",
-             info.organDonor ? "bg-emerald-50 border-emerald-100 text-emerald-800" : "bg-white border-slate-100 text-slate-400"
+             info.organDonor ? "bg-blue-50 border-blue-100 text-blue-800" : "bg-white border-slate-100 text-slate-400"
            )}>
               <span className="text-[10px] font-black uppercase tracking-widest mb-2">{t("emergency.organDonor")}</span>
               <span className="text-xl font-black">{info.organDonor ? t("emergency.yes") : t("emergency.no")}</span>
@@ -228,7 +228,7 @@ export function PulsePage() {
                 className={cn(
                   "w-full flex items-center justify-between p-6 rounded-[2.5rem] transition-all",
                   contact.phone 
-                    ? "bg-emerald-600 text-white shadow-xl shadow-emerald-600/30 active:scale-[0.98] active:bg-emerald-700" 
+                    ? "bg-blue-600 text-white shadow-xl shadow-blue-600/30 active:scale-[0.98] active:bg-blue-700" 
                     : "bg-white text-slate-400 border border-slate-200"
                 )}
               >
@@ -241,8 +241,8 @@ export function PulsePage() {
                   </div>
                   <div className="text-left">
                     <h4 className="text-2xl font-black font-lexend leading-tight tracking-tight">{contact.name}</h4>
-                    <p className={cn("text-[10px] font-black uppercase tracking-widest mt-1", contact.phone ? "text-emerald-100" : "text-slate-400")}>{contact.relation}</p>
-                    {contact.phone && <p className="text-base font-bold mt-1 text-emerald-50 opacity-90">{contact.phone}</p>}
+                    <p className={cn("text-[10px] font-black uppercase tracking-widest mt-1", contact.phone ? "text-blue-100" : "text-slate-400")}>{contact.relation}</p>
+                    {contact.phone && <p className="text-base font-bold mt-1 text-blue-50 opacity-90">{contact.phone}</p>}
                   </div>
                 </div>
                 {contact.phone && <Phone size={32} className="opacity-80" />}

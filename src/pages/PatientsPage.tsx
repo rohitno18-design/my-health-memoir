@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+﻿import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { logUserAction } from "@/lib/audit";
 import { collection, query, where, getDocs, addDoc, doc, updateDoc, serverTimestamp, deleteDoc, setDoc } from "firebase/firestore";
@@ -108,7 +108,7 @@ function calcAge(dob: string): number | string {
 
 function Toast({ message }: { message: string }) {
     return (
-        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[120] flex items-center gap-2 px-4 py-3 bg-green-600 text-white rounded-2xl shadow-xl text-sm font-medium w-max max-w-[90vw] animate-in slide-in-from-top-5">
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[120] flex items-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-2xl shadow-xl text-sm font-medium w-max max-w-[90vw] animate-in slide-in-from-top-5">
             <CheckCircle2 size={16} />
             {message}
         </div>
@@ -299,7 +299,7 @@ export function PatientsPage() {
                 onChange={e => setForm(prev => ({ ...prev, [key]: e.target.value }))}
                 placeholder={placeholder}
                 required={required}
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-slate-800 placeholder:text-slate-300 focus:outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 transition-all font-medium text-sm"
+                className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-slate-800 placeholder:text-slate-300 focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all font-medium text-sm"
             />
         </div>
     );
@@ -310,7 +310,7 @@ export function PatientsPage() {
             <select
                 value={form[key]}
                 onChange={e => setForm(prev => ({ ...prev, [key]: e.target.value }))}
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 transition-all font-medium text-sm cursor-pointer"
+                className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all font-medium text-sm cursor-pointer"
             >
                 {options.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
             </select>
@@ -325,7 +325,7 @@ export function PatientsPage() {
                 onChange={e => setForm(prev => ({ ...prev, [key]: e.target.value }))}
                 placeholder={placeholder}
                 rows={2}
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-slate-800 placeholder:text-slate-300 focus:outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 transition-all font-medium text-sm resize-none"
+                className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-slate-800 placeholder:text-slate-300 focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all font-medium text-sm resize-none"
             />
         </div>
     );
@@ -405,7 +405,7 @@ export function PatientsPage() {
                                 </div>
                                 <div
                                     onClick={(e) => { e.stopPropagation(); setTimelinePatient(p); }}
-                                    className="w-9 h-9 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 hover:bg-emerald-600 hover:text-white transition-all shadow-sm"
+                                    className="w-9 h-9 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 hover:bg-blue-600 hover:text-white transition-all shadow-sm"
                                     title={t("patients.lifeTimeline")}
                                 >
                                     <Activity size={15} />
@@ -444,7 +444,7 @@ export function PatientsPage() {
                                         onClick={() => setActiveTab(tab)}
                                         className={cn(
                                             "py-3 px-3 text-sm font-bold whitespace-nowrap transition-all border-b-2",
-                                            activeTab === tab ? "border-emerald-500 text-emerald-600" : "border-transparent text-slate-400 hover:text-slate-700"
+                                            activeTab === tab ? "border-blue-500 text-blue-600" : "border-transparent text-slate-400 hover:text-slate-700"
                                         )}
                                     >
                                         {tab === "Misc" ? t("patients.tabMisc") : tab === "SOS" ? "🆘 " + t("patients.tabSOS") : tab === "Basic" ? t("patients.tabBasic") : tab === "Contact" ? t("patients.tabContact") : t("patients.tabMedical")}
@@ -696,7 +696,7 @@ export function PatientsPage() {
                                 type="submit"
                                 form="patient-form"
                                 disabled={saving}
-                                className="flex-1 max-w-[200px] py-3 bg-emerald-500 text-white rounded-xl text-sm font-black flex items-center justify-center gap-2 shadow-sm disabled:opacity-70 active:scale-[0.98] transition-all"
+                                className="flex-1 max-w-[200px] py-3 bg-blue-500 text-white rounded-xl text-sm font-black flex items-center justify-center gap-2 shadow-sm disabled:opacity-70 active:scale-[0.98] transition-all"
                             >
                                 {saving ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle2 size={16} />}
                                 {editingId ? t("patients.save") : t("patients.create")}

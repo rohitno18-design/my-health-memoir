@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   ShieldAlert, Phone, Droplets, AlertCircle,
@@ -122,7 +122,7 @@ export function EmergencyPage() {
       {/* Ambient glow */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden -z-0">
         <div className="absolute top-0 right-0 w-[60%] h-[30%] bg-rose-500/10 blur-[120px] rounded-full" />
-        <div className="absolute bottom-[25%] left-0 w-[40%] h-[25%] bg-emerald-500/8 blur-[100px] rounded-full" />
+        <div className="absolute bottom-[25%] left-0 w-[40%] h-[25%] bg-blue-500/8 blur-[100px] rounded-full" />
       </div>
 
       {/* ─── Header ─── */}
@@ -160,7 +160,7 @@ export function EmergencyPage() {
           <p className="text-sm text-slate-400 mb-6">{t("patients.emptyDesc")}</p>
           <button
             onClick={() => navigate("/patients")}
-            className="bg-emerald-500 text-white text-sm font-black px-8 py-3.5 rounded-2xl shadow-lg active:scale-95 transition-transform"
+            className="bg-blue-500 text-white text-sm font-black px-8 py-3.5 rounded-2xl shadow-lg active:scale-95 transition-transform"
           >
             {t("patients.title")} →
           </button>
@@ -297,12 +297,12 @@ export function EmergencyPage() {
               {/* Organ Donor */}
               <div className="bg-white/6 border border-white/12 rounded-2xl p-4">
                 <div className="flex items-center gap-2 mb-2">
-                  <Heart size={13} className="text-emerald-400" />
+                  <Heart size={13} className="text-blue-400" />
                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t("emergency.organDonor")}</span>
                 </div>
                 <span className={cn(
                   "font-black block text-base mt-1",
-                  info?.organDonor ? "text-emerald-400" : "text-slate-500 text-sm"
+                  info?.organDonor ? "text-blue-400" : "text-slate-500 text-sm"
                 )}>
                   {info?.organDonor ? t("emergency.yes") : t("emergency.no")}
                 </span>
@@ -368,7 +368,7 @@ export function EmergencyPage() {
               info.iceContacts.map((contact, i) => (
                 <div key={i} className="bg-white/6 border border-white/12 rounded-2xl p-4 flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="size-11 rounded-xl bg-emerald-500/20 border border-emerald-500/20 flex items-center justify-center font-black text-emerald-400 text-lg">
+                    <div className="size-11 rounded-xl bg-blue-500/20 border border-blue-500/20 flex items-center justify-center font-black text-blue-400 text-lg">
                       {contact.name?.[0]?.toUpperCase() || "?"}
                     </div>
                     <div>
@@ -380,7 +380,7 @@ export function EmergencyPage() {
                   {contact.phone ? (
                     <a
                       href={`tel:${contact.phone}`}
-                      className="size-11 rounded-xl bg-emerald-500 text-white flex items-center justify-center shadow-lg active:scale-95 transition-transform"
+                      className="size-11 rounded-xl bg-blue-500 text-white flex items-center justify-center shadow-lg active:scale-95 transition-transform"
                     >
                       <Phone size={18} />
                     </a>
@@ -397,7 +397,7 @@ export function EmergencyPage() {
                 <p className="text-sm text-slate-400 font-medium">{t("emergency.noIce")}</p>
                 <button
                   onClick={() => navigate("/patients")}
-                  className="mt-2 text-xs text-emerald-400 font-bold hover:underline"
+                  className="mt-2 text-xs text-blue-400 font-bold hover:underline"
                 >
                   {t("emergency.addIceBtn")}
                 </button>

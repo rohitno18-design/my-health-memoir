@@ -1,11 +1,11 @@
-import { ShieldCheck, Mail, MapPin } from "lucide-react";
+﻿import { ShieldCheck, Mail, MapPin } from "lucide-react";
 
 export function PrivacyPage() {
     return (
         <div className="min-h-screen bg-slate-50 py-12 px-6">
             <div className="max-w-3xl mx-auto bg-white rounded-3xl p-8 md:p-12 shadow-sm border border-slate-100">
                 <div className="flex items-center gap-4 mb-8">
-                    <div className="p-3 bg-emerald-100 text-emerald-600 rounded-2xl">
+                    <div className="p-3 bg-blue-100 text-blue-600 rounded-2xl">
                         <ShieldCheck size={28} />
                     </div>
                     <h1 className="text-3xl font-black text-slate-900">Privacy Policy</h1>

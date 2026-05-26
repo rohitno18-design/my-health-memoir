@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { collection, query, where, getDocs, updateDoc, deleteDoc, doc as fsDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/contexts/AuthContext";
@@ -115,12 +115,12 @@ export function GlobalTimelinePage() {
 
     return (
         <div className="pb-32 w-full max-w-lg mx-auto overflow-x-hidden min-h-screen">
-            <div className="absolute top-0 right-0 h-[60vh] w-full bg-emerald-500/10 blur-3xl pointer-events-none -z-10 rounded-full"></div>
+            <div className="absolute top-0 right-0 h-[60vh] w-full bg-blue-500/10 blur-3xl pointer-events-none -z-10 rounded-full"></div>
 
             {/* Header */}
             <header className="flex items-center justify-between gap-4 pt-8">
                 <div className="flex-1 text-center">
-                    <h1 className="text-3xl font-black text-slate-900 leading-tight">{t("timeline.title1")} <br /> <span className="text-emerald-600">{t("timeline.title2")}</span></h1>
+                    <h1 className="text-3xl font-black text-slate-900 leading-tight">{t("timeline.title1")} <br /> <span className="text-blue-600">{t("timeline.title2")}</span></h1>
                 </div>
             </header>
 
@@ -131,7 +131,7 @@ export function GlobalTimelinePage() {
 
             <section className="pt-8 pb-4">
                 <div className="flex items-center gap-3 mb-1">
-                    <div className="size-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center shadow-inner border border-emerald-100">
+                    <div className="size-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center shadow-inner border border-blue-100">
                         <Activity size={24} />
                     </div>
                     <div>
@@ -164,7 +164,7 @@ export function GlobalTimelinePage() {
                 <div className="flex justify-center py-20"><Loader2 size={32} className="animate-spin text-slate-300" /></div>
             ) : filteredEvents.length === 0 ? (
                 <div className="text-center py-16 bg-white/50 rounded-[2rem] border border-white shadow-sm">
-                    <Activity size={48} className="mx-auto mb-4 text-emerald-200" />
+                    <Activity size={48} className="mx-auto mb-4 text-blue-200" />
                     <p className="font-bold text-lg text-slate-800">{t("timeline.noEvents")}</p>
                     <p className="text-sm max-w-sm mx-auto mt-2 text-slate-500">{t("timeline.noEventsDesc")}</p>
                 </div>
@@ -314,7 +314,7 @@ export function GlobalTimelinePage() {
                     <div className="w-full max-w-xl bg-white rounded-t-[2.5rem] sm:rounded-[2.5rem] flex flex-col shadow-2xl max-h-[88vh]" onClick={e => e.stopPropagation()}>
                         <div className="p-6 border-b flex justify-between items-center bg-slate-50 rounded-t-[2.5rem] flex-shrink-0">
                             <div>
-                                <h3 className="font-bold text-slate-900 flex items-center gap-2"><Edit2 size={18} className="text-emerald-600" /> {t("timeline.editEvent")}</h3>
+                                <h3 className="font-bold text-slate-900 flex items-center gap-2"><Edit2 size={18} className="text-blue-600" /> {t("timeline.editEvent")}</h3>
                             </div>
                             <button onClick={() => setEditingEvent(null)} className="size-9 rounded-full bg-slate-200 flex items-center justify-center hover:bg-slate-300 text-slate-600"><X size={18} /></button>
                         </div>
@@ -323,23 +323,23 @@ export function GlobalTimelinePage() {
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
                                     <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">{t("timeline.editTitle")}</label>
-                                    <input type="text" value={editDraft.title} onChange={e => setEditDraft({ ...editDraft, title: e.target.value })} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-semibold outline-none focus:border-emerald-500" />
+                                    <input type="text" value={editDraft.title} onChange={e => setEditDraft({ ...editDraft, title: e.target.value })} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-semibold outline-none focus:border-blue-500" />
                                 </div>
                                 <div>
                                     <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">{t("timeline.editDate")}</label>
-                                    <input type="date" value={editDraft.date} onChange={e => setEditDraft({ ...editDraft, date: e.target.value })} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-semibold outline-none focus:border-emerald-500" />
+                                    <input type="date" value={editDraft.date} onChange={e => setEditDraft({ ...editDraft, date: e.target.value })} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-semibold outline-none focus:border-blue-500" />
                                 </div>
                             </div>
                             <div>
                                 <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">{t("timeline.editCategory")}</label>
-                                <select value={editDraft.category} onChange={e => setEditDraft({ ...editDraft, category: e.target.value })} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-semibold outline-none focus:border-emerald-500">
+                                <select value={editDraft.category} onChange={e => setEditDraft({ ...editDraft, category: e.target.value })} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-semibold outline-none focus:border-blue-500">
                                     {EVENT_CATEGORIES.map(c => <option key={c.value} value={c.value}>{t(c.label)}</option>)}
                                 </select>
                             </div>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
                                     <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">{t("timeline.patient")}</label>
-                                    <select value={editDraft.patientId} onChange={e => setEditDraft({ ...editDraft, patientId: e.target.value })} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-semibold outline-none focus:border-emerald-500">
+                                    <select value={editDraft.patientId} onChange={e => setEditDraft({ ...editDraft, patientId: e.target.value })} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-semibold outline-none focus:border-blue-500">
                                         {patients.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                                     </select>
                                 </div>
@@ -389,7 +389,7 @@ export function GlobalTimelinePage() {
                             <button
                                 onClick={handleSaveEdit}
                                 disabled={isDeletingEvent || isSavingEdit}
-                                className="px-6 py-2.5 bg-emerald-600 text-white font-bold rounded-xl text-sm hover:bg-emerald-700 transition-colors flex items-center gap-2 shadow-sm"
+                                className="px-6 py-2.5 bg-blue-600 text-white font-bold rounded-xl text-sm hover:bg-blue-700 transition-colors flex items-center gap-2 shadow-sm"
                             >
                                 {isSavingEdit ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
                                 {t("timeline.saveChanges")}

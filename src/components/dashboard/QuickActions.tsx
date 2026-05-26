@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+﻿import { motion } from "framer-motion";
 import { UploadCloud, Camera, Plus } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -18,7 +18,7 @@ export function QuickActions({ onUpload, onCamera, documentAnalysisEnabled = tru
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           onClick={onUpload}
-          className="w-full h-14 bg-gradient-to-r from-emerald-600 to-emerald-500 text-white rounded-2xl font-black text-sm shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-3 relative overflow-hidden group"
+          className="w-full h-14 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-2xl font-black text-sm shadow-lg shadow-blue-500/20 flex items-center justify-center gap-3 relative overflow-hidden group"
         >
           <div className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
           <div className="p-1.5 bg-white/20 rounded-lg">

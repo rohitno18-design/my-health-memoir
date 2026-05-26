@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { X, Download, Loader2, AlertCircle } from "lucide-react";
 import { cn, downloadFile } from "@/lib/utils";
 
@@ -175,8 +175,8 @@ export function DocumentViewerModal({
 
                 {/* Secure Footer Notice */}
                 <div className="px-6 py-3 border-t border-slate-100 bg-white flex items-center justify-center gap-2">
-                    <span className="flex-shrink-0 size-1.5 rounded-full bg-emerald-500" />
-                    <p className="text-[10px] font-bold text-emerald-700 uppercase tracking-widest">
+                    <span className="flex-shrink-0 size-1.5 rounded-full bg-blue-500" />
+                    <p className="text-[10px] font-bold text-blue-700 uppercase tracking-widest">
                         Viewed Securely in I M Smrti
                     </p>
                 </div>

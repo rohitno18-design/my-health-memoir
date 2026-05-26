@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 
 interface Props {
     children: React.ReactNode;
@@ -68,7 +68,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
                             }}
                             style={{
                                 padding: "14px 28px", borderRadius: "16px",
-                                background: "linear-gradient(135deg, #10b981, #059669)",
+                                background: "linear-gradient(135deg, #3B82F6, #2563EB)",
                                 color: "white", fontWeight: 800, fontSize: "0.95rem",
                                 border: "none", cursor: "pointer",
                                 boxShadow: "0 8px 24px rgba(16,185,129,0.3)"
