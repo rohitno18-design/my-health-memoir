@@ -6,7 +6,6 @@ import { useTranslation } from "react-i18next";
 const navItems = [
     { path: "/dashboard", mIcon: "home", labelKey: "nav.home" },
     { path: "/patients", mIcon: "group", labelKey: "nav.family" },
-    { path: "/vitals", mIcon: "health_metrics", labelKey: "nav.vitals" },
     { path: "/documents", mIcon: "folder_managed", labelKey: "nav.docs" },
     { path: "/ai-chat", mIcon: "auto_awesome", labelKey: "nav.ai" },
 ];

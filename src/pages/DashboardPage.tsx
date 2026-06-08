@@ -5,7 +5,7 @@ import rehypeSanitize from "rehype-sanitize";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import {
-  Bot, UploadCloud, Loader2, X,
+  Bot, UploadCloud, Loader2, X, FileText, Users,
   ChevronRight, Zap, WifiOff, AlertTriangle,
   Activity, CheckCircle2
 } from "lucide-react";
@@ -21,8 +21,6 @@ import { useTranslation } from "react-i18next";
 import { useFeatureFlags } from "@/lib/featureFlags";
 
 // Bento Components
-import { FamilyPulse } from "@/components/dashboard/FamilyPulse";
-import { VitalsQuickView } from "@/components/dashboard/VitalsQuickView";
 import { QuickActions } from "@/components/dashboard/QuickActions";
 import { getFunctions, httpsCallable } from "firebase/functions";
 const pgFunctions = getFunctions();
@@ -80,7 +78,6 @@ export function DashboardPage() {
 
     // Data State
     const [patients, setPatients] = useState<any[]>([]);
-    const [vitals, setVitals] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
     // Upload & Analysis State
@@ -142,25 +139,6 @@ export function DashboardPage() {
 
         return () => unsubPatients();
     }, [user]);
-
-    // Separate effect for vitals based on selected patient
-    useEffect(() => {
-        if (!user || !form.patientId) return;
-
-        const qVitals = query(
-            collection(db, "vitals"), 
-            where("userId", "==", user.uid), 
-            where("patientId", "==", form.patientId)
-        );
-        
-        const unsubVitals = onSnapshot(qVitals, (snap) => {
-            setVitals(snap.docs.map(d => d.data()));
-        }, (err) => {
-            console.error("Vitals listener error:", err);
-        });
-
-        return () => unsubVitals();
-    }, [user, form.patientId]);
 
     const formatGreeting = () => {
         const hour = new Date().getHours();
@@ -330,27 +308,6 @@ export function DashboardPage() {
         }
     };
 
-    const getVitalData = (type: string) => {
-        const filtered = vitals.filter(v => v.type === type).sort((a,b) => {
-            const tA = a.timestamp?.toMillis?.() || (a.timestamp instanceof Date ? a.timestamp.getTime() : 0);
-            const tB = b.timestamp?.toMillis?.() || (b.timestamp instanceof Date ? b.timestamp.getTime() : 0);
-            return tA - tB;
-        });
-        const latest = filtered.length > 0 ? filtered[filtered.length - 1].value : "--";
-        // Safe check: if latest is an object, stringify it to avoid React render crash
-        const val = (typeof latest === 'object' && latest !== null) ? JSON.stringify(latest) : latest;
-        
-        const chartData = filtered.slice(-7).map((v: any) => ({
-            date: "", 
-            value: typeof v.value === 'string' ? parseInt(v.value.split('/')[0]) || 0 : (typeof v.value === 'number' ? v.value : 0)
-        }));
-        return { val, chartData: chartData.length > 0 ? chartData : [{date: "", value: 0}] };
-    };
-
-    const glucose = getVitalData("Sugar");
-    const bp = getVitalData("Blood Pressure");
-    const hr = getVitalData("Heart Rate");
-
     if (loading) {
       return (
         <div className="flex items-center justify-center min-h-dvh bg-slate-50">
@@ -407,59 +364,58 @@ export function DashboardPage() {
                     </button>
                 </section>
 
-                {/* Patient vitals switcher — tap to switch whose vitals are shown */}
-                {patients.length > 0 && (
-                    <div className="space-y-2 -mb-2">
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t("dashboard.viewingVitalsFor")}</p>
-                        <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar -mx-1 px-1">
-                            {patients.map(p => {
-                                const isActive = p.id === form.patientId || (!form.patientId && p.id === patients[0]?.id);
-                                return (
-                                    <button
-                                        key={p.id}
-                                        onClick={() => setForm(f => ({ ...f, patientId: p.id }))}
-                                        className={`flex items-center gap-2 px-3 py-1.5 rounded-full border-2 text-xs font-bold whitespace-nowrap flex-shrink-0 transition-all active:scale-95 ${isActive ? 'bg-blue-50 border-blue-400 text-blue-700 shadow-sm' : 'bg-white border-slate-200 text-slate-500 hover:border-slate-300'}`}
-                                    >
-                                        <div className={`size-5 rounded-full overflow-hidden flex items-center justify-center text-[10px] font-black ${isActive ? 'bg-blue-500 text-white' : 'bg-slate-200 text-slate-500'}`}>
-                                            {(p.name)?.[0]?.toUpperCase() ?? "?"}
-                                        </div>
-                                        {p.name?.split(" ")[0]}
-                                    </button>
-                                );
-                            })}
+                <div className="grid grid-cols-2 gap-4 mt-2">
+                    {/* Documents */}
+                    <motion.button
+                        initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
+                        onClick={() => navigate("/documents")}
+                        className="card-premium p-5 text-left hover:shadow-card-hover active:scale-[0.98] transition-all group"
+                    >
+                        <div className="size-12 rounded-2xl bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                            <FileText size={24} className="text-brand-indigo" />
                         </div>
-                    </div>
-                )}
+                        <h3 className="font-black text-slate-800 text-sm mb-1">{t("documents.title") || "Health Vault"}</h3>
+                        <p className="text-[11px] font-bold text-slate-400 leading-tight">Upload & view medical documents</p>
+                    </motion.button>
 
-                <div className="grid grid-cols-2 gap-4">
-                    <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2 }} className="bento-card col-span-2 min-h-[160px]">
-                        <FamilyPulse patients={patients} onSelect={(id) => navigate(`/documents?patientId=${id}`)} />
-                    </motion.div>
-
-                    <motion.div 
-                        initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.3 }} 
-                        className="bento-card col-span-1 cursor-pointer active:scale-95 transition-all"
-                        onClick={() => navigate("/vitals")}
+                    {/* Family */}
+                    <motion.button
+                        initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
+                        onClick={() => navigate("/patients")}
+                        className="card-premium p-5 text-left hover:shadow-card-hover active:scale-[0.98] transition-all group"
                     >
-                        <VitalsQuickView type="Sugar" value={glucose.val} unit="mg/dL" trend={glucose.val === "--" ? "stable" : "stable"} data={glucose.chartData} color="#3B82F6" />
-                    </motion.div>
+                        <div className="size-12 rounded-2xl bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                            <Users size={24} className="text-brand-purple" />
+                        </div>
+                        <h3 className="font-black text-slate-800 text-sm mb-1">{patients.length > 0 ? `${patients.length} ${t("nav.family") || "Family"}` : t("nav.family") || "Family"}</h3>
+                        <p className="text-[11px] font-bold text-slate-400 leading-tight">Manage family profiles</p>
+                    </motion.button>
 
-                    <motion.div 
-                        initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.4 }} 
-                        className="bento-card col-span-1 cursor-pointer active:scale-95 transition-all"
-                        onClick={() => navigate("/vitals")}
+                    {/* AI Chat */}
+                    <motion.button
+                        initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
+                        onClick={() => navigate("/ai-chat")}
+                        className="card-premium p-5 text-left hover:shadow-card-hover active:scale-[0.98] transition-all group"
                     >
-                        <VitalsQuickView type="BP" value={bp.val} unit="mmHg" trend={bp.val === "--" ? "stable" : "stable"} data={bp.chartData} color="#3B82F6" />
-                    </motion.div>
+                        <div className="size-12 rounded-2xl bg-gradient-to-br from-purple-100 to-violet-100 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                            <Bot size={24} className="text-brand-accent" />
+                        </div>
+                        <h3 className="font-black text-slate-800 text-sm mb-1">AI Chat</h3>
+                        <p className="text-[11px] font-bold text-slate-400 leading-tight">Ask AI about your health</p>
+                    </motion.button>
 
-                    {/* Heart Rate — spans full width so chart has room to breathe */}
-                    <motion.div 
-                        initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.5 }} 
-                        className="bento-card col-span-2 cursor-pointer active:scale-95 transition-all"
-                        onClick={() => navigate("/vitals")}
+                    {/* Emergency */}
+                    <motion.button
+                        initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}
+                        onClick={() => navigate("/emergency")}
+                        className="card-premium p-5 text-left hover:shadow-card-hover active:scale-[0.98] transition-all group"
                     >
-                        <VitalsQuickView type="Heart Rate" value={hr.val} unit="bpm" trend={hr.val === "--" ? "stable" : "stable"} data={hr.chartData} color="#F43F5E" />
-                    </motion.div>
+                        <div className="size-12 rounded-2xl bg-gradient-to-br from-rose-100 to-pink-100 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                            <Zap size={24} className="text-rose-500" />
+                        </div>
+                        <h3 className="font-black text-slate-800 text-sm mb-1">{t("emergency.title")}</h3>
+                        <p className="text-[11px] font-bold text-slate-400 leading-tight">{t("emergency.subtitle")}</p>
+                    </motion.button>
                 </div>
             </main>
 

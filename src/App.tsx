@@ -29,7 +29,6 @@ const AdminUsersPage = lazy(() => import("@/pages/admin/AdminUsersPage").then(m 
 const AdminContentPage = lazy(() => import("@/pages/admin/AdminContentPage").then(m => ({ default: m.AdminContentPage })));
 const AdminSettingsPage = lazy(() => import("@/pages/admin/AdminSettingsPage").then(m => ({ default: m.AdminSettingsPage })));
 const GlobalTimelinePage = lazy(() => import("@/pages/GlobalTimelinePage").then(m => ({ default: m.GlobalTimelinePage })));
-const VitalsPage = lazy(() => import("@/pages/VitalsPage").then(m => ({ default: m.VitalsPage })));
 const NotificationsPage = lazy(() => import("@/pages/NotificationsPage").then(m => ({ default: m.NotificationsPage })));
 const PrivacyPage = lazy(() => import("@/pages/PrivacyPage").then(m => ({ default: m.PrivacyPage })));
 const TermsPage = lazy(() => import("@/pages/TermsPage").then(m => ({ default: m.TermsPage })));
@@ -77,7 +76,6 @@ function App() {
               <Route path="/patients" element={<PatientsPage />} />
               <Route path="/timeline" element={<GlobalTimelinePage />} />
               <Route path="/documents" element={<DocumentsPage />} />
-              <Route path="/vitals" element={<VitalsPage />} />
               <Route path="/notifications" element={<NotificationsPage />} />
               <Route path="/ai-chat" element={<ChatListPage />} />
               <Route path="/ai-chat/:chatId?" element={<AIChatPage />} />
