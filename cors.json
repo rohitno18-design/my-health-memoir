@@ -6,12 +6,14 @@
       "https://im-smrti.firebaseapp.com",
       "https://localhost"
     ],
-    "method": ["GET", "HEAD"],
+    "method": ["GET", "HEAD", "POST", "PUT", "OPTIONS"],
     "responseHeader": [
       "Content-Type",
       "Content-Disposition",
       "Content-Length",
-      "Cache-Control"
+      "Cache-Control",
+      "x-goog-meta-*",
+      "x-goog-resumable"
     ],
     "maxAgeSeconds": 3600
   }
