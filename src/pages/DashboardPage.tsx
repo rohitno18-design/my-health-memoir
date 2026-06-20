@@ -1,4 +1,4 @@
-﻿import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { remoteLog } from "@/lib/remoteLog";
 import ReactMarkdown from "react-markdown";
 import rehypeSanitize from "rehype-sanitize";
@@ -6,8 +6,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   Bot, UploadCloud, Loader2, X, FileText, Users,
-  ChevronRight, Zap, WifiOff, AlertTriangle,
-  Activity, CheckCircle2
+  ChevronRight, WifiOff, AlertTriangle,
+  Activity, CheckCircle2, QrCode, Bell
 } from "lucide-react";
 
 import { useNavigate } from "react-router-dom";
@@ -22,9 +22,7 @@ import { useFeatureFlags } from "@/lib/featureFlags";
 
 // Bento Components
 import { QuickActions } from "@/components/dashboard/QuickActions";
-import { getFunctions, httpsCallable } from "firebase/functions";
-const pgFunctions = getFunctions();
-const proxyGemini = httpsCallable<Record<string, unknown>, Record<string, unknown>>(pgFunctions, 'proxyGemini');
+import { callGeminiDirect, extractGeminiText as extractText } from "@/lib/gemini";
 
 const SUMMARY_PROMPT = (lang: string) => `You are a medical AI assistant for I M Smrti. Analyze the document and provide a summary in ${lang}. Use Markdown formatting.`;
 
@@ -64,11 +62,17 @@ const getSafeMimeType = (file: File): string => {
         bmp: "image/bmp",
         tiff: "image/tiff",
         tif: "image/tiff",
-        doc: "application/msword",
-        docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     };
-    return mimeMap[ext] || "application/pdf"; // default to PDF as safest fallback
+    return mimeMap[ext] || "application/pdf";
 };
+
+// Gemini supports: PDF, images. Does NOT support docx/doc directly.
+const isGeminiSupported = (file: File): boolean => {
+    const type = getSafeMimeType(file);
+    const supported = ["application/pdf", "image/png", "image/jpeg", "image/webp", "image/gif", "image/bmp", "image/tiff"];
+    return supported.includes(type);
+};
+
 
 export function DashboardPage() {
     const { userProfile, user } = useAuth();
@@ -78,10 +82,11 @@ export function DashboardPage() {
 
     // Data State
     const [patients, setPatients] = useState<any[]>([]);
+    const [folders, setFolders] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
     // Upload & Analysis State
-    const [uploadStep, setUploadStep] = useState<"idle" | "form" | "uploading" | "analyzing" | "summary" | "queued">("idle");
+    const [uploadStep, setUploadStep] = useState<"idle" | "selectSource" | "form" | "uploading" | "analyzing" | "summary" | "queued">("idle");
     const [isOffline, setIsOffline] = useState(!navigator.onLine);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [progress, setProgress] = useState(0);
@@ -90,13 +95,19 @@ export function DashboardPage() {
 
     const [form, setForm] = useState({
         patientId: "",
+        newPatientName: "",
+        folderId: "",
+        newFolderName: "",
+        eventId: "",
+        newEventTitle: "",
         category: "cat_labreport",
         docDate: new Date().toISOString().split('T')[0],
-        language: t("common.localeCode") === "hi-IN" ? t("common.language_hi") : t("common.language_en"),
+        language: "English", // Default to english, we'll give options
         generateSummary: true
     });
 
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const galleryInputRef = useRef<HTMLInputElement>(null);
     const cameraInputRef = useRef<HTMLInputElement>(null);
 
     // "Add to Timeline" state
@@ -104,6 +115,7 @@ export function DashboardPage() {
     const [showAddToTimeline, setShowAddToTimeline] = useState(false);
     const [lifeEvents, setLifeEvents] = useState<{ id: string; title: string; date: string; patientId: string }[]>([]);
     const [selectedTimelineEventId, setSelectedTimelineEventId] = useState("");
+
     const [addingToTimeline, setAddingToTimeline] = useState(false);
     const [uploadSuccessBanner, setUploadSuccessBanner] = useState(false);
 
@@ -123,7 +135,7 @@ export function DashboardPage() {
     useEffect(() => {
         if (!user) return;
         
-        // Listen for patients first
+        // Listen for patients
         const qPatients = query(collection(db, "patients"), where("userId", "==", user.uid));
         const unsubPatients = onSnapshot(qPatients, (snap) => {
             const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -137,7 +149,33 @@ export function DashboardPage() {
             setLoading(false);
         });
 
-        return () => unsubPatients();
+        // Listen for folders
+        const qFolders = query(collection(db, "folders"), where("userId", "==", user.uid));
+        const unsubFolders = onSnapshot(qFolders, (snap) => {
+            const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            setFolders(data);
+        }, (err) => {
+            console.error("Folders listener error:", err);
+        });
+
+        // Listen for events
+        const qEvents = query(collection(db, "life_events"), where("userId", "==", user.uid));
+        const unsubEvents = onSnapshot(qEvents, (snap) => {
+            setLifeEvents(
+                snap.docs.map(d => ({
+                    id: d.id,
+                    title: d.data().title || "Untitled Event",
+                    date: d.data().date || "",
+                    patientId: d.data().patientId || "",
+                }))
+            );
+        });
+
+        return () => {
+            unsubPatients();
+            unsubFolders();
+            unsubEvents();
+        };
     }, [user]);
 
     const formatGreeting = () => {
@@ -150,6 +188,7 @@ export function DashboardPage() {
     const handleFileSelect = (file: File | null | undefined) => {
         if (!file) return;
         setSelectedFile(file);
+        setForm(prev => ({ ...prev, language: userProfile?.preferredLanguage || "English" }));
         setUploadStep("form");
     };
 
@@ -179,9 +218,31 @@ export function DashboardPage() {
                 );
             });
 
+            let finalPatientId = form.patientId;
+            if (form.patientId === "NEW_PATIENT" && form.newPatientName.trim()) {
+                const newPatient = await addDoc(collection(db, "patients"), {
+                    userId: user.uid,
+                    name: form.newPatientName.trim(),
+                    createdAt: serverTimestamp()
+                });
+                finalPatientId = newPatient.id;
+            }
+
+            let finalFolderId = form.folderId;
+            if (form.folderId === "NEW" && form.newFolderName.trim()) {
+                const newFolder = await addDoc(collection(db, "folders"), {
+                    userId: user.uid,
+                    patientId: finalPatientId, // ensure the new folder is linked to the correct patient
+                    name: form.newFolderName.trim(),
+                    createdAt: serverTimestamp()
+                });
+                finalFolderId = newFolder.id;
+            }
+
             const newDoc = await addDoc(collection(db, "documents"), {
                 userId: user.uid,
-                patientId: form.patientId,
+                patientId: finalPatientId,
+                folderId: finalFolderId || null,
                 name: selectedFile.name,
                 type: selectedFile.type,
                 category: form.category,
@@ -194,33 +255,71 @@ export function DashboardPage() {
             firestoreDocId = newDoc.id;
             setLastUploadedDocId(newDoc.id);
 
+            // Handle Event Linking / Creation
+            if (form.eventId === "NEW" && form.newEventTitle.trim()) {
+                let eventFolderIds: string[] = [];
+                if (finalFolderId) eventFolderIds.push(finalFolderId);
+                await addDoc(collection(db, "life_events"), {
+                    userId: user.uid,
+                    patientId: finalPatientId,
+                    title: form.newEventTitle.trim(),
+                    category: form.category || "visit",
+                    date: form.docDate || new Date().toISOString().split("T")[0],
+                    description: "",
+                    documentIds: [firestoreDocId],
+                    folderIds: eventFolderIds,
+                    createdAt: serverTimestamp(),
+                });
+            } else if (form.eventId) {
+                // Link to existing event
+                const eventRef = doc(db, "life_events", form.eventId);
+                const eventSnap = await getDocs(query(collection(db, "life_events"), where("userId", "==", user.uid)));
+                const existingEvent = eventSnap.docs.find(d => d.id === form.eventId);
+                if (existingEvent) {
+                    const existingIds: string[] = existingEvent.data().documentIds || [];
+                    if (!existingIds.includes(firestoreDocId)) {
+                        await updateDoc(eventRef, { documentIds: [...existingIds, firestoreDocId] });
+                    }
+                }
+            }
+
             if (form.generateSummary) {
                 setUploadStep("analyzing");
-                const base64Data = await getBase64(selectedFile);
-                
-                const result = await proxyGemini({
-                    userId: user?.uid,
-                    contents: [{
-                        parts: [
-                            { text: SUMMARY_PROMPT(form.language) },
-                            { inline_data: { mime_type: getSafeMimeType(selectedFile), data: base64Data } }
-                        ]
-                    }],
-                    generationConfig: { temperature: 0.2, maxOutputTokens: 2048 }
-                });
-                const data = result.data as any;
-                const text = data?.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
-                    
-                if (text) {
-                    setAiSummary(text);
+
+                if (!isGeminiSupported(selectedFile)) {
+                    // Unsupported file type (e.g. docx) — skip AI, mark completed
                     await updateDoc(doc(db, "documents", firestoreDocId), {
-                        aiSummary: text,
+                        aiSummary: "AI summary is not available for this file type. Please upload a PDF or image.",
                         status: "completed"
                     });
+                    setAiSummary("AI summary is not available for this file type. Please upload a PDF or image.");
+                    setUploadStep("summary");
                 } else {
-                    throw new Error("AI analysis returned empty results.");
+                    const base64Data = await getBase64(selectedFile);
+                    
+                    const result = await callGeminiDirect({
+                        contents: [{
+                            role: "user",
+                            parts: [
+                                { text: SUMMARY_PROMPT(form.language) },
+                                { inline_data: { mime_type: getSafeMimeType(selectedFile), data: base64Data } }
+                            ]
+                        }],
+                        generationConfig: { temperature: 0.2, maxOutputTokens: 4096 }
+                    });
+                    const text = extractText(result);
+                        
+                    if (text) {
+                        setAiSummary(text);
+                        await updateDoc(doc(db, "documents", firestoreDocId), {
+                            aiSummary: text,
+                            status: "completed"
+                        });
+                    } else {
+                        throw new Error("AI analysis returned empty results. Please try again.");
+                    }
+                    setUploadStep("summary");
                 }
-                setUploadStep("summary");
             } else {
                 setUploadStep("idle");
                 navigate("/documents");
@@ -345,15 +444,15 @@ export function DashboardPage() {
 
                 {/* 1. Quick Actions (Core Value Loop) */}
                 <section>
-                    <QuickActions onUpload={() => fileInputRef.current?.click()} onCamera={() => cameraInputRef.current?.click()} documentAnalysisEnabled={flags.documentAnalysisEnabled} />
+                    <QuickActions onAddDocument={() => setUploadStep("selectSource")} documentAnalysisEnabled={flags.documentAnalysisEnabled} />
                 </section>
 
                 {/* 2. Emergency Card (Safety) */}
                 <section>
-                    <button onClick={() => navigate("/emergency")} className="w-full p-6 rounded-[2rem] bg-rose-50 border border-rose-100 flex items-center justify-between group relative overflow-hidden shadow-sm">
+                    <button onClick={() => navigate("/emergency")} className="tour-emergency w-full p-6 rounded-[2rem] bg-rose-50 border border-rose-100 flex items-center justify-between group relative overflow-hidden shadow-sm">
                         <div className="flex items-center gap-4 relative z-10">
                             <div className="size-14 rounded-2xl bg-rose-500 flex items-center justify-center text-white shadow-lg shadow-rose-500/30 group-hover:scale-110 transition-transform">
-                                <Zap size={24} />
+                                <QrCode size={24} />
                             </div>
                             <div className="text-left">
                                 <h3 className="font-black text-slate-800 text-lg">{t("emergency.title")}</h3>
@@ -391,9 +490,22 @@ export function DashboardPage() {
                         <p className="text-[11px] font-bold text-slate-400 leading-tight">Manage family profiles</p>
                     </motion.button>
 
-                    {/* AI Chat */}
+                    {/* Reminders */}
                     <motion.button
                         initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
+                        onClick={() => navigate("/reminders")}
+                        className="card-premium p-5 text-left hover:shadow-card-hover active:scale-[0.98] transition-all group"
+                    >
+                        <div className="size-12 rounded-2xl bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                            <Bell size={24} className="text-amber-500" />
+                        </div>
+                        <h3 className="font-black text-slate-800 text-sm mb-1">{t("nav.reminders") || "Reminders"}</h3>
+                        <p className="text-[11px] font-bold text-slate-400 leading-tight">Manage health schedule</p>
+                    </motion.button>
+
+                    {/* AI Chat */}
+                    <motion.button
+                        initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}
                         onClick={() => navigate("/ai-chat")}
                         className="card-premium p-5 text-left hover:shadow-card-hover active:scale-[0.98] transition-all group"
                     >
@@ -403,27 +515,71 @@ export function DashboardPage() {
                         <h3 className="font-black text-slate-800 text-sm mb-1">AI Chat</h3>
                         <p className="text-[11px] font-bold text-slate-400 leading-tight">Ask AI about your health</p>
                     </motion.button>
-
-                    {/* Emergency */}
-                    <motion.button
-                        initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}
-                        onClick={() => navigate("/emergency")}
-                        className="card-premium p-5 text-left hover:shadow-card-hover active:scale-[0.98] transition-all group"
-                    >
-                        <div className="size-12 rounded-2xl bg-gradient-to-br from-rose-100 to-pink-100 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                            <Zap size={24} className="text-rose-500" />
-                        </div>
-                        <h3 className="font-black text-slate-800 text-sm mb-1">{t("emergency.title")}</h3>
-                        <p className="text-[11px] font-bold text-slate-400 leading-tight">{t("emergency.subtitle")}</p>
-                    </motion.button>
                 </div>
             </main>
 
             {/* Modals & Inputs */}
             <input type="file" accept="image/*" capture="environment" className="hidden" ref={cameraInputRef} onChange={(e) => handleFileSelect(e.target.files?.[0])} />
-            <input type="file" accept=".pdf,image/*" className="hidden" ref={fileInputRef} onChange={(e) => handleFileSelect(e.target.files?.[0])} />
+            <input type="file" accept="image/*" className="hidden" ref={galleryInputRef} onChange={(e) => handleFileSelect(e.target.files?.[0])} />
+            <input type="file" accept=".pdf,application/pdf" className="hidden" ref={fileInputRef} onChange={(e) => handleFileSelect(e.target.files?.[0])} />
 
             <AnimatePresence>
+              {uploadStep === "selectSource" && (
+                <div className="fixed inset-0 z-[110] flex flex-col justify-end">
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    onClick={resetUpload}
+                    className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+                  />
+                  <motion.div
+                    initial={{ y: "100%" }}
+                    animate={{ y: 0 }}
+                    exit={{ y: "100%" }}
+                    className="relative bg-white rounded-t-[2.5rem] px-6 pt-4 pb-8 shadow-2xl"
+                    style={{ paddingBottom: "calc(2rem + env(safe-area-inset-bottom, 0px))" }}
+                  >
+                    <div className="w-10 h-1 bg-slate-200 rounded-full mx-auto mb-6" />
+                    <div className="flex items-center justify-between mb-6">
+                      <h3 className="text-xl font-black text-slate-900">Add Document</h3>
+                      <button onClick={resetUpload} className="p-2 bg-slate-100 rounded-full"><X size={16} /></button>
+                    </div>
+
+                    <div className="space-y-3">
+                      <button onClick={() => { setUploadStep("idle"); cameraInputRef.current?.click(); }} className="w-full flex items-center gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-100 active:scale-[0.98] transition-transform">
+                        <div className="size-12 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center">
+                          <Activity size={24} />
+                        </div>
+                        <div className="text-left">
+                          <h4 className="font-bold text-slate-800">Scan with Camera</h4>
+                          <p className="text-xs text-slate-500 font-medium">Take a photo of a physical document</p>
+                        </div>
+                      </button>
+
+                      <button onClick={() => { setUploadStep("idle"); galleryInputRef.current?.click(); }} className="w-full flex items-center gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-100 active:scale-[0.98] transition-transform">
+                        <div className="size-12 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center">
+                          <FileText size={24} />
+                        </div>
+                        <div className="text-left">
+                          <h4 className="font-bold text-slate-800">Choose Photo Library</h4>
+                          <p className="text-xs text-slate-500 font-medium">Select an image from your gallery</p>
+                        </div>
+                      </button>
+
+                      <button onClick={() => { setUploadStep("idle"); fileInputRef.current?.click(); }} className="w-full flex items-center gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-100 active:scale-[0.98] transition-transform">
+                        <div className="size-12 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center">
+                          <UploadCloud size={24} />
+                        </div>
+                        <div className="text-left">
+                          <h4 className="font-bold text-slate-800">Choose File</h4>
+                          <p className="text-xs text-slate-500 font-medium">Upload a PDF or document file</p>
+                        </div>
+                      </button>
+                    </div>
+                  </motion.div>
+                </div>
+              )}
               {uploadStep === "uploading" && (
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="fixed inset-0 z-[110] bg-white/80 backdrop-blur-md flex items-center justify-center p-6">
                   <div className="w-full max-w-xs text-center space-y-4">
@@ -491,14 +647,74 @@ export function DashboardPage() {
                         <select required value={form.patientId} onChange={e => setForm({...form, patientId: e.target.value})} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold text-slate-700">
                           <option value="" disabled>{t("dashboard.selectPatient")}</option>
                           {patients.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                          <option value="NEW_PATIENT">+ Create New Family Member</option>
                         </select>
                       </div>
+
+                      {form.patientId === "NEW_PATIENT" && (
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Family Member Name</label>
+                          <input required type="text" placeholder="e.g. Rahul" value={form.newPatientName} onChange={e => setForm({...form, newPatientName: e.target.value})} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold text-slate-700" />
+                        </div>
+                      )}
+                      
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Select Folder</label>
+                        <select value={form.folderId} onChange={e => setForm({...form, folderId: e.target.value})} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold text-slate-700">
+                          <option value="">No Folder (Document Vault)</option>
+                          {folders.filter(f => !form.patientId || form.patientId === "NEW_PATIENT" || f.patientId === form.patientId).map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
+                          <option value="NEW">+ Create New Folder</option>
+                        </select>
+                      </div>
+                      
+                      {form.folderId === "NEW" && (
+                        <div className="space-y-1">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">New Folder Name</label>
+                          <input required type="text" placeholder="e.g. 2024 Dental Records" value={form.newFolderName} onChange={e => setForm({...form, newFolderName: e.target.value})} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold text-slate-700" />
+                        </div>
+                      )}
+
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Event</label>
+                        <select value={form.eventId} onChange={e => setForm({...form, eventId: e.target.value})} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold text-slate-700">
+                          <option value="">No Event (Document Vault)</option>
+                          {lifeEvents.filter(e => !form.patientId || e.patientId === form.patientId).map(ev => <option key={ev.id} value={ev.id}>{ev.title} ({ev.date})</option>)}
+                          <option value="NEW">+ Create New Event</option>
+                        </select>
+                      </div>
+
+                      {form.eventId === "NEW" && (
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">New Event Title</label>
+                          <input required type="text" placeholder="e.g. Doctor Visit" value={form.newEventTitle} onChange={e => setForm({...form, newEventTitle: e.target.value})} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold text-slate-700" />
+                        </div>
+                      )}
+                      
                       <div className="space-y-1">
                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">{t("dashboard.category")}</label>
                         <select required value={form.category} onChange={e => setForm({...form, category: e.target.value})} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold text-slate-700">
                           {CATEGORIES.map(c => <option key={c} value={c}>{t(`documents.${c}`)}</option>)}
                         </select>
                       </div>
+
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Summary Language</label>
+                        <select value={form.language} onChange={e => setForm({...form, language: e.target.value})} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold text-slate-700">
+                          <option value="English">English</option>
+                          <option value="Hindi">Hindi</option>
+                          <option value="Bengali">Bengali</option>
+                          <option value="Telugu">Telugu</option>
+                          <option value="Marathi">Marathi</option>
+                          <option value="Tamil">Tamil</option>
+                          <option value="Urdu">Urdu</option>
+                          <option value="Gujarati">Gujarati</option>
+                          <option value="Kannada">Kannada</option>
+                          <option value="Malayalam">Malayalam</option>
+                          <option value="Odia">Odia</option>
+                          <option value="Punjabi">Punjabi</option>
+                        </select>
+                      </div>
+
                       <button type="submit" className="w-full py-4 bg-blue-600 text-white rounded-xl font-black shadow-lg shadow-blue-500/20 active:scale-95 transition-all">
                         {isOffline ? "Save & Queue for Analysis" : t("dashboard.beginAnalysis")}
                       </button>
@@ -553,7 +769,7 @@ export function DashboardPage() {
                           </button>
                           <button onClick={() => { onDismissSummary(); fetchLifeEventsForTimeline(); setShowAddToTimeline(true); }} className="w-full py-4 bg-blue-600 text-white rounded-xl font-black flex items-center justify-center gap-2">
                             <Activity size={20} />
-                            Add to Timeline
+                            Add to Event
                           </button>
                           <button onClick={onDismissSummary} className="w-full py-3 text-slate-500 font-bold text-sm">
                             Dismiss
@@ -582,7 +798,7 @@ export function DashboardPage() {
                   style={{ paddingBottom: "calc(2rem + env(safe-area-inset-bottom, 0px))" }}
                 >
                   <div className="w-10 h-1 bg-slate-200 rounded-full mx-auto mb-4" />
-                  <h3 className="text-xl font-black text-slate-900 mb-4">Add to Timeline</h3>
+                  <h3 className="text-xl font-black text-slate-900 mb-4">Add to Event</h3>
                   <p className="text-sm text-slate-500 mb-4">Link this document to an existing health event or create a new one.</p>
 
                   {lifeEvents.length > 0 && (
@@ -599,7 +815,7 @@ export function DashboardPage() {
                   )}
 
                   {selectedTimelineEventId === "" && (
-                    <p className="text-xs text-blue-600 font-bold mb-4">A new timeline event will be created for this document.</p>
+                    <p className="text-xs text-blue-600 font-bold mb-4">A new event will be created for this document.</p>
                   )}
 
                   <div className="flex gap-3">

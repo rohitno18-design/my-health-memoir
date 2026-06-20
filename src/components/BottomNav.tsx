@@ -7,6 +7,7 @@ const navItems = [
     { path: "/dashboard", mIcon: "home", labelKey: "nav.home" },
     { path: "/patients", mIcon: "group", labelKey: "nav.family" },
     { path: "/documents", mIcon: "folder_managed", labelKey: "nav.docs" },
+    { path: "/reminders", mIcon: "notifications_active", labelKey: "nav.reminders" },
     { path: "/ai-chat", mIcon: "auto_awesome", labelKey: "nav.ai" },
 ];
 
@@ -41,7 +42,8 @@ export function BottomNav() {
                                 onClick={() => navigate(path)}
                                 className={cn(
                                     "flex flex-col items-center justify-center flex-1 min-h-[56px] rounded-[1.25rem] transition-all duration-300 active:scale-95",
-                                    active ? "bg-brand-gradient text-white shadow-glow-sm" : "text-slate-400 hover:text-brand-indigo hover:bg-indigo-50/50"
+                                    active ? "bg-brand-gradient text-white shadow-glow-sm" : "text-slate-400 hover:text-brand-indigo hover:bg-indigo-50/50",
+                                    path === "/ai-chat" ? "tour-ai-chat" : ""
                                 )}
                             >
                                 <span className={cn("material-symbols-outlined text-[22px] mb-[2px] transition-transform", active && "fill-1 scale-110")}>{mIcon}</span>

@@ -1,4 +1,4 @@
-import { onCall } from "firebase-functions/v2/https";
+import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { initializeApp } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
 import { getAuth } from "firebase-admin/auth";
@@ -8,14 +8,20 @@ import { getAppCheck } from "firebase-admin/app-check";
 initializeApp();
 const adminDb = getFirestore();
 const fAdminAuth = getAuth();
-const adminStorage = getStorage();
-const fAppCheck = getAppCheck();
-const bucket = adminStorage.bucket("im-smrti.firebasestorage.app");
+
+// Lazy-initialized to avoid cold start timeout
+let _storage: ReturnType<typeof getStorage> | null = null;
+let _bucket: ReturnType<ReturnType<typeof getStorage>['bucket']> | null = null;
+let _appCheck: ReturnType<typeof getAppCheck> | null = null;
+
+function storage() { if (!_storage) _storage = getStorage(); return _storage; }
+function bucket() { if (!_bucket) _bucket = storage().bucket("im-smrti.firebasestorage.app"); return _bucket; }
+function appCheck() { if (!_appCheck) _appCheck = getAppCheck(); return _appCheck; }
 
 // ── proxyGemini — secure API key server-side with per-user daily limits ──
-const MAX_CALLS_PER_DAY = 100; // ~$0.50-$1.00 per user per day, well under $2 cap
+const MAX_TOKENS_PER_DAY = 2000000; // 2 Million tokens is ~$0.15 (12-15 rupees) on Flash, safely under ₹100 limit
 
-export const proxyGemini = onCall(async (request) => {
+export const proxyGemini = onCall({ invoker: "public", cors: true }, async (request) => {
   const data = request.data as {
     contents: unknown[];
     userId?: string;
@@ -25,55 +31,76 @@ export const proxyGemini = onCall(async (request) => {
     generationConfig?: Record<string, unknown>;
   };
 
-  // ── Per-user daily rate limit ──
+  let currentTokens = 0;
+  let currentCalls = 0;
+  let usageRef: any = null;
+
+  // ── Per-user daily rate limit (using tokens) ──
   if (data.userId) {
-    const today = new Date().toISOString().split("T")[0];
-    const usageRef = adminDb.collection("user_usage").doc(data.userId).collection("daily").doc(today);
+    try {
+      const today = new Date().toISOString().split("T")[0];
+      usageRef = adminDb.collection("user_usage").doc(data.userId).collection("daily").doc(today) as any;
+      const usageDoc = await usageRef!.get();
+      
+      currentTokens = usageDoc.exists ? (usageDoc.data()?.tokens || 0) : 0;
+      currentCalls = usageDoc.exists ? (usageDoc.data()?.calls || 0) : 0;
 
-    const usageDoc = await usageRef.get();
-    const currentCalls = usageDoc.exists ? (usageDoc.data()?.calls || 0) : 0;
+      if (currentTokens >= MAX_TOKENS_PER_DAY) {
+        throw new HttpsError("resource-exhausted", `DAILY_LIMIT: You have reached your daily AI token usage limit (${MAX_TOKENS_PER_DAY} tokens). Limit resets at midnight UTC.`);
+      }
+    } catch (e: any) {
+      // If it's a rate limit error, re-throw it; otherwise ignore and continue
+      if (e.code === "resource-exhausted") throw e;
+      console.warn("Rate limit check failed (non-blocking):", e.message);
+    }
+  }
 
-    if (currentCalls >= MAX_CALLS_PER_DAY) {
-      throw new Error(`DAILY_LIMIT: You have reached your daily AI usage limit (${MAX_CALLS_PER_DAY} requests). Limit resets at midnight UTC.`);
+  try {
+    const apiKey = process.env.GEMINI_API_KEY || "";
+    // Forced fallback to gemini-1.5-flash as the cheapest and fastest model
+    const model = process.env.GEMINI_MODEL || "gemini-1.5-flash";
+    const version = process.env.GEMINI_API_VERSION || "v1beta";
+
+    const url = `https://generativelanguage.googleapis.com/${version}/models/${model}:generateContent?key=${apiKey}`;
+
+    const body: Record<string, unknown> = { contents: data.contents };
+    if (data.systemInstruction) body.system_instruction = data.systemInstruction;
+    if (data.tools) body.tools = data.tools;
+    if (data.toolConfig) body.tool_config = data.toolConfig;
+
+    const genConfig = data.generationConfig || {};
+    if (!genConfig.temperature) genConfig.temperature = 0.2;
+    if (!genConfig.maxOutputTokens) genConfig.maxOutputTokens = 2048;
+    body.generation_config = genConfig;
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+      const errorBody = await response.text();
+      console.error(`Gemini API error ${response.status}: ${errorBody}`);
+      throw new HttpsError("internal", `Gemini API Error ${response.status}: ${errorBody}`);
     }
 
-    // Increment counter — fire-and-forget, don't block the response
-    usageRef.set({
-      calls: currentCalls + 1,
-      lastCallAt: new Date().toISOString(),
-    }).catch(() => {});
+    const result = await response.json();
+
+    // ── Update token count asynchronously ──
+    if (usageRef && result.usageMetadata?.totalTokenCount) {
+      const usedTokens = result.usageMetadata.totalTokenCount;
+      usageRef.set({ 
+        tokens: currentTokens + usedTokens, 
+        calls: currentCalls + 1, 
+        lastCallAt: new Date().toISOString() 
+      }, { merge: true }).catch((err: any) => console.error("Failed to update token usage:", err));
+    }
+
+    return result as Record<string, unknown>;
+  } catch (err: any) {
+    throw new HttpsError("internal", `Proxy Error: ${err.message}`);
   }
-
-  const apiKey = process.env.GEMINI_API_KEY || "";
-  const model = process.env.GEMINI_MODEL || "gemini-2.5-flash";
-  const version = process.env.GEMINI_API_VERSION || "v1beta";
-
-  const url = `https://generativelanguage.googleapis.com/${version}/models/${model}:generateContent?key=${apiKey}`;
-
-  const body: Record<string, unknown> = { contents: data.contents };
-  if (data.systemInstruction) body.system_instruction = data.systemInstruction;
-  if (data.tools) body.tools = data.tools;
-  if (data.toolConfig) body.tool_config = data.toolConfig;
-
-  const genConfig = data.generationConfig || {};
-  if (!genConfig.temperature) genConfig.temperature = 0.2;
-  if (!genConfig.maxOutputTokens) genConfig.maxOutputTokens = 2048;
-  body.generation_config = genConfig;
-
-  const response = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-
-  if (!response.ok) {
-    const errorBody = await response.text();
-    console.error(`Gemini API error ${response.status}: ${errorBody}`);
-    throw new Error(`Gemini API returned ${response.status}`);
-  }
-
-  const result = await response.json();
-  return result as Record<string, unknown>;
 });
 
 // ── getEmergencyInfo — secure pulse access with token validation ──────────
@@ -144,13 +171,13 @@ export const enableAppCheck = onCall(async (request) => {
   if (!siteSecret) throw new Error("RECAPTCHA_SECRET_KEY is required");
 
   try {
-    await (fAppCheck as any).createRecaptchaV3Config(appId, {
+    await (appCheck() as any).createRecaptchaV3Config(appId, {
       siteSecret,
       tokenTtl: "3600s",
     });
   } catch (e: any) {
     if (e.code === 409 || e.message?.includes("already exists")) {
-      await (fAppCheck as any).updateRecaptchaV3Config(appId, {
+      await (appCheck() as any).updateRecaptchaV3Config(appId, {
         siteSecret,
         tokenTtl: "3600s",
       });
@@ -172,7 +199,7 @@ export const getSignedUrl = onCall(async (request) => {
 
   const expires = Date.now() + (expiryMinutes || 10) * 60 * 1000;
 
-  const [signedUrl] = await bucket.file(storagePath).getSignedUrl({
+  const [signedUrl] = await bucket().file(storagePath).getSignedUrl({
     action: "read",
     expires,
   });

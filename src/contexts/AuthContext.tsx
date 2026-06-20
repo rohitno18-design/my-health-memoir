@@ -44,6 +44,7 @@ export interface UserProfile {
     emailVerified: boolean;
     phoneVerified: boolean;
     role: "patient" | "admin";
+    preferredLanguage?: string;
     suspended?: boolean;
     createdAt?: unknown;
 }
@@ -57,8 +58,8 @@ interface AuthContextType {
     hasPassword: boolean;
     // Phone auth
     sendOtp: (phoneNumber: string, recaptchaContainerId: string) => Promise<ConfirmationResult>;
-    confirmOtp: (confirmationResult: ConfirmationResult, otp: string, name: string, email?: string) => Promise<void>;
-    setupPhoneProfile: (name: string, email?: string) => Promise<void>;
+    confirmOtp: (confirmationResult: ConfirmationResult, otp: string, name: string, email?: string, preferredLanguage?: string) => Promise<void>;
+    setupPhoneProfile: (name: string, email?: string, preferredLanguage?: string) => Promise<void>;
     sendPhoneChangeOtp: (phoneNumber: string, recaptchaContainerId: string) => Promise<string>;
     verifyPhoneChangeOtp: (verificationId: string, otp: string) => Promise<void>;
     // Email auth (fallback)
@@ -164,6 +165,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 bio: null, gender: null, dob: null, bloodGroup: null,
                 emailVerified: firebaseUser.emailVerified,
                 phoneVerified: !!firebaseUser.phoneNumber,
+                preferredLanguage: "English",
                 role: "patient",
                 createdAt: serverTimestamp(),
             };
@@ -248,7 +250,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     // ── Setup Phone Profile (called after OTP is verified) ──
-    const setupPhoneProfile = async (name: string, email?: string, existingUser?: User): Promise<void> => {
+    const setupPhoneProfile = async (name: string, email?: string, preferredLanguage?: string, existingUser?: User): Promise<void> => {
         const firebaseUser = existingUser || auth.currentUser;
         if (!firebaseUser) throw new Error("No authenticated user found.");
         
@@ -267,6 +269,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         if (name && name.trim()) profileData.displayName = name.trim();
         if (email) profileData.email = email;
+        if (preferredLanguage) profileData.preferredLanguage = preferredLanguage;
 
         // Check if profile already exists
         const docRef = doc(db, "users", firebaseUser.uid);
@@ -280,6 +283,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 photoURL: null,
                 bio: null, gender: null, dob: null, bloodGroup: null,
                 emailVerified: false,
+                preferredLanguage: preferredLanguage || "English",
                 createdAt: serverTimestamp(),
             });
         } else {
@@ -304,10 +308,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         confirmationResult: ConfirmationResult,
         otp: string,
         name: string,
-        email?: string
+        email?: string,
+        preferredLanguage?: string
     ): Promise<void> => {
         const cred = await confirmationResult.confirm(otp);
-        await setupPhoneProfile(name, email, cred.user);
+        await setupPhoneProfile(name, email, preferredLanguage, cred.user);
     };
 
     // ── Email login (fallback) ──

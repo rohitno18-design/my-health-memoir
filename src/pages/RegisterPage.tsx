@@ -1,11 +1,11 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import {
     Heart, User, Mail, Loader2, AlertTriangle,
-    ShieldCheck, ArrowRight, CheckCircle2, ChevronLeft,
+    ShieldCheck, ArrowRight, CheckCircle2, ChevronLeft, Globe,
 } from "lucide-react";
-import { type ConfirmationResult } from "firebase/auth";
+import { type ConfirmationResult, getAdditionalUserInfo } from "firebase/auth";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 import { useFeatureFlags } from "@/lib/featureFlags";
@@ -22,6 +22,7 @@ export function RegisterPage() {
     const [otp, setOtp] = useState("");
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
+    const [language, setLanguage] = useState("English");
     const [consent, setConsent] = useState(false);
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
@@ -63,8 +64,13 @@ export function RegisterPage() {
         if (otp.length !== 6) { setError("Please enter the 6-digit OTP."); return; }
         setError(""); setLoading(true);
         try {
-            await confirmationResult.confirm(otp);
-            setStep("profile");
+            const cred = await confirmationResult.confirm(otp);
+            const additionalInfo = getAdditionalUserInfo(cred);
+            if (additionalInfo && !additionalInfo.isNewUser) {
+                navigate("/dashboard");
+            } else {
+                setStep("profile");
+            }
         } catch (err: unknown) {
             const code = (err as { code?: string })?.code;
             if (code === "auth/invalid-verification-code") setError("Wrong OTP. Please check and try again.");
@@ -81,7 +87,7 @@ export function RegisterPage() {
         if (!confirmationResult) return;
         setError(""); setLoading(true);
         try {
-            await setupPhoneProfile(name.trim(), email || undefined);
+            await setupPhoneProfile(name.trim(), email.trim() || undefined, language);
             navigate("/dashboard");
         } catch (err: unknown) {
             setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
@@ -229,6 +235,31 @@ export function RegisterPage() {
                                         required placeholder="Rahul Sharma" autoFocus
                                         className="w-full pl-10 pr-4 py-3 rounded-xl border border-white/40 bg-white/50 backdrop-blur-md text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all"
                                     />
+                                </div>
+                            </div>
+                            {/* Preferred Language */}
+                            <div>
+                                <label className="block text-sm font-medium mb-1.5">Preferred Language</label>
+                                <div className="relative">
+                                    <Globe size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                                    <select
+                                        value={language}
+                                        onChange={(e) => setLanguage(e.target.value)}
+                                        className="w-full pl-10 pr-4 py-3 rounded-xl border border-white/40 bg-white/50 backdrop-blur-md text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all appearance-none"
+                                    >
+                                        <option value="English">English</option>
+                                        <option value="Hindi">Hindi (हिंदी)</option>
+                                        <option value="Bengali">Bengali (বাংলা)</option>
+                                        <option value="Telugu">Telugu (తెలుగు)</option>
+                                        <option value="Marathi">Marathi (मराठी)</option>
+                                        <option value="Tamil">Tamil (தமிழ்)</option>
+                                        <option value="Urdu">Urdu (اردو)</option>
+                                        <option value="Gujarati">Gujarati (ગુજરાતી)</option>
+                                        <option value="Kannada">Kannada (ಕನ್ನಡ)</option>
+                                        <option value="Malayalam">Malayalam (മലയാളം)</option>
+                                        <option value="Odia">Odia (ଓଡ଼ିଆ)</option>
+                                        <option value="Punjabi">Punjabi (ਪੰਜਾਬੀ)</option>
+                                    </select>
                                 </div>
                             </div>
                             {/* Email (optional) */}

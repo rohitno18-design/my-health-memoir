@@ -1,4 +1,5 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import { collection, query, where, getDocs, addDoc, updateDoc, deleteDoc, doc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
@@ -132,8 +133,8 @@ export function LifeTimeline({ patient, onClose }: { patient: Patient, onClose: 
     const filteredEvents = filterCategory ? events.filter(e => e.category === filterCategory) : events;
     const showModal = showAddEvent || editingEvent !== null;
 
-    return (
-        <div className="fixed inset-0 z-[110] bg-white sm:bg-black/40 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200">
+    return createPortal(
+        <div className="fixed inset-0 z-[200] bg-white sm:bg-black/40 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200 pt-safe pb-safe">
             <div
                 className="w-full max-w-4xl sm:h-auto sm:max-h-[85vh] glass-card sm:rounded-[2.5rem] flex flex-col shadow-2xl relative overflow-hidden bg-white/95"
                 style={{ height: '100%', paddingTop: 'env(safe-area-inset-top, 0px)' }}
@@ -252,8 +253,8 @@ export function LifeTimeline({ patient, onClose }: { patient: Patient, onClose: 
             </div>
 
             {/* Add / Edit Event Modal */}
-            {showModal && (
-                <div className="absolute inset-0 z-[120] bg-black/40 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4">
+            {showModal && createPortal(
+                <div className="fixed inset-0 z-[210] bg-black/40 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4 pt-safe pb-safe">
                     <div className="w-full max-w-xl h-full sm:h-auto sm:max-h-[90vh] glass-card rounded-t-[2rem] sm:rounded-[2.5rem] flex flex-col shadow-2xl animate-in slide-in-from-bottom-5 duration-300 relative overflow-hidden">
                         <div className="p-6 border-b border-white/30 flex justify-between items-center bg-slate-50 relative z-10 flex-shrink-0">
                             <div>
@@ -332,8 +333,10 @@ export function LifeTimeline({ patient, onClose }: { patient: Patient, onClose: 
                             </button>
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
-        </div>
+        </div>,
+        document.body
     );
 }

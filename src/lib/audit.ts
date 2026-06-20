@@ -12,7 +12,11 @@ export type AuditActionType =
     | "DOCUMENT_DELETED"
     | "VITAL_ADDED"
     | "VITAL_DELETED"
-    | "AI_CHAT_STARTED";
+    | "AI_CHAT_STARTED"
+    | "DOCUMENT_DUPLICATED"
+    | "FOLDER_DUPLICATED"
+    | "EVENT_DUPLICATED"
+    | "DOCUMENT_SHARED";
 
 export interface AuditLog {
     userId: string;

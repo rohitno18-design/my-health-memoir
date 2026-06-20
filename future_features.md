@@ -21,14 +21,6 @@ This document outlines the planned features, enhancements, and strategic goals f
     - Provide a clear "Download PDF" button in the AI Chat interface when a summary is ready.
 - **User Value**: Portability of medical insights.
 
-### 3. AI Doctor's Visit Compiler
-- **Goal**: AI synthesizes existing records into a concise "Pre-Visit Summary" for doctors.
-- **Implementation**:
-    - Select specific documents or episodes of care.
-    - AI summarizes symptoms, medications, and recent lab results.
-    - Outputs a one-page summary (Downloadable PDF).
-- **User Value**: Saves time during consultations and ensures doctors get the full context.
-
 ---
 
 ## 🛠️ Management & Administration

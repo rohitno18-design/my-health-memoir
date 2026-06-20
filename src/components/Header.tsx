@@ -1,12 +1,21 @@
-﻿import { useAuth } from "@/contexts/AuthContext";
+import { useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Bell, Search } from "lucide-react";
+import { Bell, Search, HelpCircle } from "lucide-react";
+import AppTour from "@/components/AppTour";
+import { GlobalSearchModal } from "@/components/GlobalSearchModal";
 
 export function Header() {
     const { userProfile } = useAuth();
     const navigate = useNavigate();
     const { t, i18n } = useTranslation();
+    const [runTour, setRunTour] = useState(false);
+    const [searchOpen, setSearchOpen] = useState(false);
+
+    const handleSearchClick = () => {
+        setSearchOpen(true);
+    };
 
     const toggleLanguage = () => {
         const newLang = i18n.language.startsWith('en') ? 'hi' : 'en';
@@ -48,6 +57,13 @@ export function Header() {
                 </div>
                 <div className="flex gap-2">
                     <button
+                        onClick={() => setRunTour(true)}
+                        className="size-9 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full bg-slate-100 text-slate-600 hover:bg-blue-50 hover:text-blue-600 transition-colors active:scale-95"
+                        title="Start Tour"
+                    >
+                        <HelpCircle size={17} />
+                    </button>
+                    <button
                         onClick={toggleLanguage}
                         className="size-9 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full bg-slate-100 text-slate-600 hover:bg-blue-50 hover:text-blue-600 transition-colors active:scale-95 font-bold text-sm"
                         title="Toggle Language"
@@ -55,7 +71,7 @@ export function Header() {
                         {i18n.language.startsWith('en') ? 'अ' : 'A'}
                     </button>
                     <button
-                        onClick={() => navigate("/documents")}
+                        onClick={handleSearchClick}
                         className="size-9 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full bg-slate-100 text-slate-600 hover:bg-blue-50 hover:text-blue-600 transition-colors active:scale-95"
                     >
                         <Search size={17} />
@@ -69,6 +85,8 @@ export function Header() {
                     </button>
                 </div>
             </div>
+            <AppTour runOverride={runTour} onFinish={() => setRunTour(false)} />
+            <GlobalSearchModal isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
         </header>
     );
 }

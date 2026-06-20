@@ -1,10 +1,10 @@
-﻿import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { logUserAction } from "@/lib/audit";
 import { collection, query, where, getDocs, addDoc, doc, updateDoc, serverTimestamp, deleteDoc, setDoc } from "firebase/firestore";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { db, storage } from "@/lib/firebase";
-import { Plus, User, Users, Loader2, Pencil, Trash2, X, CheckCircle2, Camera, AlertTriangle, FileText, Activity } from "lucide-react";
+import { Plus, User, Users, Loader2, Pencil, Trash2, X, CheckCircle2, Camera, AlertTriangle, FileText, Activity, QrCode } from "lucide-react";
 import { LifeTimeline } from "@/components/LifeTimeline";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
@@ -17,6 +17,9 @@ export interface LifeEvent {
     category: 'visit' | 'diagnosis' | 'procedure' | 'milestone' | 'note';
     date: string; // ISO format
     description?: string;
+    doctorName?: string;
+    hospital?: string;
+    lab?: string;
     documentIds: string[]; // Links to existing documents
     createdAt: any;
 }
@@ -447,7 +450,9 @@ export function PatientsPage() {
                                             activeTab === tab ? "border-blue-500 text-blue-600" : "border-transparent text-slate-400 hover:text-slate-700"
                                         )}
                                     >
-                                        {tab === "Misc" ? t("patients.tabMisc") : tab === "SOS" ? "🆘 " + t("patients.tabSOS") : tab === "Basic" ? t("patients.tabBasic") : tab === "Contact" ? t("patients.tabContact") : t("patients.tabMedical")}
+                                        {tab === "Misc" ? t("patients.tabMisc") : tab === "SOS" ? (
+                                            <span className="flex items-center gap-1.5"><QrCode size={16} /> {t("patients.tabSOS")}</span>
+                                        ) : tab === "Basic" ? t("patients.tabBasic") : tab === "Contact" ? t("patients.tabContact") : t("patients.tabMedical")}
                                     </button>
                                 ))}
                             </div>

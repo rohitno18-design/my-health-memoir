@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { remoteLog } from "@/lib/remoteLog";
 import { logUserAction } from "@/lib/audit";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
@@ -48,9 +48,7 @@ import {
 import { cn, downloadFile } from "@/lib/utils";
 import type { ChatMessage, DocumentResultCard, PendingAction } from "@/types/chat";
 import { useTranslation } from "react-i18next";
-import { getFunctions, httpsCallable } from "firebase/functions";
-const aiFunctions = getFunctions();
-const proxyGemini = httpsCallable<Record<string, unknown>, Record<string, unknown>>(aiFunctions, 'proxyGemini');
+import { callGeminiDirect } from "@/lib/gemini";
 
 interface Document {
     id: string;
@@ -90,52 +88,13 @@ interface ConfirmationState {
 // ─── Tool declarations for Gemini ────────────────────────────────────────────
 
 const READ_TOOLS = new Set([
-    "search_documents",
-    "get_recent_documents",
     "list_patients",
     "list_life_events",
-    "summarize_documents",
-    "prepare_doctor_visit",
     "compile_to_pdf",
 ]);
 
 const TOOL_DECLARATIONS = [
-    {
-        name: "search_documents",
-        description:
-            "Search the user's medical documents by keywords, medical condition, body part, symptom, doctor name, hospital, or lab. Returns matching documents with AI-generated summary snippets.",
-        parameters: {
-            type: "OBJECT",
-            properties: {
-                query: {
-                    type: "STRING",
-                    description:
-                        "Search terms (e.g. 'blood sugar', 'broken leg', 'Dr. Sharma', 'Apollo hospital', 'prescription')",
-                },
-                patientId: { type: "STRING", description: "Optional: filter results to a specific patient by their ID" },
-                category: {
-                    type: "STRING",
-                    description:
-                        "Optional: filter by category. Valid values: Lab Report, Prescription, Scan/Imaging, Doctor's Note, Discharge Summary, Insurance, Other",
-                },
-                dateFrom: { type: "STRING", description: "Optional: filter documents on or after this date (YYYY-MM-DD)" },
-                dateTo: { type: "STRING", description: "Optional: filter documents on or before this date (YYYY-MM-DD)" },
-            },
-            required: ["query"],
-        },
-    },
-    {
-        name: "get_recent_documents",
-        description: "Get the most recently uploaded documents. Use this when the user says 'my last N documents' or 'recent documents'.",
-        parameters: {
-            type: "OBJECT",
-            properties: {
-                limit: { type: "NUMBER", description: "How many documents to fetch (default 10, max 50)" },
-                patientId: { type: "STRING", description: "Optional: filter by patient ID" },
-            },
-            required: [],
-        },
-    },
+
     {
         name: "list_patients",
         description:
@@ -145,7 +104,7 @@ const TOOL_DECLARATIONS = [
     {
         name: "list_life_events",
         description:
-            "List health timeline events. Returns events with their IDs, titles, dates, categories, and linked document IDs.",
+            "List health event events. Returns events with their IDs, titles, dates, categories, and linked document IDs.",
         parameters: {
             type: "OBJECT",
             properties: {
@@ -157,7 +116,7 @@ const TOOL_DECLARATIONS = [
     {
         name: "link_document_to_event",
         description:
-            "Link a document to an existing life event on the health timeline. This REQUIRES USER CONFIRMATION — it will be shown to the user before executing. Use documentName and eventTitle for the confirmation display.",
+            "Link a document to an existing life event on the health event. This REQUIRES USER CONFIRMATION — it will be shown to the user before executing. Use documentName and eventTitle for the confirmation display.",
         parameters: {
             type: "OBJECT",
             properties: {
@@ -172,7 +131,7 @@ const TOOL_DECLARATIONS = [
     {
         name: "create_life_event",
         description:
-            "Create a new life event on the health timeline. REQUIRES USER CONFIRMATION before executing.",
+            "Create a new life event on the health event. REQUIRES USER CONFIRMATION before executing.",
         parameters: {
             type: "OBJECT",
             properties: {
@@ -234,33 +193,7 @@ const TOOL_DECLARATIONS = [
             required: ["documentId", "documentName", "updates"],
         },
     },
-    {
-        name: "summarize_documents",
-        description: "Summarize a list of documents. Returns a single cohesive summary of all provided document IDs.",
-        parameters: {
-            type: "OBJECT",
-            properties: {
-                documentIds: {
-                    type: "ARRAY",
-                    items: { type: "STRING" },
-                    description: "List of Firestore document IDs to summarize together"
-                }
-            },
-            required: ["documentIds"],
-        },
-    },
-    {
-        name: "prepare_doctor_visit",
-        description: "Prepare a package of relevant health documents for a doctor visit based on the reason for the visit (e.g., 'leg pain', 'broken arm'). Searches history and compiles a summary and list of files.",
-        parameters: {
-            type: "OBJECT",
-            properties: {
-                reason: { type: "STRING", description: "The reason or symptom for the visit" },
-                patientId: { type: "STRING", description: "The ID of the patient going to the visit" }
-            },
-            required: ["reason", "patientId"],
-        },
-    },
+
     {
         name: "compile_to_pdf",
         description: "Compile a cohesive health summary and list of related documents into a PDF file for the user to download. Use this when the user says 'give me a file' or 'create a PDF'.",
@@ -284,13 +217,13 @@ const TOOL_DECLARATIONS = [
 
 const SYSTEM_PROMPT = `You are a world-class health intelligence assistant for "I M Smrti", a personal health records platform for Indian users.
 
-Your mission is to provide personalized, professional, and accessible health insights by analyzing the user's uploaded medical records and timeline events.
+Your mission is to provide personalized, professional, and accessible health insights by analyzing the user's uploaded medical records and event events.
 
 CAPABILITIES:
 - Search documents by condition, symptom, doctor, hospital, or date.
-- Retrieve recent uploads and health timeline events.
+- Retrieve recent uploads and health event events.
 - Perform longitudinal analysis: Compare multiple reports over time (e.g., HbA1c trends, BP patterns).
-- Create or link documents to timeline events (requires user confirmation).
+- Create or link documents to event events (requires user confirmation).
 - Summarize complex reports into simple, actionable summaries.
 - Prepare a comprehensive context package for doctor visits.
 - Generate health report PDFs.
@@ -305,7 +238,7 @@ OPERATIONAL RULES:
 1. Always call 'list_patients' first if you need to know who the records belong to.
 2. Deletion: You NEVER have authority to delete. Direct the user to the UI if they ask.
 3. Confirmations: All write operations (link, update, create) must be proposed via the appropriate tool.
-4. Data Integrity: If a user mentions a new report, offer to organize it into their timeline accurately.
+4. Data Integrity: If a user mentions a new report, offer to organize it into their event accurately.
 
 DOCUMENT CATEGORIES: Lab Report, Prescription, Scan/Imaging, Doctor's Note, Discharge Summary, Insurance, Other
 EVENT CATEGORIES: visit, diagnosis, procedure, milestone, note`;
@@ -599,17 +532,16 @@ export function AIChatPage() {
 
     const callGemini = useCallback(async (history: GeminiContent[]) => {
         const payload = {
-            userId: user?.uid,
             systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
             contents: history,
             tools: [{ functionDeclarations: TOOL_DECLARATIONS }],
             toolConfig: { function_calling_config: { mode: "AUTO" } },
-            generationConfig: { temperature: 0.3, maxOutputTokens: 2048 },
+            generationConfig: { temperature: 0.3, maxOutputTokens: 4096 },
         };
 
         try {
-            const result = await proxyGemini(payload as any);
-            return result.data;
+            const result = await callGeminiDirect(payload);
+            return result;
         } catch (err: any) {
             await remoteLog("AIChat_EXCEPTION", { message: err.message, stack: err.stack });
             throw err;
@@ -626,64 +558,7 @@ export function AIChatPage() {
             if (!user) return { error: "Not authenticated" };
 
             switch (toolName) {
-                case "search_documents": {
-                    const { query: q, patientId, category } = args as Record<string, string>;
-                    const snap = await getDocs(
-                        query(collection(db, "documents"), where("userId", "==", user.uid))
-                    );
-                    const lq = (q || "").toLowerCase();
-                    const results: DocumentResultCard[] = [];
-                    snap.forEach((d) => {
-                        const data = d.data();
-                        if (patientId && data.patientId !== patientId) return;
-                        if (category && data.category !== category) return;
-                        
-                        const text = (data.name + " " + (data.aiSummary || "") + " " + (data.doctorName || "") + " " + (data.hospital || "")).toLowerCase();
-                        if (text.includes(lq) || lq.split(" ").some(word => word.length > 3 && text.includes(word))) {
-                            results.push({
-                                id: d.id,
-                                name: data.name || "Untitled",
-                                docDate: data.docDate || "",
-                                category: data.category || "Other",
-                                summarySnippet: data.aiSummary ? String(data.aiSummary).slice(0, 400) : "",
-                                doctorName: data.doctorName,
-                                hospital: data.hospital,
-                                url: data.url,
-                                mimeType: data.type || "",
-                            });
-                        }
-                    });
-                    return results;
-                }
 
-                case "get_recent_documents": {
-                    const { limit: lim = 5, patientId } = args as { limit?: number; patientId?: string };
-                    const snap = await getDocs(
-                        query(
-                            collection(db, "documents"),
-                            where("userId", "==", user.uid)
-                        )
-                    );
-                    let docs = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-                    if (patientId) {
-                        docs = docs.filter((d: any) => d.patientId === patientId);
-                    }
-                    // Client-side sort & limit
-                    return docs
-                        .sort((a: any, b: any) => (b.createdAt || "").toString().localeCompare((a.createdAt || "").toString()))
-                        .slice(0, Math.min(Number(lim), 50))
-                        .map((data: any) => ({
-                            id: data.id,
-                            name: data.name || "Untitled",
-                            docDate: data.docDate || "",
-                            category: data.category || "Other",
-                            summarySnippet: data.aiSummary ? String(data.aiSummary).slice(0, 400) : "",
-                            doctorName: data.doctorName,
-                            hospital: data.hospital,
-                            url: data.url,
-                            mimeType: data.type || "",
-                        } as DocumentResultCard));
-                }
 
                 case "list_patients": {
                     const snap = await getDocs(
@@ -752,58 +627,7 @@ export function AIChatPage() {
                     return { success: true };
                 }
 
-                case "summarize_documents": {
-                    const { documentIds } = args as { documentIds: string[] };
-                    const results: any[] = [];
-                    for (const id of documentIds) {
-                        const dSnap = await getDocs(query(collection(db, "documents"), where("__name__", "==", id)));
-                        if (!dSnap.empty) {
-                            const data = dSnap.docs[0].data();
-                            results.push({
-                                id,
-                                name: data.name,
-                                docDate: data.docDate,
-                                summary: data.aiSummary || "No summary available.",
-                                mimeType: data.type || ""
-                            });
-                        }
-                    }
-                    return results;
-                }
 
-                case "prepare_doctor_visit": {
-                    const { reason, patientId } = args as { reason: string; patientId: string };
-                    const lq = reason.toLowerCase();
-                    const snap = await getDocs(
-                        query(
-                            collection(db, "documents"),
-                            where("userId", "==", user.uid)
-                        )
-                    );
-                    
-                    const matches: any[] = [];
-                    snap.forEach((d) => {
-                        const data = d.data();
-                        if (data.patientId !== patientId) return; // Client-side filter to avoid index requirement
-                        
-                        const text = (data.name + " " + (data.aiSummary || "") + " " + (data.category || "")).toLowerCase();
-                        if (text.includes(lq) || lq.split(" ").some(word => word.length > 3 && text.includes(word))) {
-                            matches.push({
-                                id: d.id,
-                                name: data.name,
-                                date: data.docDate || "Unknown",
-                                summary: data.aiSummary || "N/A",
-                                url: data.url,
-                                mimeType: data.type || ""
-                            });
-                        }
-                    });
-                    return {
-                        reason,
-                        relevantDocuments: matches,
-                        recommendation: "I have gathered these documents that seem relevant to your visit. You can ask me to compile them into a PDF for your doctor."
-                    };
-                }
 
                 case "compile_to_pdf": {
                     const { title, summary, documentIds } = args as { title: string; summary: string; documentIds: string[] };
@@ -929,7 +753,7 @@ export function AIChatPage() {
                 return;
             }
 
-            let response: Record<string, unknown> | undefined;
+            let response: any;
             try {
                 response = await callGemini(geminiHistoryRef.current);
             } catch (err) {
@@ -1088,13 +912,13 @@ export function AIChatPage() {
 
     // ── Send message ──────────────────────────────────────────────────────────
 
-    const sendMessage = useCallback(async () => {
-        const text = input.trim();
+    const sendMessage = useCallback(async (overrideText?: string, displayContent?: string) => {
+        const text = (overrideText !== undefined ? overrideText : input).trim();
         const attachedIds = Array.from(selectedDocIds);
         
         if ((!text && attachedIds.length === 0) || isLoading || confirmation || !user) return;
 
-        setInput("");
+        if (overrideText === undefined) setInput("");
         setSelectedDocIds(new Set());
         setIsLoading(true);
 
@@ -1129,6 +953,9 @@ export function AIChatPage() {
             content: text || "Check these documents", 
             timestamp: serverTimestamp() 
         };
+        if (displayContent) {
+            msgData.displayContent = displayContent;
+        }
         if (attachedIds.length > 0) {
             msgData.attachedDocIds = attachedIds;
         }
@@ -1147,7 +974,8 @@ export function AIChatPage() {
             role: "user",
             content: text || "Check these documents",
             timestamp: Timestamp.now(),
-            attachedDocIds: attachedIds.length > 0 ? attachedIds : undefined
+            attachedDocIds: attachedIds.length > 0 ? attachedIds : undefined,
+            displayContent: displayContent
         };
         setMessages((prev) => [...prev, userMsg]);
 
@@ -1229,6 +1057,43 @@ export function AIChatPage() {
 
     const isInputDisabled = isLoading || !!confirmation;
 
+    const handleAgentAction = async (actionId: string) => {
+        if (!user) return;
+        setIsLoading(true);
+        try {
+            // Fetch recent documents to give AI context
+            const snap = await getDocs(query(collection(db, "documents"), where("userId", "==", user.uid)));
+            const docsList = snap.docs.map(d => d.data() as Document);
+            const recentDocsContext = docsList
+                .sort((a, b) => ((b.createdAt as any)?.seconds || 0) - ((a.createdAt as any)?.seconds || 0))
+                .slice(0, 10)
+                .map(d => `[Document: ${d.name}, Category: ${d.category}, Summary: ${d.aiSummary || "N/A"}]`)
+                .join("\n");
+
+            let prompt = "";
+            let display = "";
+
+            if (actionId === "compare_labs") {
+                prompt = `Based on the following recent documents, please compare the key lab metrics (like HbA1c, Cholesterol, BP). Explain any trends and highlight anything abnormal.\n\nDOCUMENTS:\n${recentDocsContext}`;
+                display = "Compare my recent lab reports";
+            } else if (actionId === "prepare_visit") {
+                prompt = `I am preparing for an upcoming doctor visit. Based on the following documents, summarize my current conditions, and suggest which documents I should focus on discussing.\n\nDOCUMENTS:\n${recentDocsContext}`;
+                display = "Help me prepare for my next doctor visit";
+            } else if (actionId === "summarize_records") {
+                prompt = `Please provide a cohesive summary of the following medical records. Group the information logically (e.g., conditions, medications, recent tests).\n\nDOCUMENTS:\n${recentDocsContext}`;
+                display = "Summarize my recent records";
+            }
+
+            if (prompt) {
+                await sendMessage(prompt, display);
+            }
+        } catch (err) {
+            console.error("Failed to execute agent action:", err);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     return (
         <div className="flex flex-col h-[calc(100vh-8.5rem)] w-full max-w-lg mx-auto relative">
             <div className="absolute inset-0 soft-gradient-bg -z-10 pointer-events-none" />
@@ -1282,21 +1147,24 @@ export function AIChatPage() {
                         <div className="grid grid-cols-1 gap-3 w-full mt-10">
                             {[
                                 { 
-                                    text: t("aiChat.prompts.blood"), 
+                                    id: "compare_labs",
+                                    text: "Compare my recent lab reports", 
                                     icon: "analytics"
                                 },
                                 { 
-                                    text: t("aiChat.prompts.records"), 
+                                    id: "summarize_records",
+                                    text: "Summarize my recent records", 
                                     icon: "auto_awesome"
                                 },
                                 { 
-                                    text: t("aiChat.prompts.hba1c"), 
-                                    icon: "help" 
+                                    id: "prepare_visit",
+                                    text: "Help me prepare for my next doctor visit", 
+                                    icon: "medical_services" 
                                 },
                             ].map((s) => (
                                 <button
-                                    key={s.text}
-                                    onClick={() => setInput(s.text)}
+                                    key={s.id}
+                                    onClick={() => handleAgentAction(s.id)}
                                     className="group relative flex items-center gap-3 p-4 rounded-3xl bg-white/60 border border-white/80 hover:bg-white hover:border-violet-200 transition-all text-left shadow-sm active:scale-[0.98]"
                                 >
                                     <div className="w-10 h-10 rounded-2xl bg-violet-50 text-violet-600 flex items-center justify-center group-hover:bg-violet-600 group-hover:text-white transition-colors">
@@ -1337,10 +1205,10 @@ export function AIChatPage() {
                             >
                                 {msg.role === "model" ? (
                                     <div className="prose prose-sm prose-slate max-w-none [&>p]:mb-2 [&>p:last-child]:mb-0 [&>ul]:mb-2 [&>ol]:mb-2">
-                                        <ReactMarkdown rehypePlugins={[rehypeSanitize]}>{msg.content}</ReactMarkdown>
+                                        <ReactMarkdown rehypePlugins={[rehypeSanitize]}>{msg.displayContent || msg.content}</ReactMarkdown>
                                     </div>
                                 ) : (
-                                    msg.content
+                                    msg.displayContent || msg.content
                                 )}
                             </div>
                             {/* Document result cards */}
@@ -1513,7 +1381,7 @@ export function AIChatPage() {
                             className="flex-1 px-5 py-3 rounded-[1.25rem] border border-white/40 bg-white/40 backdrop-blur-md text-slate-800 placeholder:text-slate-500 focus:outline-none focus:bg-white/80 focus:ring-2 focus:ring-primary/20 transition-all font-semibold shadow-inner disabled:opacity-50 disabled:cursor-not-allowed"
                         />
                         <button
-                            onClick={sendMessage}
+                            onClick={() => sendMessage()}
                             disabled={isInputDisabled || (!input.trim() && selectedDocIds.size === 0)}
                             className="w-12 h-12 rounded-[1.25rem] bg-primary text-primary-foreground flex items-center justify-center disabled:opacity-50 transition-all hover:bg-primary/90 shadow-md flex-shrink-0"
                         >
@@ -1556,14 +1424,14 @@ export function AIChatPage() {
                             </div>
                             
                             <div className="flex gap-2">
-                                <div className="flex-1 relative">
+                                <div className="flex-1 min-w-0 relative">
                                     <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                                     <input 
                                         type="text"
                                         placeholder={t("chat.searchDocs")}
                                         value={selectorSearch}
                                         onChange={(e) => setSelectorSearch(e.target.value)}
-                                        className="w-full bg-slate-50 border-none rounded-xl pl-9 pr-3 py-2 text-sm focus:ring-2 focus:ring-primary/20 outline-none"
+                                        className="w-full bg-slate-50 border-none rounded-xl pl-9 pr-3 py-2 text-sm focus:ring-2 focus:ring-primary/20 outline-none placeholder:truncate"
                                     />
                                 </div>
                                 <select 

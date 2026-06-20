@@ -1,0 +1,14 @@
+# ─── Steps to get a FREE Gemini API key ─────────────────────────────────────
+# This takes 2 minutes and is completely free.
+
+# 1. Go to: https://aistudio.google.com/app/apikey
+# 2. Sign in with your Google account (use rohit.no18@gmail.com)
+# 3. Click "Create API Key"
+# 4. Select your existing project "im-smrti" from the dropdown
+# 5. Click "Create API Key in Existing Project"
+# 6. Copy the API key (starts with "AIzaSy...")
+
+# NOTE: Google AI Studio gives you FREE usage limits:
+# - gemini-2.5-flash: 500 requests per day FREE
+# - This is completely separate from Firebase billing
+# - The old key (AIzaSyBlKJQ...) has exhausted its prepaid credits

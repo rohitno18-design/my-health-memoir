@@ -41,4 +41,5 @@ export interface ChatMessage {
     pendingActions?: PendingAction[];
     attachedDocIds?: string[]; // New: IDs of documents user attached to this message
     generatedPdf?: GeneratedPdf; // New: Data for re-generating/downloading PDF
+    displayContent?: string; // New: Display this instead of the raw content if present
 }

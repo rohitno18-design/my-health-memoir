@@ -1,11 +1,11 @@
-﻿import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import {
     Camera, User, Mail, Lock, ChevronRight, Smartphone,
     Check, Loader2, LogOut, Pencil, ShieldCheck,
-    Calendar, Droplets, UserCircle, AlertTriangle, X,
-    Bell, Share2, Sparkles, CheckCircle2, RefreshCw, ScanLine,
+    AlertTriangle, X,
+    Bell, Share2, Sparkles, CheckCircle2, RefreshCw, ScanLine, Globe,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -24,7 +24,6 @@ interface UserSettings {
     privacyDataSharing: boolean;
 }
 
-type Section = "info" | "security" | "settings";
 
 // ─── Toast ──────────────────────────────────────────────────────────────────
 function Toast({ message, type, onDismiss }: { message: string; type: "success" | "error"; onDismiss: () => void }) {
@@ -165,57 +164,6 @@ function EditableField({
     );
 }
 
-// ─── GenderSelect ─────────────────────────────────────────────────────────────
-function GenderSelect({ value, onSave }: { value: string; onSave: (v: string) => Promise<void> }) {
-    const { t } = useTranslation();
-    const [saving, setSaving] = useState(false);
-    const [saved, setSaved] = useState(false);
-    const [error, setError] = useState("");
-    const [local, setLocal] = useState(value);
-
-    useEffect(() => { setLocal(value); }, [value]);
-
-    const handleChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
-        const v = e.target.value;
-        setLocal(v);
-        setSaving(true); setError(""); setSaved(false);
-        try {
-            await onSave(v);
-            setSaved(true);
-            setTimeout(() => setSaved(false), 1500);
-        } catch (err: unknown) {
-            setError(err instanceof Error ? err.message : "Save failed");
-        } finally {
-            setSaving(false);
-        }
-    };
-
-    return (
-        <div className="flex items-center gap-3 py-3 last:border-0 border-b border-border">
-            <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-                <User size={15} className="text-muted-foreground" />
-            </div>
-            <div className="flex-1">
-                <p className="text-[11px] text-muted-foreground">{t("account.gender")}</p>
-                <select
-                    value={local}
-                    onChange={handleChange}
-                    disabled={saving}
-                    className="mt-0.5 text-sm font-medium bg-transparent focus:outline-none w-full disabled:opacity-60"
-                >
-                    <option value="">{t("common.notSpecified")}</option>
-                    <option value="Male">{t("common.male")}</option>
-                    <option value="Female">{t("common.female")}</option>
-                    <option value="Other">{t("common.other")}</option>
-                    <option value="Prefer not to say">{t("common.preferNotToSay")}</option>
-                </select>
-                {error && <p className="text-xs text-destructive mt-0.5">{error}</p>}
-            </div>
-            {saving && <Loader2 size={14} className="animate-spin text-muted-foreground flex-shrink-0" />}
-            {saved && <Check size={14} className="text-blue-600 flex-shrink-0" />}
-        </div>
-    );
-}
 
 // ─── ChangePasswordModal ──────────────────────────────────────────────────────
 function ChangePasswordModal({ onClose }: { onClose: () => void }) {
@@ -672,7 +620,6 @@ export function AccountPage() {
     const { user, userProfile, logout, refreshUser, updateUserProfile, uploadProfilePhoto, hasPassword } = useAuth();
     const { t } = useTranslation();
     const navigate = useNavigate();
-    const [section, setSection] = useState<Section>("info");
     const [photoUploading, setPhotoUploading] = useState(false);
     const [showPwModal, setShowPwModal] = useState(false);
     const [showEmailModal, setShowEmailModal] = useState(false);
@@ -717,7 +664,10 @@ export function AccountPage() {
                         <h1 className="text-3xl font-black text-slate-900 tracking-tight leading-none">{t("account.title")}</h1>
                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-2">{t("account.subtitle")}</p>
                     </div>
-                    <button onClick={handleSignOut} className="p-2 rounded-xl bg-slate-50 text-slate-400 border border-slate-100"><LogOut size={18} /></button>
+                    <button onClick={handleSignOut} className="px-4 py-2 rounded-xl bg-slate-50 text-slate-500 border border-slate-100 flex items-center gap-2 font-bold text-sm shadow-sm active:scale-95 transition-all">
+                        <LogOut size={16} />
+                        Logout
+                    </button>
                  </div>
 
                  <div className="flex items-center gap-6 relative z-10">
@@ -742,46 +692,46 @@ export function AccountPage() {
             </header>
 
             <main className="px-6 -mt-12 relative z-20 space-y-8">
-                {/* Global Actions */}
-                <div className="grid grid-cols-2 gap-4">
-                    <button onClick={() => navigate("/patients")} className="bg-slate-900 text-white p-6 rounded-[2.5rem] flex flex-col items-center justify-center gap-2 shadow-xl shadow-slate-900/20 active:scale-95 transition-transform">
-                        <UserCircle size={28} />
-                        <span className="text-[10px] font-black uppercase tracking-widest">{t("account.managePatients")}</span>
-                    </button>
-                    <button onClick={() => navigate("/docs")} className="bg-white text-slate-900 p-6 rounded-[2.5rem] border border-slate-100 flex flex-col items-center justify-center gap-2 shadow-sm active:scale-95 transition-transform">
-                        <RefreshCw size={28} className="text-slate-400" />
-                        <span className="text-[10px] font-black uppercase tracking-widest">{t("account.myDocs")}</span>
-                    </button>
-                </div>
-
-                {/* Section Nav */}
-                <div className="flex bg-slate-200/50 p-1 rounded-2xl">
-                    {[
-                        { id: "info", label: t("account.personalInfo"), icon: User },
-                        { id: "security", label: t("account.security"), icon: Lock },
-                        { id: "settings", label: t("account.settings"), icon: Bell },
-                    ].map(s => (
-                        <button key={s.id} onClick={() => setSection(s.id as Section)}
-                            className={cn("flex-1 flex flex-col items-center gap-1.5 py-3 rounded-xl transition-all",
-                                section === s.id ? "bg-white text-slate-900 shadow-sm" : "text-slate-400")}>
-                            <s.icon size={18} strokeWidth={section === s.id ? 2.5 : 2} />
-                            <span className="text-[9px] font-black uppercase tracking-widest">{s.label}</span>
-                        </button>
-                    ))}
-                </div>
-
                 {/* Content */}
-                <div className="pb-10">
-                    {section === "info" && (
+                <div className="pb-10 space-y-8">
+                    <div>
+                        <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-3 px-2">{t("account.personalInfo")}</h3>
                         <div className="bg-white rounded-[2rem] p-6 shadow-sm border border-slate-100 space-y-1">
                             <EditableField label={t("account.fullName")} icon={User} value={userProfile?.displayName ?? ""} onSave={v => handleProfileSave({ displayName: v })} />
-                            <EditableField label={t("account.dob")} icon={Calendar} value={userProfile?.dob ?? ""} type="date" onSave={v => handleProfileSave({ dob: v })} />
-                            <EditableField label={t("account.bloodGroup")} icon={Droplets} value={userProfile?.bloodGroup ?? ""} onSave={v => handleProfileSave({ bloodGroup: v })} />
-                            <GenderSelect value={userProfile?.gender ?? ""} onSave={v => handleProfileSave({ gender: v })} />
+                            
+                            <div className="py-3 border-b border-border last:border-0">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                                        <Globe size={15} className="text-muted-foreground" />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-[11px] text-muted-foreground">Preferred Language</p>
+                                        <select
+                                            value={userProfile?.preferredLanguage || "English"}
+                                            onChange={(e) => handleProfileSave({ preferredLanguage: e.target.value })}
+                                            className="w-full mt-0.5 text-sm bg-transparent font-medium focus:outline-none appearance-none cursor-pointer"
+                                        >
+                                            <option value="English">English</option>
+                                            <option value="Hindi">Hindi (हिंदी)</option>
+                                            <option value="Bengali">Bengali (বাংলা)</option>
+                                            <option value="Telugu">Telugu (తెలుగు)</option>
+                                            <option value="Marathi">Marathi (मराठी)</option>
+                                            <option value="Tamil">Tamil (தமிழ்)</option>
+                                            <option value="Urdu">Urdu (اردو)</option>
+                                            <option value="Gujarati">Gujarati (ગુજરાતી)</option>
+                                            <option value="Kannada">Kannada (ಕನ್ನಡ)</option>
+                                            <option value="Malayalam">Malayalam (മലയാളം)</option>
+                                            <option value="Odia">Odia (ଓଡ଼ିଆ)</option>
+                                            <option value="Punjabi">Punjabi (ਪੰਜਾਬੀ)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                    )}
+                    </div>
 
-                    {section === "security" && (
+                    <div>
+                        <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-3 px-2">{t("account.security")}</h3>
                         <div className="space-y-6">
                             <div className="bg-white rounded-[2rem] overflow-hidden divide-y divide-slate-50 shadow-sm border border-slate-100">
                                 <button onClick={() => setShowEmailModal(true)} className="w-full flex items-center justify-between p-5 hover:bg-slate-50 transition-colors">
@@ -789,7 +739,7 @@ export function AccountPage() {
                                         <div className="size-11 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center"><Mail size={18} /></div>
                                         <div className="text-left font-lexend">
                                             <p className="text-sm font-black uppercase tracking-tight text-slate-900">{t("account.changeEmail")}</p>
-                                            <p className="text-[10px] font-bold text-slate-400 mt-1">{user?.email}</p>
+                                            <p className="text-[10px] font-bold text-slate-400 mt-1">{user?.email || "Not Set"}</p>
                                         </div>
                                     </div>
                                     <ChevronRight size={16} className="text-slate-300" />
@@ -830,11 +780,12 @@ export function AccountPage() {
 
                             {user?.uid && <SecurityHistory userId={user.uid} />}
                         </div>
-                    )}
+                    </div>
 
-                    {section === "settings" && (
+                    <div>
+                        <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-3 px-2">{t("account.settings")}</h3>
                         <SettingsSection userId={user?.uid} initialSettings={(userProfile as any)?.settings} />
-                    )}
+                    </div>
                 </div>
             </main>
 

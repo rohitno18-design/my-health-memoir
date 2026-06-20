@@ -8,6 +8,7 @@ import { AppLayout } from "@/components/AppLayout";
 import { GlobalErrorBoundary } from "@/components/GlobalErrorBoundary";
 import { OfflineIndicator } from "@/components/OfflineIndicator";
 import { Loader2 } from "lucide-react";
+import { Toaster } from "react-hot-toast";
 
 // Critical fast path (Main UI Thread optimization)
 import { DashboardPage } from "@/pages/DashboardPage";
@@ -22,6 +23,7 @@ const RegisterPage = lazy(() => import("@/pages/RegisterPage").then(m => ({ defa
 const AccountPage = lazy(() => import("@/pages/AccountPage").then(m => ({ default: m.AccountPage })));
 const PatientsPage = lazy(() => import("@/pages/PatientsPage").then(m => ({ default: m.PatientsPage })));
 const DocumentsPage = lazy(() => import("@/pages/DocumentsPage").then(m => ({ default: m.DocumentsPage })));
+const RemindersPage = lazy(() => import("@/pages/RemindersPage").then(m => ({ default: m.RemindersPage })));
 const ChatListPage = lazy(() => import("@/pages/ChatListPage").then(m => ({ default: m.ChatListPage })));
 const AIChatPage = lazy(() => import("@/pages/AIChatPage").then(m => ({ default: m.AIChatPage })));
 const AdminPage = lazy(() => import("@/pages/AdminPage").then(m => ({ default: m.AdminPage })));
@@ -32,6 +34,7 @@ const GlobalTimelinePage = lazy(() => import("@/pages/GlobalTimelinePage").then(
 const NotificationsPage = lazy(() => import("@/pages/NotificationsPage").then(m => ({ default: m.NotificationsPage })));
 const PrivacyPage = lazy(() => import("@/pages/PrivacyPage").then(m => ({ default: m.PrivacyPage })));
 const TermsPage = lazy(() => import("@/pages/TermsPage").then(m => ({ default: m.TermsPage })));
+const SharedDocumentView = lazy(() => import("@/pages/SharedDocumentView").then(m => ({ default: m.SharedDocumentView })));
 import { LandingPage } from "@/pages/LandingPage";
 
 const SuspenseFallback = () => (
@@ -50,6 +53,7 @@ function App() {
         <AuthProvider>
           <BrowserRouter>
             <OfflineIndicator />
+            <Toaster />
             <Suspense fallback={<SuspenseFallback />}>
               <Routes>
             {/* Public routes */}
@@ -59,6 +63,9 @@ function App() {
             
             {/* PUBLIC EMERGENCY PULSE (No Auth, No Layout) */}
             <Route path="/pulse/:userId" element={<PulsePage />} />
+            
+            {/* PUBLIC SECURE SHARE VIEW (No Auth, No Layout) */}
+            <Route path="/share/:id" element={<SharedDocumentView />} />
             
             <Route path="/privacy" element={<PrivacyPage />} />
             <Route path="/terms" element={<TermsPage />} />
@@ -76,6 +83,7 @@ function App() {
               <Route path="/patients" element={<PatientsPage />} />
               <Route path="/timeline" element={<GlobalTimelinePage />} />
               <Route path="/documents" element={<DocumentsPage />} />
+              <Route path="/reminders" element={<RemindersPage />} />
               <Route path="/notifications" element={<NotificationsPage />} />
               <Route path="/ai-chat" element={<ChatListPage />} />
               <Route path="/ai-chat/:chatId?" element={<AIChatPage />} />

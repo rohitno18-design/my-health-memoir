@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { collection, query, where, getDocs, updateDoc, deleteDoc, doc as fsDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/contexts/AuthContext";
@@ -8,6 +8,7 @@ import { EVENT_CATEGORIES } from "@/components/LifeTimeline";
 import ReactMarkdown from "react-markdown";
 import rehypeSanitize from "rehype-sanitize";
 import { useTranslation } from "react-i18next";
+import { createPortal } from "react-dom";
 
 interface Doc {
     id: string;
@@ -32,7 +33,7 @@ export function GlobalTimelinePage() {
 
     // Edit Event State
     const [editingEvent, setEditingEvent] = useState<LifeEvent | null>(null);
-    const [editDraft, setEditDraft] = useState({ title: "", category: "visit", date: "", description: "", documentIds: [] as string[], patientId: "" });
+    const [editDraft, setEditDraft] = useState({ title: "", category: "visit", date: "", description: "", documentIds: [] as string[], patientId: "", doctorName: "", hospital: "", lab: "" });
     const [isSavingEdit, setIsSavingEdit] = useState(false);
     const [isDeletingEvent, setIsDeletingEvent] = useState(false);
 
@@ -75,7 +76,10 @@ export function GlobalTimelinePage() {
             date: event.date,
             description: event.description || "",
             documentIds: event.documentIds || [],
-            patientId: event.patientId
+            patientId: event.patientId,
+            doctorName: event.doctorName || "",
+            hospital: event.hospital || "",
+            lab: event.lab || ""
         });
     };
 
@@ -200,8 +204,8 @@ export function GlobalTimelinePage() {
                                     </div>
 
                                     {/* Event title + category badge */}
-                                    <div className="flex items-start justify-between gap-3">
-                                        <h3 className="font-extrabold text-xl text-slate-900 leading-tight">{event.title}</h3>
+                                    <div className="flex items-start justify-between gap-3 min-w-0">
+                                        <h3 className="font-extrabold text-xl text-slate-900 leading-tight break-words min-w-0 flex-1">{event.title}</h3>
                                         <div className="flex items-center gap-2">
                                             {isExpanded && (
                                                 <button onClick={(e) => openEditModal(event, e)} className="p-1.5 rounded-lg bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-800 transition-colors">
@@ -278,8 +282,8 @@ export function GlobalTimelinePage() {
             )}
 
             {/* Summary Modal */}
-            {viewingSummary && (
-                <div className="fixed inset-0 z-[110] bg-black/50 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={() => setViewingSummary(null)}>
+            {viewingSummary && createPortal(
+                <div className="fixed inset-0 z-[210] bg-black/50 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4 pt-safe pb-safe" onClick={() => setViewingSummary(null)}>
                     <div className="w-full max-w-2xl bg-white rounded-t-[2.5rem] sm:rounded-[2.5rem] flex flex-col shadow-2xl max-h-[88vh]" onClick={e => e.stopPropagation()}>
                         <div className="p-5 border-b flex justify-between items-center bg-violet-50 rounded-t-[2.5rem]">
                             <div>
@@ -305,12 +309,13 @@ export function GlobalTimelinePage() {
                             <button onClick={() => setViewingSummary(null)} className="w-full py-3 bg-violet-600 text-white font-bold rounded-2xl text-sm hover:bg-violet-700 transition-colors">{t("timeline.close")}</button>
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
 
             {/* Edit Event Modal */}
-            {editingEvent && (
-                <div className="fixed inset-0 z-[110] bg-black/50 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={() => setEditingEvent(null)}>
+            {editingEvent && createPortal(
+                <div className="fixed inset-0 z-[210] bg-black/50 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4 pt-safe pb-safe" onClick={() => setEditingEvent(null)}>
                     <div className="w-full max-w-xl bg-white rounded-t-[2.5rem] sm:rounded-[2.5rem] flex flex-col shadow-2xl max-h-[88vh]" onClick={e => e.stopPropagation()}>
                         <div className="p-6 border-b flex justify-between items-center bg-slate-50 rounded-t-[2.5rem] flex-shrink-0">
                             <div>
@@ -344,6 +349,18 @@ export function GlobalTimelinePage() {
                                     </select>
                                 </div>
                                 <div>
+                                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">Doctor Name</label>
+                                    <input type="text" value={editDraft.doctorName} onChange={e => setEditDraft({ ...editDraft, doctorName: e.target.value })} placeholder="e.g. Dr. Smith" className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-semibold outline-none focus:border-blue-500" />
+                                </div>
+                                <div>
+                                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">Hospital / Clinic</label>
+                                    <input type="text" value={editDraft.hospital} onChange={e => setEditDraft({ ...editDraft, hospital: e.target.value })} placeholder="e.g. City Hospital" className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-semibold outline-none focus:border-blue-500" />
+                                </div>
+                                <div>
+                                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">Lab</label>
+                                    <input type="text" value={editDraft.lab} onChange={e => setEditDraft({ ...editDraft, lab: e.target.value })} placeholder="e.g. Quest Diagnostics" className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-semibold outline-none focus:border-blue-500" />
+                                </div>
+                                <div className="sm:col-span-2">
                                     <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">{t("timeline.editDescription")}</label>
                                     <textarea value={editDraft.description} onChange={e => setEditDraft({ ...editDraft, description: e.target.value })} placeholder={t("timeline.editDescriptionPlace")} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-slate-900/20 font-medium text-sm transition-all shadow-sm min-h-[100px] resize-none" />
                                 </div>
@@ -396,7 +413,8 @@ export function GlobalTimelinePage() {
                             </button>
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </div>
     );
