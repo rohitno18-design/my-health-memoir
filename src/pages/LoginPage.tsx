@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -8,6 +8,7 @@ import {
 import { type ConfirmationResult } from "firebase/auth";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
+import { APP_VERSION } from "@/config/version";
 
 type LoginMethod = "phone" | "email";
 type PhoneStep = "input" | "otp";
@@ -209,7 +210,7 @@ export function LoginPage() {
                                     <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                                     <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required
                                         placeholder="you@example.com"
-                                        className="w-full pl-10 pr-4 py-3 rounded-xl border border-white/40 bg-white/50 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all"
+                                        className="w-full pl-10 pr-4 py-3 rounded-xl border border-white/40 bg-white/50 text-base font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all"
                                     />
                                 </div>
                             </div>
@@ -219,7 +220,7 @@ export function LoginPage() {
                                     <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                                     <input type={showPw ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} required
                                         placeholder="••••••••"
-                                        className="w-full pl-10 pr-10 py-3 rounded-xl border border-white/40 bg-white/50 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all"
+                                        className="w-full pl-10 pr-10 py-3 rounded-xl border border-white/40 bg-white/50 text-base font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all"
                                     />
                                     <button type="button" onClick={() => setShowPw(!showPw)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
                                         {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -257,7 +258,7 @@ export function LoginPage() {
                                         <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                                         <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required
                                             placeholder="you@example.com"
-                                            className="w-full pl-10 pr-4 py-3 rounded-xl border border-white/40 bg-white/50 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all"
+                                            className="w-full pl-10 pr-4 py-3 rounded-xl border border-white/40 bg-white/50 text-base font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all"
                                         />
                                     </div>
                                     <button type="submit" disabled={loading || !email}
@@ -273,10 +274,15 @@ export function LoginPage() {
                         Don't have an account?{" "}
                         <Link to="/register" className="text-primary font-bold hover:underline">Sign Up</Link>
                     </p>
+                    <p className="text-xs text-center mt-6 text-slate-400 font-mono">
+                        {APP_VERSION}
+                    </p>
                 </div>
                 {/* Firebase ReCaptcha Widget Container (Invisible) */}
                 <div id={recaptchaContainerId}></div>
             </div>
         </div>
     );
-}
+};
+
+export default LoginPage;

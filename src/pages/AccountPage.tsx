@@ -13,6 +13,7 @@ import {
 } from "firebase/firestore";
 import { useTranslation } from "react-i18next";
 import { db } from "@/lib/firebase";
+import { APP_VERSION } from "@/config/version";
 import { isBiometricEnabled, setBiometricEnabled, checkBiometricAvailability } from "@/lib/biometric";
 
 
@@ -786,6 +787,9 @@ export function AccountPage() {
                         <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-3 px-2">{t("account.settings")}</h3>
                         <SettingsSection userId={user?.uid} initialSettings={(userProfile as any)?.settings} />
                     </div>
+                </div>
+                <div className="mt-8 mb-4 text-center">
+                    <p className="text-xs text-slate-400 font-mono tracking-widest">{APP_VERSION}</p>
                 </div>
             </main>
 

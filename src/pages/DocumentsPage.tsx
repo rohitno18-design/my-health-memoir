@@ -955,7 +955,7 @@ export function DocumentsPage() {
     const renderDocumentCard = (doc: Document) => {
         const patient = patients.find(p => p.id === doc.patientId);
         return (
-            <div key={doc.id} className="glass-card rounded-2xl p-3 flex gap-3 items-start shadow-sm border border-white/40 hover:shadow-md hover:border-primary/30 transition-all group">
+            <div key={doc.id} className="glass-card rounded-2xl p-3 flex gap-3 items-start shadow-sm border border-white/40 hover:shadow-md hover:border-primary/30 transition-all group overflow-hidden w-full">
                 {/* Thumbnail */}
                 <button 
                     onClick={() => {
@@ -1576,7 +1576,7 @@ export function DocumentsPage() {
                                     {!selectedEventId && (
                                         <div className="mb-4">
                                             <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 block">{t("timeline.eventDate")}</label>
-                                            <input type="date" value={addToTimelineDate} onChange={e => setAddToTimelineDate(e.target.value)} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold text-slate-700 outline-none" />
+                                            <input type="date" value={addToTimelineDate} onChange={e => setAddToTimelineDate(e.target.value)} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-base font-bold text-slate-700 outline-none" />
                                         </div>
                                     )}
                                     <div className="mb-4">
@@ -1616,7 +1616,7 @@ export function DocumentsPage() {
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
                                     <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">{t("documents.editName")}</label>
-                                    <input type="text" value={editDocDraft.name} onChange={e => setEditDocDraft({ ...editDocDraft, name: e.target.value })} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-semibold outline-none focus:border-blue-500" />
+                                    <input type="text" value={editDocDraft.name} onChange={e => setEditDocDraft({ ...editDocDraft, name: e.target.value })} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-base font-semibold outline-none focus:border-blue-500" />
                                 </div>
                                 <div>
                                     <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">Category</label>
@@ -1631,7 +1631,7 @@ export function DocumentsPage() {
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
                                     <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">{t("documents.editDate")}</label>
-                                    <input type="date" value={editDocDraft.docDate} onChange={e => setEditDocDraft({ ...editDocDraft, docDate: e.target.value })} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-semibold outline-none focus:border-blue-500" />
+                                    <input type="date" value={editDocDraft.docDate} onChange={e => setEditDocDraft({ ...editDocDraft, docDate: e.target.value })} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-base font-semibold outline-none focus:border-blue-500" />
                                 </div>
                                 <div>
                                     <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">{t("documents.editPatient")}</label>
@@ -1643,15 +1643,15 @@ export function DocumentsPage() {
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div>
                                     <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">{t("documents.editDoctor")}</label>
-                                    <input type="text" value={editDocDraft.doctorName} onChange={e => setEditDocDraft({ ...editDocDraft, doctorName: e.target.value })} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-semibold outline-none focus:border-blue-500" />
+                                    <input type="text" value={editDocDraft.doctorName} onChange={e => setEditDocDraft({ ...editDocDraft, doctorName: e.target.value })} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-base font-semibold outline-none focus:border-blue-500" />
                                 </div>
                                 <div>
                                     <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">{t("documents.editHospital")}</label>
-                                    <input type="text" value={editDocDraft.hospital} onChange={e => setEditDocDraft({ ...editDocDraft, hospital: e.target.value })} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-semibold outline-none focus:border-blue-500" />
+                                    <input type="text" value={editDocDraft.hospital} onChange={e => setEditDocDraft({ ...editDocDraft, hospital: e.target.value })} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-base font-semibold outline-none focus:border-blue-500" />
                                 </div>
                                 <div>
                                     <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">{t("documents.editLab")}</label>
-                                    <input type="text" value={editDocDraft.lab} onChange={e => setEditDocDraft({ ...editDocDraft, lab: e.target.value })} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-semibold outline-none focus:border-blue-500" />
+                                    <input type="text" value={editDocDraft.lab} onChange={e => setEditDocDraft({ ...editDocDraft, lab: e.target.value })} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-base font-semibold outline-none focus:border-blue-500" />
                                 </div>
                             </div>
                             <div className="pt-4 border-t border-slate-100 flex items-center gap-3">
@@ -2155,7 +2155,7 @@ export function DocumentsPage() {
                                             type="text" 
                                             readOnly 
                                             value={sharedLink} 
-                                            className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-600"
+                                            className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-base font-medium text-slate-600"
                                         />
                                         <button 
                                             onClick={() => {

@@ -80,7 +80,7 @@ function VerificationBanner() {
 
 export function AppLayout() {
     return (
-        <div className="min-h-dvh bg-slate-50 text-slate-900 overflow-x-hidden flex flex-col">
+        <div className="min-h-dvh bg-slate-50 text-slate-900 overflow-x-hidden w-full max-w-[100vw] flex flex-col">
             <GlobalAlarmListener />
             <UploadNotificationListener />
             <VerificationBanner />
