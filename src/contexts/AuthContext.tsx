@@ -27,7 +27,7 @@ import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { auth, db, storage } from "@/lib/firebase";
 
 const actionCodeSettings = {
-    url: "https://imsmrti.app",
+    url: typeof window !== 'undefined' ? window.location.origin : "https://imsmrti.app",
     handleCodeInApp: false,
 };
 
@@ -291,12 +291,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             await setDoc(docRef, profileData, { merge: true });
         }
 
-        // Silently send email verification in background if email provided
+        // Send email verification in background if email provided
         if (email) {
             if (!firebaseUser.email) {
-                verifyBeforeUpdateEmail(firebaseUser, email, actionCodeSettings).catch(() => {});
+                verifyBeforeUpdateEmail(firebaseUser, email, actionCodeSettings).catch((err) => console.error("Email verification failed:", err));
             } else {
-                sendEmailVerification(firebaseUser, actionCodeSettings).catch(() => {});
+                sendEmailVerification(firebaseUser, actionCodeSettings).catch((err) => console.error("Email verification failed:", err));
             }
         }
         

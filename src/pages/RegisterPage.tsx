@@ -50,9 +50,10 @@ export function RegisterPage() {
             setStep("otp");
         } catch (err: unknown) {
             const code = (err as { code?: string })?.code;
+            const msg = (err as { message?: string })?.message || String(err);
             if (code === "auth/invalid-phone-number") setError("Invalid phone number. Include country code.");
             else if (code === "auth/too-many-requests") setError("Too many attempts. Please try again later.");
-            else setError("Failed to send OTP. Please try again.");
+            else setError(`Error: ${msg}`);
             console.error(err);
         } finally { setLoading(false); }
     };
