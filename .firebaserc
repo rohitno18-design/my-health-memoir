@@ -1,5 +1,6 @@
 {
   "projects": {
-    "default": "im-smrti"
+    "default": "im-smrti",
+    "staging": "im-smrti-staging"
   }
 }

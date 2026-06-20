@@ -11,7 +11,7 @@ import { getAnalytics } from "firebase/analytics";
 // security is enforced entirely via Firestore/Storage rules).
 const firebaseConfig = {
     apiKey: import.meta.env.VITE_FIREBASE_API_KEY ?? "AIzaSyC5c1HePuiM84Z8qqhJJH603K0uIwo-JGQ",
-    authDomain: "imsmrti.app",
+    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN ?? "imsmrti.app",
     projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID ?? "im-smrti",
     storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET ?? "im-smrti.firebasestorage.app",
     messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID ?? "541123545766",

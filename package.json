@@ -7,7 +7,10 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "build:staging": "tsc -b && vite build --mode staging",
+    "deploy:staging": "npm run build:staging && firebase deploy --only hosting --project staging",
+    "deploy:prod": "npm run build && firebase deploy --only hosting --project default"
   },
   "dependencies": {
     "@capacitor/core": "^7.0.0",
