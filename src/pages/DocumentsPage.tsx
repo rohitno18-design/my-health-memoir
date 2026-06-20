@@ -1482,7 +1482,7 @@ export function DocumentsPage() {
             )}
 
             {/* View Summary Modal */}
-            {viewSummary && (
+            {viewSummary && createPortal(
                 <div className="fixed inset-0 z-[110] bg-black/50 flex items-end sm:items-center justify-center p-0 sm:p-4 pt-safe pb-safe">
                     <div className="w-full max-w-2xl bg-white rounded-t-[2.5rem] sm:rounded-[2.5rem] flex flex-col shadow-2xl animate-in slide-in-from-bottom-5 duration-300 max-h-[92dvh] overflow-hidden">
                         <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-violet-50 rounded-t-[2.5rem] text-violet-900 flex-shrink-0 relative">
@@ -1521,7 +1521,7 @@ export function DocumentsPage() {
                         </div>
                     </div>
                 </div>
-            )}
+            , document.body)}
 
             {/* Language Selection Modal */}
             {
@@ -1602,7 +1602,7 @@ export function DocumentsPage() {
             }
 
             {/* Edit Document Modal */}
-            {editingDoc && (
+            {editingDoc && createPortal(
                 <div className="fixed inset-0 z-[110] bg-black/50 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4 pt-safe pb-safe" onClick={() => setEditingDoc(null)}>
                     <div className="w-full max-w-xl bg-white rounded-t-[2.5rem] sm:rounded-[2.5rem] flex flex-col shadow-2xl max-h-[88dvh]" onClick={e => e.stopPropagation()}>
                         <div className="p-6 border-b flex justify-between items-center bg-slate-50 rounded-t-[2.5rem] flex-shrink-0">
@@ -1724,9 +1724,9 @@ export function DocumentsPage() {
                         </div>
                     </div>
                 </div>
-            )}
+            , document.body)}
             {/* Linked Events Management Modal */}
-            {viewingLinksDoc && (
+            {viewingLinksDoc && createPortal(
                 <div className="fixed inset-0 z-[110] bg-black/50 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4 pt-safe pb-safe" onClick={() => setViewingLinksDoc(null)}>
                     <div className="w-full max-w-sm bg-white rounded-t-[2.5rem] sm:rounded-[2rem] p-6 shadow-2xl animate-in slide-in-from-bottom-5 duration-200 relative overflow-hidden" onClick={e => e.stopPropagation()}>
                         <div className="absolute top-0 right-0 size-32 bg-violet-500/10 rounded-full blur-3xl pointer-events-none -z-10"></div>
@@ -1770,7 +1770,7 @@ export function DocumentsPage() {
                         </button>
                     </div>
                 </div>
-            )}
+            , document.body)}
 
             <DocumentViewerModal 
                 isOpen={viewerOpen}
@@ -1780,7 +1780,7 @@ export function DocumentsPage() {
                 type={viewerData.type}
             />
 
-            {createFolderModalOpen && (
+            {createFolderModalOpen && createPortal(
                 <div className="fixed inset-0 z-[110] flex items-center justify-center p-6">
                     <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setCreateFolderModalOpen(false)} />
                     <div className="bg-white rounded-3xl p-6 w-full max-w-xs relative z-10 shadow-2xl">
@@ -1802,10 +1802,10 @@ export function DocumentsPage() {
                         </form>
                     </div>
                 </div>
-            )}
+            , document.body)}
 
             {/* Rename Folder Modal */}
-            {renamingFolder && (
+            {renamingFolder && createPortal(
                 <div className="fixed inset-0 z-[110] flex items-center justify-center p-6">
                     <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setRenamingFolder(null)} />
                     <div className="bg-white rounded-3xl p-6 w-full max-w-xs relative z-10 shadow-2xl">
@@ -1827,10 +1827,10 @@ export function DocumentsPage() {
                         </div>
                     </div>
                 </div>
-            )}
+            , document.body)}
 
             {/* Delete Folder Confirmation Modal */}
-            {deletingFolder && (
+            {deletingFolder && createPortal(
                 <div className="fixed inset-0 z-[110] flex items-center justify-center p-6">
                     <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => { setDeletingFolder(null); setDeleteFolderDocs(false); }} />
                     <div className="bg-white rounded-3xl p-6 w-full max-w-xs relative z-10 shadow-2xl">
@@ -1870,7 +1870,7 @@ export function DocumentsPage() {
                         </div>
                     </div>
                 </div>
-            )}
+            , document.body)}
         {/* Event Editor Modal */}
         {createEventModalOpen && createPortal(
             <div className="fixed inset-0 z-[210] flex items-center justify-center p-4 pt-safe pb-safe bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200">
@@ -1973,7 +1973,7 @@ export function DocumentsPage() {
         )}
 
         {/* Add Document to Event Modal */}
-        {addDocToEventId && (
+        {addDocToEventId && createPortal(
             <div className="fixed inset-0 z-[110] bg-black/50 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4 pt-safe pb-safe" onClick={() => setAddDocToEventId(null)}>
                 <div className="w-full max-w-sm bg-white rounded-t-[2.5rem] sm:rounded-[2rem] p-6 shadow-2xl animate-in slide-in-from-bottom-5 duration-200 relative overflow-hidden" onClick={e => e.stopPropagation()}>
                     <div className="flex items-center justify-between mb-4">
@@ -2017,10 +2017,10 @@ export function DocumentsPage() {
                     </div>
                 </div>
             </div>
-        )}
+        , document.body)}
 
         {/* Move to Folder Modal */}
-        {moveDocId && (
+        {moveDocId && createPortal(
             <div className="fixed inset-0 z-[110] bg-black/50 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4 pt-safe pb-safe" onClick={() => setMoveDocId(null)}>
                 <div className="w-full max-w-sm bg-white rounded-t-[2.5rem] sm:rounded-[2rem] p-6 shadow-2xl animate-in slide-in-from-bottom-5 duration-200 relative overflow-hidden" onClick={e => e.stopPropagation()}>
                     <div className="flex items-center justify-between mb-4">
@@ -2056,13 +2056,13 @@ export function DocumentsPage() {
                     </div>
                 </div>
             </div>
-        )}
+        , document.body)}
 
         {/* Global Document Action Menu (Fixed Overlay) */}
         {activeDocMenu && (() => {
             const doc = docs.find(d => d.id === activeDocMenu);
             if (!doc) return null;
-            return (
+            return createPortal(
                 <div className="fixed inset-0 z-[110] bg-black/40 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 pt-safe pb-safe" onClick={() => setActiveDocMenu(null)}>
                     <div className="w-full max-w-sm bg-white rounded-t-[2.5rem] sm:rounded-[2rem] shadow-2xl animate-in slide-in-from-bottom-5 duration-200 relative overflow-hidden flex flex-col" onClick={e => e.stopPropagation()}>
                         <div className="px-6 pt-6 pb-4 border-b border-slate-100 flex items-center justify-between">
@@ -2082,7 +2082,7 @@ export function DocumentsPage() {
                                 {downloadingDocId === doc.id ? <Loader2 size={18} className="animate-spin text-slate-400" /> : <Download size={18} className="text-slate-400" />} Download
                             </button>
                             <button onClick={() => { setActiveDocMenu(null); openAddToTimeline(doc); }} className="w-full px-4 py-3 text-left text-sm font-bold text-slate-700 hover:bg-slate-50 rounded-xl flex items-center gap-3 transition-colors">
-                                <Activity size={18} className="text-slate-400" /> Add to Timeline
+                                <Activity size={18} className="text-slate-400" /> {t("documents.addToTimeline")}
                             </button>
                             <button onClick={() => { setActiveDocMenu(null); setShareDoc(doc); setSharedLink(""); setSharePin(""); setShareExpiry("24h"); }} className="w-full px-4 py-3 text-left text-sm font-bold text-slate-700 hover:bg-slate-50 rounded-xl flex items-center gap-3 transition-colors">
                                 <LinkIcon size={18} className="text-slate-400" /> Share Securely
@@ -2111,11 +2111,11 @@ export function DocumentsPage() {
                         </div>
                     </div>
                 </div>
-            );
+            , document.body);
         })()}
 
         {/* Share Modal */}
-        {shareDoc && (
+        {shareDoc && createPortal(
             <div className="fixed inset-0 z-[120] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
                 <div className="w-full max-w-sm bg-white rounded-3xl p-6 shadow-2xl relative overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
                     <div className="flex justify-between items-center mb-6 shrink-0">
@@ -2246,7 +2246,7 @@ export function DocumentsPage() {
                     )}
                 </div>
             </div>
-        )}
+        , document.body)}
 
         </div>
     );
