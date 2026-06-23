@@ -75,7 +75,7 @@ const isGeminiSupported = (file: File): boolean => {
 
 
 export function DashboardPage() {
-    const { userProfile, user } = useAuth();
+    const { userProfile, user, isPremium } = useAuth();
     const { flags } = useFeatureFlags();
     const navigate = useNavigate();
     const { t } = useTranslation();
@@ -658,36 +658,40 @@ export function DashboardPage() {
                         </div>
                       )}
                       
-                      <div className="space-y-1">
-                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Select Folder</label>
-                        <select value={form.folderId} onChange={e => setForm({...form, folderId: e.target.value})} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold text-slate-700">
-                          <option value="">No Folder (Document Vault)</option>
-                          {folders.filter(f => !form.patientId || form.patientId === "NEW_PATIENT" || f.patientId === form.patientId).map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
-                          <option value="NEW">+ Create New Folder</option>
-                        </select>
-                      </div>
-                      
-                      {form.folderId === "NEW" && (
-                        <div className="space-y-1">
-                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">New Folder Name</label>
-                          <input required type="text" placeholder="e.g. 2024 Dental Records" value={form.newFolderName} onChange={e => setForm({...form, newFolderName: e.target.value})} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold text-slate-700" />
-                        </div>
-                      )}
+                      {isPremium && (
+                        <>
+                          <div className="space-y-1">
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Select Folder</label>
+                            <select value={form.folderId} onChange={e => setForm({...form, folderId: e.target.value})} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold text-slate-700">
+                              <option value="">No Folder (Document Vault)</option>
+                              {folders.filter(f => !form.patientId || form.patientId === "NEW_PATIENT" || f.patientId === form.patientId).map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
+                              <option value="NEW">+ Create New Folder</option>
+                            </select>
+                          </div>
+                          
+                          {form.folderId === "NEW" && (
+                            <div className="space-y-1">
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">New Folder Name</label>
+                              <input required type="text" placeholder="e.g. 2024 Dental Records" value={form.newFolderName} onChange={e => setForm({...form, newFolderName: e.target.value})} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold text-slate-700" />
+                            </div>
+                          )}
 
-                      <div className="space-y-1">
-                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Event</label>
-                        <select value={form.eventId} onChange={e => setForm({...form, eventId: e.target.value})} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold text-slate-700">
-                          <option value="">No Event (Document Vault)</option>
-                          {lifeEvents.filter(e => !form.patientId || e.patientId === form.patientId).map(ev => <option key={ev.id} value={ev.id}>{ev.title} ({ev.date})</option>)}
-                          <option value="NEW">+ Create New Event</option>
-                        </select>
-                      </div>
+                          <div className="space-y-1">
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Event</label>
+                            <select value={form.eventId} onChange={e => setForm({...form, eventId: e.target.value})} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold text-slate-700">
+                              <option value="">No Event (Document Vault)</option>
+                              {lifeEvents.filter(e => !form.patientId || e.patientId === form.patientId).map(ev => <option key={ev.id} value={ev.id}>{ev.title} ({ev.date})</option>)}
+                              <option value="NEW">+ Create New Event</option>
+                            </select>
+                          </div>
 
-                      {form.eventId === "NEW" && (
-                        <div className="space-y-1">
-                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">New Event Title</label>
-                          <input required type="text" placeholder="e.g. Doctor Visit" value={form.newEventTitle} onChange={e => setForm({...form, newEventTitle: e.target.value})} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold text-slate-700" />
-                        </div>
+                          {form.eventId === "NEW" && (
+                            <div className="space-y-1">
+                              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">New Event Title</label>
+                              <input required type="text" placeholder="e.g. Doctor Visit" value={form.newEventTitle} onChange={e => setForm({...form, newEventTitle: e.target.value})} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold text-slate-700" />
+                            </div>
+                          )}
+                        </>
                       )}
                       
                       <div className="space-y-1">

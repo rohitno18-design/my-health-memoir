@@ -119,7 +119,7 @@ function Toast({ message }: { message: string }) {
 }
 
 export function PatientsPage() {
-    const { user } = useAuth();
+    const { user, isPremium } = useAuth();
     const navigate = useNavigate();
     const { t } = useTranslation();
     const [patients, setPatients] = useState<Patient[]>([]);
@@ -406,13 +406,15 @@ export function PatientsPage() {
                                 >
                                     <FileText size={15} />
                                 </div>
-                                <div
-                                    onClick={(e) => { e.stopPropagation(); setTimelinePatient(p); }}
-                                    className="w-9 h-9 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 hover:bg-blue-600 hover:text-white transition-all shadow-sm"
-                                    title={t("patients.lifeTimeline")}
-                                >
-                                    <Activity size={15} />
-                                </div>
+                                {isPremium && (
+                                    <div
+                                        onClick={(e) => { e.stopPropagation(); setTimelinePatient(p); }}
+                                        className="w-9 h-9 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 hover:bg-blue-600 hover:text-white transition-all shadow-sm"
+                                        title={t("patients.lifeTimeline")}
+                                    >
+                                        <Activity size={15} />
+                                    </div>
+                                )}
                             </div>
                         </div>
                     ))}

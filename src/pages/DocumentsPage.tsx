@@ -1073,20 +1073,21 @@ export function DocumentsPage() {
                                     <span className="material-symbols-outlined text-4xl text-slate-300 block mb-2">folder_shared</span>
                                     <p className="font-bold text-slate-700 text-[15px]">Select a family member to view their documents</p>
                                 </div>
-                                <button
-                                    onClick={() => navigate('/timeline')}
-                                    className="inline-flex items-center gap-2 bg-blue-50 text-blue-600 px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-blue-100 transition-colors shadow-sm"
-                                >
-                                    <Activity size={16} /> View Global Life Timeline
-                                </button>
+                                {isPremium && (
+                                    <button
+                                        onClick={() => navigate('/timeline')}
+                                        className="inline-flex items-center gap-2 bg-blue-50 text-blue-600 px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-blue-100 transition-colors shadow-sm"
+                                    >
+                                        <Activity size={16} /> View Global Life Timeline
+                                    </button>
+                                )}
                             </div>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 {patients.map(p => {
                                     const docCount = docs.filter(d => d.patientId === p.id).length;
                                     return (
-                                        <button
+                                        <div
                                             key={p.id}
-                                            onClick={() => handlePatientChange(p.id)}
                                             className="bg-white/60 backdrop-blur-md border border-white/60 rounded-[1.5rem] px-5 py-5 flex flex-col items-center gap-3 shadow-sm hover:shadow-md hover:border-primary/30 transition-all text-center group"
                                         >
                                             <div className="size-16 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 group-hover:scale-105 transition-transform overflow-hidden border border-blue-100 shadow-sm">
@@ -1100,7 +1101,21 @@ export function DocumentsPage() {
                                                 <span className="text-[15px] font-extrabold text-slate-800 block line-clamp-1">{p.name}</span>
                                                 <span className="text-[12px] font-bold text-slate-500">{docCount} Documents</span>
                                             </div>
-                                        </button>
+                                            <div className="flex gap-2 w-full mt-2">
+                                                <button
+                                                    onClick={() => handlePatientChange(p.id)}
+                                                    className="flex-1 bg-primary text-primary-foreground text-[11px] font-bold py-2 px-1 rounded-xl flex items-center justify-center gap-1 hover:bg-primary/90 transition-colors"
+                                                >
+                                                    <FolderOpen size={14} /> My Documents
+                                                </button>
+                                                <button
+                                                    onClick={() => navigate('/patients')}
+                                                    className="flex-[0.6] bg-slate-100 text-slate-700 text-[11px] font-bold py-2 px-1 rounded-xl flex items-center justify-center gap-1 hover:bg-slate-200 transition-colors"
+                                                >
+                                                    <Edit2 size={14} /> Edit
+                                                </button>
+                                            </div>
+                                        </div>
                                     );
                                 })}
                             </div>
