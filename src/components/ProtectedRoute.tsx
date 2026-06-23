@@ -5,10 +5,11 @@ import { useAuth } from "@/contexts/AuthContext";
 interface ProtectedRouteProps {
     children: React.ReactNode;
     requireAdmin?: boolean;
+    requirePremium?: boolean;
 }
 
-export function ProtectedRoute({ children, requireAdmin = false }: ProtectedRouteProps) {
-    const { user, userProfile, loading } = useAuth();
+export function ProtectedRoute({ children, requireAdmin = false, requirePremium = false }: ProtectedRouteProps) {
+    const { user, userProfile, loading, isPremium } = useAuth();
     const location = useLocation();
 
     if (loading) {
@@ -30,6 +31,10 @@ export function ProtectedRoute({ children, requireAdmin = false }: ProtectedRout
         if (!isAdminByRole && !isAdminByEmail) {
             return <Navigate to="/dashboard" replace />;
         }
+    }
+
+    if (requirePremium && !isPremium) {
+        return <Navigate to="/premium" replace />;
     }
 
     if (userProfile?.suspended) {

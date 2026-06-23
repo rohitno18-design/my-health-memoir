@@ -46,6 +46,7 @@ export interface UserProfile {
     role: "patient" | "admin";
     preferredLanguage?: string;
     suspended?: boolean;
+    tier?: "free" | "premium";
     createdAt?: unknown;
 }
 
@@ -54,6 +55,7 @@ interface AuthContextType {
     userProfile: UserProfile | null;
     loading: boolean;
     isAdmin: boolean;
+    isPremium: boolean;
     isFullyVerified: boolean;
     hasPassword: boolean;
     // Phone auth
@@ -167,6 +169,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 phoneVerified: !!firebaseUser.phoneNumber,
                 preferredLanguage: "English",
                 role: "patient",
+                tier: "free",
                 createdAt: serverTimestamp(),
             };
             await setDoc(docRef, newProfile);
@@ -284,6 +287,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 bio: null, gender: null, dob: null, bloodGroup: null,
                 emailVerified: false,
                 preferredLanguage: preferredLanguage || "English",
+                tier: "free",
                 createdAt: serverTimestamp(),
             });
         } else {
@@ -329,7 +333,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             uid: cred.user.uid, email: cred.user.email, displayName: name,
             phoneNumber: null, photoURL: null, bio: null, gender: null,
             dob: null, bloodGroup: null, emailVerified: false, phoneVerified: false,
-            role: "patient", createdAt: serverTimestamp(),
+            role: "patient", tier: "free", createdAt: serverTimestamp(),
         };
         await setDoc(doc(db, "users", cred.user.uid), profile, { merge: true });
         setUserProfile(profile);
@@ -487,11 +491,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     const isFullyVerified = !!(userProfile?.emailVerified || userProfile?.phoneVerified);
+    const isAdmin = userProfile?.role === "admin" || user?.email === "rohit.official36@gmail.com" || user?.email === "rohit.no18@gmail.com";
+    const isPremium = isAdmin || userProfile?.tier === "premium";
 
     return (
         <AuthContext.Provider value={{
             user, userProfile, loading,
-            isAdmin: userProfile?.role === "admin" || user?.email === "rohit.official36@gmail.com" || user?.email === "rohit.no18@gmail.com",
+            isAdmin,
+            isPremium,
             isFullyVerified, hasPassword: user?.providerData?.some(p => p?.providerId === 'password') || false,
             sendOtp, confirmOtp, setupPhoneProfile, sendPhoneChangeOtp, verifyPhoneChangeOtp,
             login, registerWithEmail, logout,

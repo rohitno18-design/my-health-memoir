@@ -3,7 +3,14 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTranslation } from "react-i18next";
 
-const navItems = [
+const freeNavItems = [
+    { path: "/dashboard", mIcon: "home", labelKey: "nav.home" },
+    { path: "/patients", mIcon: "group", labelKey: "nav.family" },
+    { path: "/reminders", mIcon: "notifications_active", labelKey: "nav.reminders" },
+    { path: "/premium", mIcon: "star", labelKey: "nav.premium" },
+];
+
+const premiumNavItems = [
     { path: "/dashboard", mIcon: "home", labelKey: "nav.home" },
     { path: "/patients", mIcon: "group", labelKey: "nav.family" },
     { path: "/documents", mIcon: "folder_managed", labelKey: "nav.docs" },
@@ -18,10 +25,13 @@ const adminNavItems = [
 export function BottomNav() {
     const navigate = useNavigate();
     const location = useLocation();
-    const { isAdmin } = useAuth();
+    const { isAdmin, isPremium } = useAuth();
     const { t } = useTranslation();
 
-    const items = isAdmin ? [...navItems, ...adminNavItems] : navItems;
+    let items = isPremium ? premiumNavItems : freeNavItems;
+    if (isAdmin) {
+        items = [...items, ...adminNavItems];
+    }
 
     return (
         // Fixed at bottom, includes safe-area padding so the nav pill clears the iPhone home indicator
@@ -47,7 +57,9 @@ export function BottomNav() {
                                 )}
                             >
                                 <span className={cn("material-symbols-outlined text-[22px] mb-[2px] transition-transform", active && "fill-1 scale-110")}>{mIcon}</span>
-                                <span className={cn("text-[10px] tracking-wide transition-all leading-none", active ? "font-bold" : "font-semibold")}>{t(labelKey)}</span>
+                                <span className={cn("text-[10px] tracking-wide transition-all leading-none", active ? "font-bold" : "font-semibold")}>
+                                    {labelKey === 'nav.premium' ? 'Premium' : t(labelKey)}
+                                </span>
                             </button>
                         );
                     })}

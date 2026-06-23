@@ -89,6 +89,8 @@ export function DocumentsPage() {
 
     // Organization States
     const [viewMode, setViewMode] = useState<"list" | "dashboard" | "timeline" | "folder">("list");
+    const { user, isPremium } = useAuth();
+    const { t } = useTranslation();
     const [viewingFolderId, setViewingFolderId] = useState<string | null>(null);
     const [timelineFilterCategory, setTimelineFilterCategory] = useState<string | null>(null);
     const [timelineFilterFolderId, setTimelineFilterFolderId] = useState<string | null>(null);
@@ -1142,12 +1144,12 @@ export function DocumentsPage() {
                     {showFilters && (
                         <div className="glass-card rounded-2xl p-4 shadow-sm border border-white/40 mb-6">
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 animate-in slide-in-from-top-2 duration-200">
-                                <select value={filterFolder} onChange={e => setFilterFolder(e.target.value)} className="px-4 py-3 rounded-xl border border-white/40 bg-white/60 text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-primary/20 appearance-none">
+                                <select value={filterFolder} onChange={e => setFilterFolder(e.target.value)} className={`px-4 py-3 rounded-xl border border-white/40 bg-white/60 text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-primary/20 appearance-none ${!isPremium ? 'hidden' : ''}`}>
                                     <option value="all">All Folders</option>
                                     {folders.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
                                 </select>
                                 
-                                <select value={filterEvent} onChange={e => setFilterEvent(e.target.value)} className="px-4 py-3 rounded-xl border border-white/40 bg-white/60 text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-primary/20 appearance-none">
+                                <select value={filterEvent} onChange={e => setFilterEvent(e.target.value)} className={`px-4 py-3 rounded-xl border border-white/40 bg-white/60 text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-primary/20 appearance-none ${!isPremium ? 'hidden' : ''}`}>
                                     <option value="all">All Events</option>
                                     {globalLifeEvents.filter(e => e.patientId === selectedPatientId).map(e => <option key={e.id} value={e.id}>{e.title}</option>)}
                                 </select>
@@ -1172,7 +1174,7 @@ export function DocumentsPage() {
                     )}
 
                     {/* View Toggles */}
-                    {!loading && (
+                    {!loading && isPremium && (
                         <div className="flex bg-white/40 backdrop-blur-md border border-white/40 p-1.5 rounded-[1.25rem] shadow-sm mt-2 relative z-10 w-full mb-4">
                             {/* Icon-only on small screens, icon+label on sm+ */}
                             <button
@@ -2081,28 +2083,34 @@ export function DocumentsPage() {
                             <button onClick={() => { setActiveDocMenu(null); handleDocDownload(doc); }} disabled={downloadingDocId === doc.id} className="w-full px-4 py-3 text-left text-sm font-bold text-slate-700 hover:bg-slate-50 rounded-xl flex items-center gap-3 transition-colors disabled:opacity-50">
                                 {downloadingDocId === doc.id ? <Loader2 size={18} className="animate-spin text-slate-400" /> : <Download size={18} className="text-slate-400" />} Download
                             </button>
-                            <button onClick={() => { setActiveDocMenu(null); openAddToTimeline(doc); }} className="w-full px-4 py-3 text-left text-sm font-bold text-slate-700 hover:bg-slate-50 rounded-xl flex items-center gap-3 transition-colors">
-                                <Activity size={18} className="text-slate-400" /> {t("documents.addToTimeline")}
-                            </button>
+                            {isPremium && (
+                                <button onClick={() => { setActiveDocMenu(null); openAddToTimeline(doc); }} className="w-full px-4 py-3 text-left text-sm font-bold text-slate-700 hover:bg-slate-50 rounded-xl flex items-center gap-3 transition-colors">
+                                    <Activity size={18} className="text-slate-400" /> {t("documents.addToTimeline")}
+                                </button>
+                            )}
                             <button onClick={() => { setActiveDocMenu(null); setShareDoc(doc); setSharedLink(""); setSharePin(""); setShareExpiry("24h"); }} className="w-full px-4 py-3 text-left text-sm font-bold text-slate-700 hover:bg-slate-50 rounded-xl flex items-center gap-3 transition-colors">
                                 <LinkIcon size={18} className="text-slate-400" /> Share Securely
                             </button>
-                            <button onClick={() => { setActiveDocMenu(null); handleDuplicateDoc(doc); }} className="w-full px-4 py-3 text-left text-sm font-bold text-slate-700 hover:bg-slate-50 rounded-xl flex items-center gap-3 transition-colors">
-                                <Save size={18} className="text-slate-400" /> Duplicate
-                            </button>
-                            <button onClick={() => { setActiveDocMenu(null); setMoveDocId(doc.id); }} className="w-full px-4 py-3 text-left text-sm font-bold text-slate-700 hover:bg-slate-50 rounded-xl flex items-center gap-3 transition-colors">
-                                <FolderOpen size={18} className="text-slate-400" /> Move to Folder
-                            </button>
-                            {doc.folderId && (
-                                <button onClick={async () => { 
-                                    setActiveDocMenu(null); 
-                                    try {
-                                        await updateDoc(fsDoc(db, 'documents', doc.id), { folderId: null });
-                                        setDocs(docs.map(d => d.id === doc.id ? { ...d, folderId: undefined } : d));
-                                    } catch (err) { alert("Failed to remove from folder"); }
-                                }} className="w-full px-4 py-3 text-left text-sm font-bold text-amber-600 hover:bg-amber-50 rounded-xl flex items-center gap-3 transition-colors">
-                                    <FolderMinus size={18} className="text-amber-500" /> Remove from Folder
-                                </button>
+                            {isPremium && (
+                                <>
+                                    <button onClick={() => { setActiveDocMenu(null); handleDuplicateDoc(doc); }} className="w-full px-4 py-3 text-left text-sm font-bold text-slate-700 hover:bg-slate-50 rounded-xl flex items-center gap-3 transition-colors">
+                                        <Save size={18} className="text-slate-400" /> Duplicate
+                                    </button>
+                                    <button onClick={() => { setActiveDocMenu(null); setMoveDocId(doc.id); }} className="w-full px-4 py-3 text-left text-sm font-bold text-slate-700 hover:bg-slate-50 rounded-xl flex items-center gap-3 transition-colors">
+                                        <FolderOpen size={18} className="text-slate-400" /> Move to Folder
+                                    </button>
+                                    {doc.folderId && (
+                                        <button onClick={async () => { 
+                                            setActiveDocMenu(null); 
+                                            try {
+                                                await updateDoc(fsDoc(db, 'documents', doc.id), { folderId: null });
+                                                setDocs(docs.map(d => d.id === doc.id ? { ...d, folderId: undefined } : d));
+                                            } catch (err) { alert("Failed to remove from folder"); }
+                                        }} className="w-full px-4 py-3 text-left text-sm font-bold text-amber-600 hover:bg-amber-50 rounded-xl flex items-center gap-3 transition-colors">
+                                            <FolderMinus size={18} className="text-amber-500" /> Remove from Folder
+                                        </button>
+                                    )}
+                                </>
                             )}
                             <div className="h-px bg-slate-100 my-2 mx-4" />
                             <button onClick={() => { setActiveDocMenu(null); handleQuickDeleteDoc(doc); }} className="w-full px-4 py-3 text-left text-sm font-bold text-red-600 hover:bg-red-50 rounded-xl flex items-center gap-3 transition-colors">

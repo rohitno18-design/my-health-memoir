@@ -26,6 +26,7 @@ const DocumentsPage = lazy(() => import("@/pages/DocumentsPage").then(m => ({ de
 const RemindersPage = lazy(() => import("@/pages/RemindersPage").then(m => ({ default: m.RemindersPage })));
 const ChatListPage = lazy(() => import("@/pages/ChatListPage").then(m => ({ default: m.ChatListPage })));
 const AIChatPage = lazy(() => import("@/pages/AIChatPage").then(m => ({ default: m.AIChatPage })));
+const PremiumPage = lazy(() => import("@/pages/PremiumPage").then(m => ({ default: m.PremiumPage })));
 const AdminPage = lazy(() => import("@/pages/AdminPage").then(m => ({ default: m.AdminPage })));
 const AdminUsersPage = lazy(() => import("@/pages/admin/AdminUsersPage").then(m => ({ default: m.AdminUsersPage })));
 const AdminContentPage = lazy(() => import("@/pages/admin/AdminContentPage").then(m => ({ default: m.AdminContentPage })));
@@ -85,8 +86,9 @@ function App() {
               <Route path="/documents" element={<DocumentsPage />} />
               <Route path="/reminders" element={<RemindersPage />} />
               <Route path="/notifications" element={<NotificationsPage />} />
-              <Route path="/ai-chat" element={<ChatListPage />} />
-              <Route path="/ai-chat/:chatId?" element={<AIChatPage />} />
+              <Route path="/premium" element={<PremiumPage />} />
+              <Route path="/ai-chat" element={<ProtectedRoute requirePremium><ChatListPage /></ProtectedRoute>} />
+              <Route path="/ai-chat/:chatId?" element={<ProtectedRoute requirePremium><AIChatPage /></ProtectedRoute>} />
               <Route path="/emergency" element={<EmergencyPage />} />
               <Route path="/admin">
                 <Route
