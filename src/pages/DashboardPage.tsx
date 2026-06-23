@@ -463,58 +463,68 @@ export function DashboardPage() {
                     </button>
                 </section>
 
-                <div className="grid grid-cols-2 gap-4 mt-2">
+                <div className="flex flex-col gap-3 mt-2">
                     {/* Documents */}
                     <motion.button
                         initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
                         onClick={() => navigate("/documents")}
-                        className="card-premium p-5 text-left hover:shadow-card-hover active:scale-[0.98] transition-all group"
+                        className="card-premium p-5 text-left hover:shadow-card-hover active:scale-[0.98] transition-all group flex items-center gap-4 w-full"
                     >
-                        <div className="size-12 rounded-2xl bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                            <FileText size={24} className="text-brand-indigo" />
+                        <div className="size-14 rounded-2xl bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                            <FileText size={26} className="text-brand-indigo" />
                         </div>
-                        <h3 className="font-black text-slate-800 text-sm mb-1">{t("documents.title") || "Health Vault"}</h3>
-                        <p className="text-[11px] font-bold text-slate-400 leading-tight">Upload & view medical documents</p>
-                    </motion.button>
-
-                    {/* Family */}
-                    <motion.button
-                        initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
-                        onClick={() => navigate("/patients")}
-                        className="card-premium p-5 text-left hover:shadow-card-hover active:scale-[0.98] transition-all group"
-                    >
-                        <div className="size-12 rounded-2xl bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                            <Users size={24} className="text-brand-purple" />
+                        <div>
+                            <h3 className="font-black text-slate-800 text-base mb-0.5">{t("documents.title") || "Medical Records"}</h3>
+                            <p className="text-[12px] font-bold text-slate-400 leading-tight">Upload & view medical documents</p>
                         </div>
-                        <h3 className="font-black text-slate-800 text-sm mb-1">{patients.length > 0 ? `${patients.length} ${t("nav.family") || "Family"}` : t("nav.family") || "Family"}</h3>
-                        <p className="text-[11px] font-bold text-slate-400 leading-tight">Manage family profiles</p>
                     </motion.button>
 
                     {/* Reminders */}
                     <motion.button
                         initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
                         onClick={() => navigate("/reminders")}
-                        className="card-premium p-5 text-left hover:shadow-card-hover active:scale-[0.98] transition-all group"
+                        className="card-premium p-5 text-left hover:shadow-card-hover active:scale-[0.98] transition-all group flex items-center gap-4 w-full"
                     >
-                        <div className="size-12 rounded-2xl bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                            <Bell size={24} className="text-amber-500" />
+                        <div className="size-14 rounded-2xl bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                            <Bell size={26} className="text-amber-500" />
                         </div>
-                        <h3 className="font-black text-slate-800 text-sm mb-1">{t("nav.reminders") || "Reminders"}</h3>
-                        <p className="text-[11px] font-bold text-slate-400 leading-tight">Manage health schedule</p>
+                        <div>
+                            <h3 className="font-black text-slate-800 text-base mb-0.5">{t("nav.reminders") || "Reminders"}</h3>
+                            <p className="text-[12px] font-bold text-slate-400 leading-tight">Manage health schedule</p>
+                        </div>
                     </motion.button>
 
-                    {/* AI Chat */}
+                    {/* Add Family Member */}
                     <motion.button
-                        initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}
-                        onClick={() => navigate("/ai-chat")}
-                        className="card-premium p-5 text-left hover:shadow-card-hover active:scale-[0.98] transition-all group"
+                        initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
+                        onClick={() => navigate("/patients?add=true")}
+                        className="card-premium p-5 text-left hover:shadow-card-hover active:scale-[0.98] transition-all group flex items-center gap-4 w-full"
                     >
-                        <div className="size-12 rounded-2xl bg-gradient-to-br from-purple-100 to-violet-100 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                            <Bot size={24} className="text-brand-accent" />
+                        <div className="size-14 rounded-2xl bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                            <Users size={26} className="text-brand-purple" />
                         </div>
-                        <h3 className="font-black text-slate-800 text-sm mb-1">AI Chat</h3>
-                        <p className="text-[11px] font-bold text-slate-400 leading-tight">Ask AI about your health</p>
+                        <div>
+                            <h3 className="font-black text-slate-800 text-base mb-0.5">{t("patients.newProfile") || "Add Family Member"}</h3>
+                            <p className="text-[12px] font-bold text-slate-400 leading-tight">Create a new family profile</p>
+                        </div>
                     </motion.button>
+
+                    {/* AI Chat (Premium Only) */}
+                    {isPremium && (
+                        <motion.button
+                            initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}
+                            onClick={() => navigate("/ai-chat")}
+                            className="card-premium p-5 text-left hover:shadow-card-hover active:scale-[0.98] transition-all group flex items-center gap-4 w-full"
+                        >
+                            <div className="size-14 rounded-2xl bg-gradient-to-br from-purple-100 to-violet-100 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                                <Bot size={26} className="text-brand-accent" />
+                            </div>
+                            <div>
+                                <h3 className="font-black text-slate-800 text-base mb-0.5">AI Chat</h3>
+                                <p className="text-[12px] font-bold text-slate-400 leading-tight">Ask AI about your health</p>
+                            </div>
+                        </motion.button>
+                    )}
                 </div>
             </main>
 

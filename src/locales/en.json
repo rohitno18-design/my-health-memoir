@@ -229,7 +229,7 @@
     "errorSignIn": "Failed to sign in. Please check your credentials."
   },
   "documents": {
-    "title": "Health Vault",
+    "title": "Medical Records",
     "uploadBtn": "New Upload",
     "upload": "Upload Document",
     "search": "Search documents...",
@@ -603,7 +603,7 @@
     "home": "Home",
     "family": "Family",
     "vitals": "Vitals",
-    "docs": "Docs",
+    "docs": "Records",
     "reminders": "Reminders",
     "ai": "AI Assistant",
     "admin": "Admin"

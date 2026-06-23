@@ -153,7 +153,12 @@ export function PatientsPage() {
 
     useEffect(() => {
         if (!user) return;
-        fetchPatients().finally(() => setLoading(false));
+        fetchPatients().finally(() => {
+            setLoading(false);
+            if (new URLSearchParams(window.location.search).get('add') === 'true') {
+                openCreate();
+            }
+        });
     }, [user]);
 
     const showToast = (msg: string) => {
@@ -370,50 +375,51 @@ export function PatientsPage() {
                     {patients.map(p => (
                         <div key={p.id}
                             onClick={() => navigate(`/documents?patientId=${p.id}`)}
-                            className="glass-card rounded-[1.5rem] p-4 flex items-center gap-4 cursor-pointer border border-white/40 hover:border-primary/40 hover:shadow-md transition-all group active:scale-[0.98]">
-                            <div className="w-14 h-14 rounded-[1rem] bg-orange-50/70 flex items-center justify-center flex-shrink-0 overflow-hidden border border-orange-100 shadow-inner">
-                                {p.photoURL ? (
-                                    <img src={p.photoURL} alt={p.name} className="w-full h-full object-cover" />
-                                ) : (
-                                    <span className="text-xl font-bold text-orange-600">
-                                        {p.name?.[0]?.toUpperCase() ?? <User size={24} />}
-                                    </span>
-                                )}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                                <p className="font-bold text-base truncate">{p.name}</p>
-                                <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mt-0.5 mb-2">
-                                    {p.relationship}
-                                </p>
-                                <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
-                                    <span className="bg-secondary/70 border border-border/50 px-2 py-0.5 rounded-lg font-medium">{calcAge(p.dob)} {t("patients.yrs")}</span>
-                                    {p.bloodGroup && <span className="bg-red-50 text-red-700 border border-red-100 px-2 py-0.5 rounded-lg font-bold">{p.bloodGroup}</span>}
-                                    {p.gender && <span className="bg-secondary/70 border border-border/50 px-2 py-0.5 rounded-lg font-medium">{p.gender}</span>}
+                            className="glass-card rounded-[1.5rem] p-4 flex flex-col gap-3 cursor-pointer border border-white/40 hover:border-primary/40 hover:shadow-md transition-all group active:scale-[0.98]">
+                            
+                            <div className="flex items-center gap-4">
+                                <div className="w-14 h-14 rounded-[1rem] bg-orange-50/70 flex items-center justify-center flex-shrink-0 overflow-hidden border border-orange-100 shadow-inner">
+                                    {p.photoURL ? (
+                                        <img src={p.photoURL} alt={p.name} className="w-full h-full object-cover" />
+                                    ) : (
+                                        <span className="text-xl font-bold text-orange-600">
+                                            {p.name?.[0]?.toUpperCase() ?? <User size={24} />}
+                                        </span>
+                                    )}
                                 </div>
-                            </div>
-                            <div className="flex flex-col gap-2">
-                                <div
-                                    onClick={(e) => { e.stopPropagation(); openEdit(p); }}
-                                    className="w-9 h-9 rounded-full bg-secondary flex items-center justify-center text-muted-foreground hover:bg-primary hover:text-primary-foreground transition-all shadow-sm"
-                                    title={t("common.edit")}
-                                >
-                                    <Pencil size={15} />
-                                </div>
-                                <div
-                                    onClick={(e) => { e.stopPropagation(); navigate(`/documents?patientId=${p.id}`); }}
-                                    className="w-9 h-9 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 hover:bg-blue-600 hover:text-white transition-all shadow-sm"
-                                    title={t("account.myDocs")}
-                                >
-                                    <FileText size={15} />
-                                </div>
-                                {isPremium && (
-                                    <div
-                                        onClick={(e) => { e.stopPropagation(); setTimelinePatient(p); }}
-                                        className="w-9 h-9 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 hover:bg-blue-600 hover:text-white transition-all shadow-sm"
-                                        title={t("patients.lifeTimeline")}
-                                    >
-                                        <Activity size={15} />
+                                <div className="flex-1 min-w-0">
+                                    <p className="font-bold text-base truncate">{p.name}</p>
+                                    <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mt-0.5 mb-2">
+                                        {p.relationship}
+                                    </p>
+                                    <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+                                        <span className="bg-secondary/70 border border-border/50 px-2 py-0.5 rounded-lg font-medium">{calcAge(p.dob)} {t("patients.yrs")}</span>
+                                        {p.bloodGroup && <span className="bg-red-50 text-red-700 border border-red-100 px-2 py-0.5 rounded-lg font-bold">{p.bloodGroup}</span>}
+                                        {p.gender && <span className="bg-secondary/70 border border-border/50 px-2 py-0.5 rounded-lg font-medium">{p.gender}</span>}
                                     </div>
+                                </div>
+                            </div>
+                            
+                            <div className="flex gap-2 w-full pt-1 border-t border-slate-100/50">
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); navigate(`/documents?patientId=${p.id}`); }}
+                                    className="flex-1 bg-primary text-primary-foreground text-[11px] font-bold py-2 px-1 rounded-xl flex items-center justify-center gap-1 hover:bg-primary/90 transition-colors"
+                                >
+                                    <FileText size={14} /> {t("account.myDocs")}
+                                </button>
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); openEdit(p); }}
+                                    className="flex-[0.6] bg-slate-100 text-slate-700 text-[11px] font-bold py-2 px-1 rounded-xl flex items-center justify-center gap-1 hover:bg-slate-200 transition-colors"
+                                >
+                                    <Edit2 size={14} /> {t("common.edit")}
+                                </button>
+                                {isPremium && (
+                                    <button
+                                        onClick={(e) => { e.stopPropagation(); setTimelinePatient(p); }}
+                                        className="flex-[0.6] bg-blue-50 text-blue-600 text-[11px] font-bold py-2 px-1 rounded-xl flex items-center justify-center gap-1 hover:bg-blue-600 hover:text-white transition-all"
+                                    >
+                                        <Activity size={14} /> {t("patients.lifeTimeline")}
+                                    </button>
                                 )}
                             </div>
                         </div>

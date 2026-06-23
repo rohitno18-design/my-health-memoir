@@ -5,14 +5,13 @@ import { useTranslation } from "react-i18next";
 
 const freeNavItems = [
     { path: "/dashboard", mIcon: "home", labelKey: "nav.home" },
-    { path: "/patients", mIcon: "group", labelKey: "nav.family" },
+    { path: "/documents", mIcon: "folder_managed", labelKey: "nav.docs" },
     { path: "/reminders", mIcon: "notifications_active", labelKey: "nav.reminders" },
     { path: "/premium", mIcon: "star", labelKey: "nav.premium" },
 ];
 
 const premiumNavItems = [
     { path: "/dashboard", mIcon: "home", labelKey: "nav.home" },
-    { path: "/patients", mIcon: "group", labelKey: "nav.family" },
     { path: "/documents", mIcon: "folder_managed", labelKey: "nav.docs" },
     { path: "/reminders", mIcon: "notifications_active", labelKey: "nav.reminders" },
     { path: "/ai-chat", mIcon: "auto_awesome", labelKey: "nav.ai" },
