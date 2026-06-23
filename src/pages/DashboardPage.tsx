@@ -478,14 +478,20 @@ export function DashboardPage() {
                     <motion.button
                         initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
                         onClick={() => navigate("/documents")}
-                        className="card-premium p-5 text-left hover:shadow-card-hover active:scale-[0.98] transition-all group flex items-center gap-4 w-full"
+                        className="relative overflow-hidden rounded-[1.5rem] p-5 text-left active:scale-[0.98] transition-all group flex flex-col justify-end min-h-[130px] w-full shadow-sm hover:shadow-md"
                     >
-                        <div className="size-14 rounded-2xl bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-                            <FileText size={26} className="text-brand-indigo" />
+                        <div className="absolute inset-0 w-full h-full">
+                            <img src="/assets/images/bg-records.png" alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out" />
+                            <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-slate-900/40 to-slate-900/10"></div>
                         </div>
-                        <div>
-                            <h3 className="font-black text-slate-800 text-base mb-0.5">{t("documents.title") || "Medical Records"}</h3>
-                            <p className="text-[12px] font-bold text-slate-400 leading-tight">Upload & view medical documents</p>
+                        <div className="relative z-10 flex items-center gap-4">
+                            <div className="size-12 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center shrink-0 group-hover:bg-white/30 transition-colors">
+                                <FileText size={24} className="text-white drop-shadow-md" />
+                            </div>
+                            <div>
+                                <h3 className="font-black text-white text-[1.05rem] tracking-tight mb-0.5 drop-shadow-md">{t("documents.title") || "Medical Records"}</h3>
+                                <p className="text-[12px] font-semibold text-slate-200 leading-tight drop-shadow-md">Upload & view medical documents</p>
+                            </div>
                         </div>
                     </motion.button>
 
@@ -493,14 +499,20 @@ export function DashboardPage() {
                     <motion.button
                         initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
                         onClick={() => navigate("/reminders")}
-                        className="card-premium p-5 text-left hover:shadow-card-hover active:scale-[0.98] transition-all group flex items-center gap-4 w-full"
+                        className="relative overflow-hidden rounded-[1.5rem] p-5 text-left active:scale-[0.98] transition-all group flex flex-col justify-end min-h-[130px] w-full shadow-sm hover:shadow-md"
                     >
-                        <div className="size-14 rounded-2xl bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-                            <Bell size={26} className="text-amber-500" />
+                        <div className="absolute inset-0 w-full h-full">
+                            <img src="/assets/images/bg-reminders.png" alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out" />
+                            <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-slate-900/40 to-slate-900/10"></div>
                         </div>
-                        <div>
-                            <h3 className="font-black text-slate-800 text-base mb-0.5">{t("nav.reminders") || "Reminders"}</h3>
-                            <p className="text-[12px] font-bold text-slate-400 leading-tight">Manage health schedule</p>
+                        <div className="relative z-10 flex items-center gap-4">
+                            <div className="size-12 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center shrink-0 group-hover:bg-white/30 transition-colors">
+                                <Bell size={24} className="text-white drop-shadow-md" />
+                            </div>
+                            <div>
+                                <h3 className="font-black text-white text-[1.05rem] tracking-tight mb-0.5 drop-shadow-md">{t("nav.reminders") || "Reminders"}</h3>
+                                <p className="text-[12px] font-semibold text-slate-200 leading-tight drop-shadow-md">Manage health schedule</p>
+                            </div>
                         </div>
                     </motion.button>
 
@@ -508,14 +520,20 @@ export function DashboardPage() {
                     <motion.button
                         initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
                         onClick={() => navigate("/patients?add=true")}
-                        className="card-premium p-5 text-left hover:shadow-card-hover active:scale-[0.98] transition-all group flex items-center gap-4 w-full"
+                        className="relative overflow-hidden rounded-[1.5rem] p-5 text-left active:scale-[0.98] transition-all group flex flex-col justify-end min-h-[130px] w-full shadow-sm hover:shadow-md"
                     >
-                        <div className="size-14 rounded-2xl bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-                            <Users size={26} className="text-brand-purple" />
+                        <div className="absolute inset-0 w-full h-full">
+                            <img src="/assets/images/bg-family.png" alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out" />
+                            <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-slate-900/40 to-slate-900/10"></div>
                         </div>
-                        <div>
-                            <h3 className="font-black text-slate-800 text-base mb-0.5">{t("patients.newProfile") || "Add Family Member"}</h3>
-                            <p className="text-[12px] font-bold text-slate-400 leading-tight">Create a new family profile</p>
+                        <div className="relative z-10 flex items-center gap-4">
+                            <div className="size-12 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center shrink-0 group-hover:bg-white/30 transition-colors">
+                                <Users size={24} className="text-white drop-shadow-md" />
+                            </div>
+                            <div>
+                                <h3 className="font-black text-white text-[1.05rem] tracking-tight mb-0.5 drop-shadow-md">{t("patients.newProfile") || "Add Family Member"}</h3>
+                                <p className="text-[12px] font-semibold text-slate-200 leading-tight drop-shadow-md">Create a new family profile</p>
+                            </div>
                         </div>
                     </motion.button>
 
@@ -524,14 +542,20 @@ export function DashboardPage() {
                         <motion.button
                             initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}
                             onClick={() => navigate("/ai-chat")}
-                            className="card-premium p-5 text-left hover:shadow-card-hover active:scale-[0.98] transition-all group flex items-center gap-4 w-full"
+                            className="relative overflow-hidden rounded-[1.5rem] p-5 text-left active:scale-[0.98] transition-all group flex flex-col justify-end min-h-[130px] w-full shadow-sm hover:shadow-md"
                         >
-                            <div className="size-14 rounded-2xl bg-gradient-to-br from-purple-100 to-violet-100 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-                                <Bot size={26} className="text-brand-accent" />
+                            <div className="absolute inset-0 w-full h-full">
+                                <img src="/assets/images/bg-ai.png" alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out" />
+                                <div className="absolute inset-0 bg-gradient-to-t from-purple-900/90 via-purple-900/40 to-slate-900/10"></div>
                             </div>
-                            <div>
-                                <h3 className="font-black text-slate-800 text-base mb-0.5">AI Chat</h3>
-                                <p className="text-[12px] font-bold text-slate-400 leading-tight">Ask AI about your health</p>
+                            <div className="relative z-10 flex items-center gap-4">
+                                <div className="size-12 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center shrink-0 group-hover:bg-white/30 transition-colors">
+                                    <Bot size={24} className="text-white drop-shadow-md" />
+                                </div>
+                                <div>
+                                    <h3 className="font-black text-white text-[1.05rem] tracking-tight mb-0.5 drop-shadow-md">AI Chat</h3>
+                                    <p className="text-[12px] font-semibold text-slate-200 leading-tight drop-shadow-md">Ask AI about your health</p>
+                                </div>
                             </div>
                         </motion.button>
                     )}
