@@ -124,9 +124,19 @@ export function LoginPage() {
                     <p className="text-muted-foreground text-sm mt-1">Welcome back</p>
                 </div>
 
-                <div className="glass-card rounded-[2rem] shadow-2xl border border-white/50 p-6 sm:p-8 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 size-32 bg-primary/10 rounded-full blur-3xl pointer-events-none -z-10" />
-                    <div className="absolute bottom-0 left-0 size-32 bg-blue-500/10 rounded-full blur-3xl pointer-events-none -z-10" />
+                <div className="glass-card rounded-[2rem] shadow-2xl border border-white/50 relative overflow-hidden">
+                    <div className="w-full h-32 relative">
+                        <img 
+                            src="/assets/images/login-bg.png" 
+                            alt="Care and Trust" 
+                            className="absolute inset-0 w-full h-full object-cover"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-white/90 to-transparent" />
+                    </div>
+                    
+                    <div className="p-6 sm:p-8 pt-2 relative z-10">
+                        <div className="absolute top-0 right-0 size-32 bg-primary/10 rounded-full blur-3xl pointer-events-none -z-10" />
+                        <div className="absolute bottom-0 left-0 size-32 bg-blue-500/10 rounded-full blur-3xl pointer-events-none -z-10" />
 
                     {/* Method toggle */}
                     <div className="flex bg-muted/50 p-1 rounded-2xl mb-6">
@@ -278,8 +288,10 @@ export function LoginPage() {
                     <p className="text-xs text-center mt-6 text-slate-400 font-mono">
                         {APP_VERSION}
                     </p>
+                    </div>
                 </div>
-                {/* Firebase ReCaptcha Widget Container (Invisible) */}
+
+                {/* Footer */}
                 <div id={recaptchaContainerId}></div>
             </div>
         </div>

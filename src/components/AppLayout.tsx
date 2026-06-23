@@ -11,7 +11,7 @@ const getValidEmail = (val: any) => {
     if (!val || typeof val !== 'string') return null;
     const t = val.trim();
     // Exclude dummy strings and ensure it looks like a real email
-    if (!t || t === "null" || t === "undefined" || t.length < 3 || !t.includes("@")) return null;
+    if (!t || t === "null" || t === "undefined" || t.length < 5 || !t.includes("@") || t.includes("example.com")) return null;
     return t;
 };
 
@@ -85,7 +85,7 @@ function VerificationBanner() {
                     <AlertCircle size={16} className="shrink-0" />
                     <span>
                         <span className="font-bold uppercase tracking-wider text-[10px] bg-amber-200/50 px-1.5 py-0.5 rounded mr-2">Step 2/3</span>
-                        Please verify <span className="font-bold">{emailToVerify}</span>
+                        Please verify your email: <span className="font-bold">{emailToVerify}</span>
                     </span>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
@@ -93,7 +93,7 @@ function VerificationBanner() {
                         onClick={() => navigate('/account')}
                         className="text-xs font-bold text-amber-700 bg-amber-200/50 px-3 py-1.5 rounded-full hover:bg-amber-200 transition-colors"
                     >
-                        Change
+                        Change Email
                     </button>
                     {sent ? (
                         <span className="text-amber-600 font-semibold text-xs bg-amber-100 px-3 py-1.5 rounded-full">Link sent!</span>
@@ -104,7 +104,7 @@ function VerificationBanner() {
                             className="text-xs font-bold bg-amber-600 text-white px-4 py-1.5 rounded-full hover:bg-amber-700 transition-colors flex items-center gap-2 disabled:opacity-70"
                         >
                             {sending ? <Loader2 size={12} className="animate-spin" /> : null}
-                            Resend
+                            Resend Link
                         </button>
                     )}
                 </div>

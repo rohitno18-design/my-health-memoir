@@ -1446,10 +1446,12 @@ export function DocumentsPage() {
                             {!loading && <p className="text-[11px] font-extrabold text-slate-500 uppercase tracking-wider">{t("documents.showingResults", { count: filteredDocs.length })}</p>}
 
                             {!loading && filteredDocs.length === 0 && (
-                                <div className="glass-card text-center p-12 text-slate-500 rounded-[2rem] border border-white/40 shadow-sm mt-4">
-                                    <FileText size={40} className="mx-auto mb-3 opacity-30" />
-                                    <p className="font-bold text-foreground">{t("documents.noDocs")}</p>
-                                    <p className="text-sm mt-1 max-w-xs mx-auto">{t("documents.searchAdjust")}</p>
+                                <div className="glass-card text-center p-8 text-slate-500 rounded-[2rem] border border-white/40 shadow-sm mt-4 flex flex-col items-center">
+                                    <div className="w-40 h-40 mb-6 relative">
+                                        <img src="/assets/images/document-empty-state.png" alt="No documents" className="absolute inset-0 w-full h-full object-contain" />
+                                    </div>
+                                    <p className="font-bold text-foreground text-lg mb-1">{t("documents.empty")}</p>
+                                    <p className="text-sm max-w-xs mx-auto">Upload medical reports, prescriptions, and test results here.</p>
                                 </div>
                             )}
 

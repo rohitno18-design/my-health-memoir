@@ -432,14 +432,24 @@ export function DashboardPage() {
                   </motion.div>
                 )}
 
-                {/* Greeting */}
+                {/* Hero Banner */}
                 <section>
-                    <motion.p initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">
-                        {formatGreeting()}, {userProfile?.displayName?.split(' ')[0] || t("dashboard.guest")}
-                    </motion.p>
-                    <motion.h2 initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="text-3xl font-black text-slate-900 leading-tight tracking-tighter">
-                        {t("dashboard.healthAtAGlance1")} <br /> <span className="text-blue-600">{t("dashboard.healthAtAGlance2")}</span>
-                    </motion.h2>
+                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="relative w-full rounded-[2.5rem] overflow-hidden shadow-sm bg-slate-900 h-[220px]">
+                        <img 
+                            src="/assets/images/dashboard-hero.png" 
+                            alt="Family Health" 
+                            className="absolute inset-0 w-full h-full object-cover opacity-80"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-slate-900/40 to-transparent" />
+                        <div className="absolute inset-0 p-6 flex flex-col justify-end">
+                            <motion.p initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="text-xs font-black text-white/80 uppercase tracking-widest mb-1">
+                                {formatGreeting()}, {userProfile?.displayName?.split(' ')[0] || t("dashboard.guest")}
+                            </motion.p>
+                            <motion.h2 initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="text-2xl font-black text-white leading-tight tracking-tighter">
+                                Secure your family's <br /> <span className="text-blue-400">health legacy</span>
+                            </motion.h2>
+                        </div>
+                    </motion.div>
                 </section>
 
                 {/* 1. Quick Actions (Core Value Loop) */}
