@@ -4,7 +4,7 @@ import { logUserAction } from "@/lib/audit";
 import { collection, query, where, getDocs, addDoc, doc, updateDoc, serverTimestamp, deleteDoc, setDoc } from "firebase/firestore";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { db, storage } from "@/lib/firebase";
-import { Plus, User, Users, Loader2, Pencil, Trash2, X, CheckCircle2, Camera, AlertTriangle, FileText, Activity, QrCode } from "lucide-react";
+import { Plus, User, Users, Loader2, Edit2, Trash2, X, CheckCircle2, Camera, AlertTriangle, FileText, Activity, QrCode } from "lucide-react";
 import { LifeTimeline } from "@/components/LifeTimeline";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
