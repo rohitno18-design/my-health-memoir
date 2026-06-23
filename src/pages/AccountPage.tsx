@@ -761,7 +761,7 @@ export function AccountPage() {
                                         <div className="size-11 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center"><Mail size={18} /></div>
                                         <div className="text-left font-lexend">
                                             <p className="text-sm font-black uppercase tracking-tight text-slate-900">{t("account.changeEmail")}</p>
-                                            <p className="text-[10px] font-bold text-slate-400 mt-1">{user?.email || "Not Set"}</p>
+                                            <p className="text-[10px] font-bold text-slate-400 mt-1">{(userProfile as any)?.pendingEmail || userProfile?.email || user?.email || "Not Set"}</p>
                                         </div>
                                     </div>
                                     <ChevronRight size={16} className="text-slate-300" />

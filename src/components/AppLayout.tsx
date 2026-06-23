@@ -78,24 +78,36 @@ function VerificationBanner() {
 
     // STEP 2: Verify Email
     if (!isEmailVerified || pendingEmailStr) {
+        const emailToVerify = pendingEmailStr || emailStr;
         return (
             <div className="bg-amber-50 border-b border-amber-200 px-4 py-3 text-sm flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-2">
                 <div className="flex items-center gap-2 text-amber-800 font-medium leading-tight">
                     <AlertCircle size={16} className="shrink-0" />
-                    <span><span className="font-bold uppercase tracking-wider text-[10px] bg-amber-200/50 px-1.5 py-0.5 rounded mr-2">Step 2/3</span>Please verify your email address.</span>
+                    <span>
+                        <span className="font-bold uppercase tracking-wider text-[10px] bg-amber-200/50 px-1.5 py-0.5 rounded mr-2">Step 2/3</span>
+                        Please verify <span className="font-bold">{emailToVerify}</span>
+                    </span>
                 </div>
-                {sent ? (
-                    <span className="text-amber-600 font-semibold shrink-0 text-xs bg-amber-100 px-3 py-1.5 rounded-full">Link sent!</span>
-                ) : (
+                <div className="flex items-center gap-2 shrink-0">
                     <button
-                        onClick={handleResend}
-                        disabled={sending}
-                        className="text-xs font-bold bg-amber-600 text-white px-4 py-1.5 rounded-full hover:bg-amber-700 transition-colors shrink-0 flex items-center gap-2 disabled:opacity-70"
+                        onClick={() => navigate('/account')}
+                        className="text-xs font-bold text-amber-700 bg-amber-200/50 px-3 py-1.5 rounded-full hover:bg-amber-200 transition-colors"
                     >
-                        {sending ? <Loader2 size={12} className="animate-spin" /> : null}
-                        Resend Link
+                        Change
                     </button>
-                )}
+                    {sent ? (
+                        <span className="text-amber-600 font-semibold text-xs bg-amber-100 px-3 py-1.5 rounded-full">Link sent!</span>
+                    ) : (
+                        <button
+                            onClick={handleResend}
+                            disabled={sending}
+                            className="text-xs font-bold bg-amber-600 text-white px-4 py-1.5 rounded-full hover:bg-amber-700 transition-colors flex items-center gap-2 disabled:opacity-70"
+                        >
+                            {sending ? <Loader2 size={12} className="animate-spin" /> : null}
+                            Resend
+                        </button>
+                    )}
+                </div>
             </div>
         );
     }
