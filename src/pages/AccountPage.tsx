@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import {
@@ -7,7 +8,7 @@ import {
     AlertTriangle, X,
     Bell, Share2, Sparkles, CheckCircle2, RefreshCw, ScanLine, Globe,
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+// Remove old useNavigate import since it's now grouped
 import {
     doc, updateDoc, collection, getDocs
 } from "firebase/firestore";
@@ -636,8 +637,23 @@ export function AccountPage() {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
     const fileRef = useRef<HTMLInputElement>(null);
+    const [searchParams, setSearchParams] = useSearchParams();
 
     const isEmailVerified = userProfile?.emailVerified || user?.emailVerified || false;
+
+    useEffect(() => {
+        const action = searchParams.get('action');
+        if (action === 'email') {
+            setShowEmailModal(true);
+            setSearchParams({}); // clear param
+        } else if (action === 'password') {
+            setShowPwModal(true);
+            setSearchParams({});
+        } else if (action === 'phone') {
+            setShowPhoneModal(true);
+            setSearchParams({});
+        }
+    }, [searchParams]);
 
     useEffect(() => {
         const h = async () => { if (document.visibilityState === "visible" && user?.uid) await refreshUser().catch(e => console.error(e)); };
@@ -667,8 +683,11 @@ export function AccountPage() {
             {toast && <Toast message={toast.message} type={toast.type} onDismiss={() => setToast(null)} />}
 
             {/* Header / Profile Info */}
-            <header className="bg-white border-b border-slate-100 px-6 pt-10 pb-24 relative overflow-hidden">
-                 <div className="absolute top-0 right-0 size-64 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+            <header className="border-b border-slate-100 px-6 pt-10 pb-24 relative overflow-hidden">
+                 <div className="absolute inset-0 -z-10">
+                     <img src="/assets/images/bg-account.png" alt="" className="w-full h-full object-cover opacity-90" />
+                     <div className="absolute inset-0 bg-gradient-to-b from-transparent to-slate-50" />
+                 </div>
                  
                  <div className="flex items-center justify-between mb-8 relative z-10">
                     <div>
@@ -706,8 +725,8 @@ export function AccountPage() {
                 {/* Content */}
                 <div className="pb-10 space-y-8">
                     <div>
-                        <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-3 px-2">{t("account.personalInfo")}</h3>
-                        <div className="bg-white rounded-[2rem] p-6 shadow-sm border border-slate-100 space-y-1">
+                        <h3 className="text-sm font-bold text-slate-500 uppercase tracking-widest mb-3 px-2">{t("account.personalInfo")}</h3>
+                        <div className="glass-card rounded-[2rem] p-6 shadow-sm border border-white/50 space-y-1">
                             <EditableField label={t("account.fullName")} icon={User} value={userProfile?.displayName ?? ""} onSave={v => handleProfileSave({ displayName: v })} />
                             
                             <div className="py-3 border-b border-border last:border-0">
@@ -742,9 +761,9 @@ export function AccountPage() {
                     </div>
 
                     <div>
-                        <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-3 px-2">{t("account.security")}</h3>
+                        <h3 className="text-sm font-bold text-slate-500 uppercase tracking-widest mb-3 px-2">{t("account.security")}</h3>
                         <div className="space-y-6">
-                            <div className="bg-white rounded-[2rem] overflow-hidden divide-y divide-slate-50 shadow-sm border border-slate-100">
+                            <div className="glass-card rounded-[2rem] overflow-hidden divide-y divide-white/40 shadow-sm border border-white/50">
                                 <button onClick={() => setShowPhoneModal(true)} className="w-full flex items-center justify-between p-5 hover:bg-slate-50 transition-colors">
                                     <div className="flex items-center gap-4">
                                         <div className="size-11 rounded-2xl bg-slate-50 text-slate-600 flex items-center justify-center"><Smartphone size={18} /></div>
@@ -781,7 +800,7 @@ export function AccountPage() {
                                 )}
                             </div>
                             
-                            <div className="bg-white rounded-[2rem] overflow-hidden divide-y divide-slate-50 shadow-sm border border-slate-100 mt-6">
+                            <div className="glass-card rounded-[2rem] overflow-hidden divide-y divide-white/40 shadow-sm border border-white/50 mt-6">
                                 <BiometricLockToggle />
                             </div>
 

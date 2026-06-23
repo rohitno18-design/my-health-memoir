@@ -1046,10 +1046,15 @@ export function DocumentsPage() {
     if (!user) return null;
 
     return (
-        <div className="pb-6 w-full max-w-lg mx-auto space-y-6 relative px-4 overflow-x-hidden">
-            <div className="fixed top-0 left-0 right-0 h-[50vh] soft-gradient-bg -z-10 pointer-events-none"></div>
-            <div className="flex items-center justify-between pt-6">
-                <h1 className="text-xl font-bold">Document Vault</h1>
+        <div className="pb-6 w-full max-w-lg mx-auto space-y-6 relative px-4 overflow-x-hidden min-h-dvh">
+            {/* Beautiful Page Header Background */}
+            <div className="absolute top-0 left-0 right-0 h-[280px] -z-10 overflow-hidden">
+                <img src="/assets/images/bg-documents.png" alt="" className="w-full h-full object-cover opacity-90" />
+                <div className="absolute inset-0 bg-gradient-to-b from-transparent to-slate-50" />
+            </div>
+
+            <div className="flex items-center justify-between pt-6 mt-6">
+                <h1 className="text-3xl font-black text-slate-800 tracking-tight">Vault</h1>
                 {selectedPatientId !== 'all' && (
                     <button
                         onClick={() => navigate('/dashboard')}
@@ -1088,32 +1093,46 @@ export function DocumentsPage() {
                                     return (
                                         <div
                                             key={p.id}
-                                            className="bg-white/60 backdrop-blur-md border border-white/60 rounded-[1.5rem] px-5 py-5 flex flex-col items-center gap-3 shadow-sm hover:shadow-md hover:border-primary/30 transition-all text-center group"
+                                            className="relative overflow-hidden rounded-[1.5rem] flex flex-col cursor-pointer border border-white/40 shadow-sm hover:shadow-md transition-all group active:scale-[0.98] min-h-[220px]"
                                         >
-                                            <div className="size-16 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 group-hover:scale-105 transition-transform overflow-hidden border border-blue-100 shadow-sm">
-                                                {p.photoURL ? (
-                                                    <img src={p.photoURL} alt={p.name} className="w-full h-full object-cover" />
-                                                ) : (
-                                                    <span className="material-symbols-outlined text-[32px]">person</span>
-                                                )}
+                                            {/* Background Image */}
+                                            <div className="absolute inset-0 w-full h-[100px]">
+                                                <img src="/assets/images/bg-patient.png" alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out" />
+                                                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/30 to-transparent"></div>
                                             </div>
-                                            <div>
-                                                <span className="text-[15px] font-extrabold text-slate-800 block line-clamp-1">{p.name}</span>
-                                                <span className="text-[12px] font-bold text-slate-500">{docCount} Documents</span>
-                                            </div>
-                                            <div className="flex gap-2 w-full mt-2">
-                                                <button
-                                                    onClick={() => handlePatientChange(p.id)}
-                                                    className="flex-1 bg-primary text-primary-foreground text-[11px] font-bold py-2 px-1 rounded-xl flex items-center justify-center gap-1 hover:bg-primary/90 transition-colors"
-                                                >
-                                                    <FolderOpen size={14} /> My Documents
-                                                </button>
-                                                <button
-                                                    onClick={() => navigate('/patients')}
-                                                    className="flex-[0.6] bg-slate-100 text-slate-700 text-[11px] font-bold py-2 px-1 rounded-xl flex items-center justify-center gap-1 hover:bg-slate-200 transition-colors"
-                                                >
-                                                    <Edit2 size={14} /> Edit
-                                                </button>
+                                            
+                                            {/* Content */}
+                                            <div className="relative z-10 flex flex-col flex-1 mt-[50px] bg-white/80 backdrop-blur-xl border-t border-white/50 pt-10 px-4 pb-4 items-center">
+                                                {/* Centered Avatar */}
+                                                <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-[72px] h-[72px] rounded-2xl bg-white p-1 shadow-sm">
+                                                    <div className="w-full h-full rounded-[0.8rem] bg-blue-50 flex items-center justify-center text-blue-600 overflow-hidden border border-blue-100/50">
+                                                        {p.photoURL ? (
+                                                            <img src={p.photoURL} alt={p.name} className="w-full h-full object-cover" />
+                                                        ) : (
+                                                            <span className="material-symbols-outlined text-[32px]">person</span>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                                
+                                                <div className="text-center mb-3 w-full">
+                                                    <span className="text-[1.05rem] font-black text-slate-800 block truncate leading-tight">{p.name}</span>
+                                                    <span className="text-[11px] font-bold text-slate-500 block mt-0.5">{docCount} Documents</span>
+                                                </div>
+                                                
+                                                <div className="mt-auto flex gap-2 w-full pt-3 border-t border-slate-200/60">
+                                                    <button
+                                                        onClick={(e) => { e.stopPropagation(); handlePatientChange(p.id); }}
+                                                        className="flex-1 bg-primary text-white text-[11px] font-bold py-2.5 px-1 rounded-xl flex items-center justify-center gap-1.5 hover:bg-primary/90 transition-colors shadow-sm"
+                                                    >
+                                                        <FolderOpen size={14} /> My Docs
+                                                    </button>
+                                                    <button
+                                                        onClick={(e) => { e.stopPropagation(); navigate('/patients'); }}
+                                                        className="flex-[0.6] bg-white text-slate-700 text-[11px] font-bold py-2.5 px-1 rounded-xl flex items-center justify-center gap-1.5 hover:bg-slate-50 transition-colors shadow-sm border border-slate-200"
+                                                    >
+                                                        <Edit2 size={14} /> Edit
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
                                     );

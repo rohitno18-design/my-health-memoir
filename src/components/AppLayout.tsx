@@ -51,8 +51,13 @@ function VerificationBanner() {
             }
             await resendVerification(emailToVerify);
             setSent(true);
-        } catch (error) {
+        } catch (error: any) {
             console.error("Failed to resend verification", error);
+            if (error?.code === 'auth/requires-recent-login' || error?.message?.includes('recent-login')) {
+                alert("For security reasons, please log out and log back in before resending the verification link to a new email address.");
+            } else {
+                alert("Failed to send verification link. Please try again later.");
+            }
         } finally {
             setSending(false);
         }
@@ -67,7 +72,7 @@ function VerificationBanner() {
                     <span><span className="font-bold uppercase tracking-wider text-[10px] bg-amber-200/50 px-1.5 py-0.5 rounded mr-2">Step 1/3</span>Please add an email address to secure your account.</span>
                 </div>
                 <button
-                    onClick={() => navigate('/account')}
+                    onClick={() => navigate('/account?action=email')}
                     className="text-xs font-bold bg-amber-600 text-white px-4 py-1.5 rounded-full hover:bg-amber-700 transition-colors shrink-0"
                 >
                     Add Email
@@ -90,7 +95,7 @@ function VerificationBanner() {
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                     <button
-                        onClick={() => navigate('/account')}
+                        onClick={() => navigate('/account?action=email')}
                         className="text-xs font-bold text-amber-700 bg-amber-200/50 px-3 py-1.5 rounded-full hover:bg-amber-200 transition-colors"
                     >
                         Change Email
@@ -121,7 +126,7 @@ function VerificationBanner() {
                     <span><span className="font-bold uppercase tracking-wider text-[10px] bg-amber-200/50 px-1.5 py-0.5 rounded mr-2">Step 3/3</span>Create a password for your account.</span>
                 </div>
                 <button
-                    onClick={() => navigate('/account')}
+                    onClick={() => navigate('/account?action=password')}
                     className="text-xs font-bold bg-amber-600 text-white px-4 py-1.5 rounded-full hover:bg-amber-700 transition-colors shrink-0"
                 >
                     Create Password

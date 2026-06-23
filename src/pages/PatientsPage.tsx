@@ -442,12 +442,12 @@ export function PatientsPage() {
             {showModal && (
                 <div className="fixed inset-0 z-[110] bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={() => setShowModal(false)}>
                     <div
-                        className="w-full max-w-2xl bg-white rounded-t-[2rem] sm:rounded-[2rem] flex flex-col max-h-[92vh] sm:max-h-[85vh] shadow-2xl animate-in slide-in-from-bottom-5 sm:zoom-in-95 duration-300 overflow-hidden"
+                        className="w-full max-w-2xl bg-white/90 backdrop-blur-xl rounded-t-[2rem] sm:rounded-[2rem] flex flex-col max-h-[92vh] sm:max-h-[85vh] shadow-2xl animate-in slide-in-from-bottom-5 sm:zoom-in-95 duration-300 overflow-hidden border border-white/50"
                         onClick={e => e.stopPropagation()}
                     >
 
                         {/* Header & Tabs Container */}
-                        <div className="w-full border-b border-slate-100 bg-white">
+                        <div className="w-full border-b border-white/40 bg-white/40">
                             <div className="flex items-center justify-between px-5 pt-5 pb-3">
                                 <div>
                                     <h2 className="text-xl font-black text-slate-900 tracking-tight">{editingId ? t("patients.editProfile") : t("patients.newProfile")}</h2>
