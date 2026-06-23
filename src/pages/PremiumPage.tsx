@@ -1,9 +1,8 @@
-import { useTranslation } from "react-i18next";
+
 import { Star, Shield, Bot, FolderSync, ActivitySquare, Check } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 export function PremiumPage() {
-    const { t } = useTranslation();
     const navigate = useNavigate();
 
     const features = [

@@ -89,8 +89,7 @@ export function DocumentsPage() {
 
     // Organization States
     const [viewMode, setViewMode] = useState<"list" | "dashboard" | "timeline" | "folder">("list");
-    const { user, isPremium } = useAuth();
-    const { t } = useTranslation();
+    const { isPremium } = useAuth();
     const [viewingFolderId, setViewingFolderId] = useState<string | null>(null);
     const [timelineFilterCategory, setTimelineFilterCategory] = useState<string | null>(null);
     const [timelineFilterFolderId, setTimelineFilterFolderId] = useState<string | null>(null);
