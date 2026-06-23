@@ -31,7 +31,7 @@ function VerificationBanner() {
     const handleResend = async () => {
         setSending(true);
         try {
-            const emailToVerify = userProfile.pendingEmail || userProfile.email || undefined;
+            const emailToVerify = (userProfile as any).pendingEmail || userProfile.email || undefined;
             if (!emailToVerify && !user?.email) {
                 console.error("No email to verify.");
                 return;
