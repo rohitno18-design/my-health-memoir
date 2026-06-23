@@ -395,8 +395,14 @@ function ChangePhoneModal({ onClose, onSuccess }: { onClose: () => void; onSucce
                 ) : !otpSent ? (
                     <div className="space-y-3">
                         {error && <div className="bg-destructive/10 text-destructive text-xs rounded-lg p-2.5 flex items-center gap-2"><AlertTriangle size={13} /> {error}</div>}
+                        <div className="mb-4">
+                            <label className="block text-xs font-medium mb-1 text-slate-500">Current Phone Number</label>
+                            <div className="w-full px-3 py-2.5 rounded-xl border border-slate-100 bg-slate-50 text-slate-500 text-sm font-medium">
+                                {userProfile?.phoneNumber || "Not Set"}
+                            </div>
+                        </div>
                         <div>
-                            <label className="block text-xs font-medium mb-1">{t("account.newPhone")}</label>
+                            <label className="block text-xs font-medium mb-1 text-slate-900">{t("account.newPhone")}</label>
                             <input type="tel" value={phone} onChange={e => setPhone(e.target.value)} placeholder="+919584772682"
                                 className="w-full px-3 py-2.5 rounded-xl border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
                         </div>
@@ -631,6 +637,11 @@ export function AccountPage() {
     const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
     const fileRef = useRef<HTMLInputElement>(null);
 
+    const emailStr = userProfile?.email?.trim() || user?.email?.trim();
+    const pendingEmailStr = (userProfile as any)?.pendingEmail?.trim();
+    const hasEmail = Boolean(emailStr) || Boolean(pendingEmailStr);
+    const isEmailVerified = userProfile?.emailVerified || user?.emailVerified || false;
+
     useEffect(() => {
         const h = async () => { if (document.visibilityState === "visible" && user?.uid) await refreshUser().catch(e => console.error(e)); };
         h(); document.addEventListener("visibilitychange", h);
@@ -759,16 +770,18 @@ export function AccountPage() {
                                     <ChevronRight size={16} className="text-slate-300" />
                                 </button>
 
-                                <button onClick={() => setShowPwModal(true)} className="w-full flex items-center justify-between p-5 hover:bg-slate-50 transition-colors">
-                                    <div className="flex items-center gap-4">
-                                        <div className="size-11 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center"><Lock size={18} /></div>
-                                        <div className="text-left font-lexend">
-                                            <p className="text-sm font-black uppercase tracking-tight text-slate-900">{hasPassword ? t("account.changePassword") : t("account.createPassword")}</p>
-                                            <p className="text-[10px] font-bold text-slate-400 mt-1">{hasPassword ? "••••••••" : "Not set"}</p>
+                                {(hasPassword || isEmailVerified) && (
+                                    <button onClick={() => setShowPwModal(true)} className="w-full flex items-center justify-between p-5 hover:bg-slate-50 transition-colors border-t border-slate-50">
+                                        <div className="flex items-center gap-4">
+                                            <div className="size-11 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center"><Lock size={18} /></div>
+                                            <div className="text-left font-lexend">
+                                                <p className="text-sm font-black uppercase tracking-tight text-slate-900">{hasPassword ? t("account.changePassword") : t("account.createPassword")}</p>
+                                                <p className="text-[10px] font-bold text-slate-400 mt-1">{hasPassword ? "••••••••" : "Not set"}</p>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <ChevronRight size={16} className="text-slate-300" />
-                                </button>
+                                        <ChevronRight size={16} className="text-slate-300" />
+                                    </button>
+                                )}
                             </div>
                             
                             <div className="bg-white rounded-[2rem] overflow-hidden divide-y divide-slate-50 shadow-sm border border-slate-100 mt-6">

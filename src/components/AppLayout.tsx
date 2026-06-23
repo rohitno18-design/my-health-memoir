@@ -7,17 +7,19 @@ import { useState, useEffect } from "react";
 import { UploadNotificationListener } from "./UploadNotificationListener";
 import { GlobalAlarmListener } from "./GlobalAlarmListener";
 
+const getValidEmail = (val: any) => {
+    if (!val || typeof val !== 'string') return null;
+    const t = val.trim();
+    // Exclude dummy strings and ensure it looks like a real email
+    if (!t || t === "null" || t === "undefined" || t.length < 3 || !t.includes("@")) return null;
+    return t;
+};
+
 function VerificationBanner() {
-    const { user, userProfile, resendVerification, refreshUser } = useAuth();
+    const { user, userProfile, resendVerification, refreshUser, hasPassword } = useAuth();
     const [sending, setSending] = useState(false);
     const [sent, setSent] = useState(false);
-
     const navigate = useNavigate();
-    const emailStr = userProfile?.email?.trim() || user?.email?.trim();
-    const pendingEmail = (userProfile as any)?.pendingEmail?.trim();
-    const hasEmail = Boolean(emailStr) || Boolean(pendingEmail);
-    const isEmailVerified = userProfile?.emailVerified || user?.emailVerified || false;
-    if (!userProfile || (hasEmail && isEmailVerified)) return null;
 
     // Auto-refresh every 5 seconds to check for email verification
     useEffect(() => {
@@ -28,11 +30,22 @@ function VerificationBanner() {
         return () => clearInterval(interval);
     }, [user]);
 
+    if (!userProfile || !user) return null;
+
+    const emailStr = getValidEmail(userProfile?.email) || getValidEmail(user?.email);
+    const pendingEmailStr = getValidEmail((userProfile as any)?.pendingEmail);
+    
+    const hasEmail = Boolean(emailStr) || Boolean(pendingEmailStr);
+    const isEmailVerified = userProfile?.emailVerified || user?.emailVerified || false;
+
+    // Fully secure: Has email, it's verified, and has a password
+    if (hasEmail && isEmailVerified && hasPassword && !pendingEmailStr) return null;
+
     const handleResend = async () => {
         setSending(true);
         try {
-            const emailToVerify = (userProfile as any).pendingEmail || userProfile.email || undefined;
-            if (!emailToVerify && !user?.email) {
+            const emailToVerify = pendingEmailStr || emailStr || undefined;
+            if (!emailToVerify) {
                 console.error("No email to verify.");
                 return;
             }
@@ -45,16 +58,17 @@ function VerificationBanner() {
         }
     };
 
+    // STEP 1: Add Email
     if (!hasEmail) {
         return (
-            <div className="bg-amber-50 border-b border-amber-200 px-4 py-3 text-sm flex flex-col sm:flex-row items-center justify-between gap-2">
-                <div className="flex items-center gap-2 text-amber-800 font-medium">
+            <div className="bg-amber-50 border-b border-amber-200 px-4 py-3 text-sm flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-2">
+                <div className="flex items-center gap-2 text-amber-800 font-medium leading-tight">
                     <AlertCircle size={16} className="shrink-0" />
-                    <span>Please add an email address to fully secure your account.</span>
+                    <span><span className="font-bold uppercase tracking-wider text-[10px] bg-amber-200/50 px-1.5 py-0.5 rounded mr-2">Step 1/3</span>Please add an email address to secure your account.</span>
                 </div>
                 <button
                     onClick={() => navigate('/account')}
-                    className="text-xs font-bold bg-amber-600 text-white px-4 py-1.5 rounded-full hover:bg-amber-700 transition-colors shrink-0 flex items-center gap-2"
+                    className="text-xs font-bold bg-amber-600 text-white px-4 py-1.5 rounded-full hover:bg-amber-700 transition-colors shrink-0"
                 >
                     Add Email
                 </button>
@@ -62,26 +76,49 @@ function VerificationBanner() {
         );
     }
 
-    return (
-        <div className="bg-amber-50 border-b border-amber-200 px-4 py-3 text-sm flex flex-col sm:flex-row items-center justify-between gap-2">
-            <div className="flex items-center gap-2 text-amber-800 font-medium">
-                <AlertCircle size={16} className="shrink-0" />
-                <span>Please verify your email address to fully secure your account.</span>
+    // STEP 2: Verify Email
+    if (!isEmailVerified || pendingEmailStr) {
+        return (
+            <div className="bg-amber-50 border-b border-amber-200 px-4 py-3 text-sm flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-2">
+                <div className="flex items-center gap-2 text-amber-800 font-medium leading-tight">
+                    <AlertCircle size={16} className="shrink-0" />
+                    <span><span className="font-bold uppercase tracking-wider text-[10px] bg-amber-200/50 px-1.5 py-0.5 rounded mr-2">Step 2/3</span>Please verify your email address.</span>
+                </div>
+                {sent ? (
+                    <span className="text-amber-600 font-semibold shrink-0 text-xs bg-amber-100 px-3 py-1.5 rounded-full">Link sent!</span>
+                ) : (
+                    <button
+                        onClick={handleResend}
+                        disabled={sending}
+                        className="text-xs font-bold bg-amber-600 text-white px-4 py-1.5 rounded-full hover:bg-amber-700 transition-colors shrink-0 flex items-center gap-2 disabled:opacity-70"
+                    >
+                        {sending ? <Loader2 size={12} className="animate-spin" /> : null}
+                        Resend Link
+                    </button>
+                )}
             </div>
-            {sent ? (
-                <span className="text-amber-600 font-semibold shrink-0 text-xs bg-amber-100 px-3 py-1.5 rounded-full">Verification link sent!</span>
-            ) : (
+        );
+    }
+
+    // STEP 3: Create Password
+    if (!hasPassword) {
+        return (
+            <div className="bg-amber-50 border-b border-amber-200 px-4 py-3 text-sm flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-2">
+                <div className="flex items-center gap-2 text-amber-800 font-medium leading-tight">
+                    <AlertCircle size={16} className="shrink-0" />
+                    <span><span className="font-bold uppercase tracking-wider text-[10px] bg-amber-200/50 px-1.5 py-0.5 rounded mr-2">Step 3/3</span>Create a password for your account.</span>
+                </div>
                 <button
-                    onClick={handleResend}
-                    disabled={sending}
-                    className="text-xs font-bold bg-amber-600 text-white px-4 py-1.5 rounded-full hover:bg-amber-700 transition-colors shrink-0 flex items-center gap-2 disabled:opacity-70"
+                    onClick={() => navigate('/account')}
+                    className="text-xs font-bold bg-amber-600 text-white px-4 py-1.5 rounded-full hover:bg-amber-700 transition-colors shrink-0"
                 >
-                    {sending ? <Loader2 size={12} className="animate-spin" /> : null}
-                    Resend Link
+                    Create Password
                 </button>
-            )}
-        </div>
-    );
+            </div>
+        );
+    }
+
+    return null;
 }
 
 export function AppLayout() {
