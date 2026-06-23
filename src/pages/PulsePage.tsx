@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import {
   ShieldAlert, Phone, Droplets, AlertCircle, 
@@ -20,7 +20,6 @@ interface EmergencyInfo {
   conditions: string[];
   medications: string[];
   iceContacts: Array<{ name: string; phone: string; relation: string }>;
-  organDonor: boolean;
   userId?: string;
 }
 
@@ -154,17 +153,10 @@ export function PulsePage() {
         </section>
 
         {/* Quick Vitals / Blood Type Highlight */}
-        <section className="grid grid-cols-2 gap-4">
+        <section className="grid grid-cols-1 gap-4">
            <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 flex flex-col items-center text-center">
               <span className="text-[10px] font-black text-rose-600 uppercase tracking-widest mb-2">{t("emergency.bloodGroup")}</span>
               <span className="text-4xl font-black text-slate-900">{info.bloodType || "—"}</span>
-           </div>
-           <div className={cn(
-             "p-6 rounded-[2rem] shadow-sm flex flex-col items-center text-center border transition-colors",
-             info.organDonor ? "bg-blue-50 border-blue-100 text-blue-800" : "bg-white border-slate-100 text-slate-400"
-           )}>
-              <span className="text-[10px] font-black uppercase tracking-widest mb-2">{t("emergency.organDonor")}</span>
-              <span className="text-xl font-black">{info.organDonor ? t("emergency.yes") : t("emergency.no")}</span>
            </div>
         </section>
 

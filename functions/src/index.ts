@@ -118,14 +118,21 @@ export const getEmergencyInfo = onCall({ cors: true }, async (request) => {
     throw new Error("Invalid or missing pulse token");
   }
 
+  // Fetch patient profile
+  const patientDoc = await adminDb.collection("patients").doc(userId).get();
+  const patientData = patientDoc.data() || {};
+
   return {
     bloodType: data.bloodType || "",
     allergies: data.allergies || [],
     conditions: data.conditions || [],
     medications: data.medications || [],
     iceContacts: data.iceContacts || [],
-    organDonor: data.organDonor || false,
     notifiedOnSOS: data.notifiedOnSOS || false,
+    patientName: patientData.name || "",
+    photoURL: patientData.photoURL || "",
+    dob: patientData.dob || "",
+    gender: patientData.gender || "",
   };
 });
 

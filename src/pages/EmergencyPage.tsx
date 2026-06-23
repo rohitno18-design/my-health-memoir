@@ -1,8 +1,8 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   ShieldAlert, Phone, Droplets, AlertCircle,
-  Heart, Loader2, Siren, UserCheck, Users,
+  Loader2, Siren, UserCheck, Users,
   Activity, Pill, User, AlertTriangle
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -20,7 +20,6 @@ interface EmergencyInfo {
   conditions: string[];
   medications: string[];
   iceContacts: Array<{ name: string; phone: string; relation: string }>;
-  organDonor: boolean;
   notifiedOnSOS: boolean;
   userId?: string;
   pulseToken?: string;
@@ -69,7 +68,6 @@ export function EmergencyPage() {
           conditions: [],
           medications: [],
           iceContacts: [],
-          organDonor: false,
           notifiedOnSOS: true,
           userId: user.uid,
           pulseToken: token,
@@ -291,20 +289,6 @@ export function EmergencyPage() {
                   info?.bloodType ? "text-white" : "text-slate-600 text-lg"
                 )}>
                   {info?.bloodType || t("common.notSet")}
-                </span>
-              </div>
-
-              {/* Organ Donor */}
-              <div className="bg-white/6 border border-white/12 rounded-2xl p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <Heart size={13} className="text-blue-400" />
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t("emergency.organDonor")}</span>
-                </div>
-                <span className={cn(
-                  "font-black block text-base mt-1",
-                  info?.organDonor ? "text-blue-400" : "text-slate-500 text-sm"
-                )}>
-                  {info?.organDonor ? t("emergency.yes") : t("emergency.no")}
                 </span>
               </div>
 

@@ -66,7 +66,6 @@ export interface Patient {
     surgicalHistory: string;
     vaccinations: string;
     // Emergency / SOS
-    organDonor: string;
     ice1Name: string;
     ice1Phone: string;
     ice2Name: string;
@@ -90,7 +89,6 @@ const emptyForm: Omit<Patient, "id"> = {
     fatherName: "", fatherPhone: "", fatherEmail: "",
     spouseName: "", spousePhone: "", spouseEmail: "",
     bloodGroup: "", allergies: "", conditions: "", medications: "", familyHistory: "", surgicalHistory: "", vaccinations: "",
-    organDonor: "No",
     ice1Name: "", ice1Phone: "",
     ice2Name: "", ice2Phone: "",
     ice3Name: "", ice3Phone: "",
@@ -183,7 +181,6 @@ export function PatientsPage() {
             fatherName: p.fatherName || "", fatherPhone: p.fatherPhone || "", fatherEmail: p.fatherEmail || "",
             spouseName: p.spouseName || "", spousePhone: p.spousePhone || "", spouseEmail: p.spouseEmail || "",
             bloodGroup: p.bloodGroup || "", allergies: p.allergies || "", conditions: p.conditions || "", medications: p.medications || "", familyHistory: p.familyHistory || "", surgicalHistory: p.surgicalHistory || "", vaccinations: p.vaccinations || "",
-            organDonor: p.organDonor || "No",
             ice1Name: p.ice1Name || "", ice1Phone: p.ice1Phone || "",
             ice2Name: p.ice2Name || "", ice2Phone: p.ice2Phone || "",
             ice3Name: p.ice3Name || "", ice3Phone: p.ice3Phone || "",
@@ -258,7 +255,6 @@ export function PatientsPage() {
                     gender: form.gender || "",
                     dob: form.dob || "",
                     bloodType: form.bloodGroup || "",
-                    organDonor: form.organDonor === "Yes",
                     allergies: form.allergies ? form.allergies.split(",").map(s => s.trim()).filter(Boolean) : [],
                     conditions: form.conditions ? form.conditions.split(",").map(s => s.trim()).filter(Boolean) : [],
                     medications: form.medications ? form.medications.split(",").map(s => s.trim()).filter(Boolean) : [],
@@ -620,10 +616,6 @@ export function PatientsPage() {
                                             { label: "AB-", value: "AB-" },
                                             { label: "O+", value: "O+" },
                                             { label: "O-", value: "O-" }
-                                        ])}
-                                        {renderSelect(t("emergency.organDonor"), "organDonor", [
-                                            { label: t("patients.no"), value: "No" },
-                                            { label: t("patients.yes"), value: "Yes" }
                                         ])}
                                     </div>
                                     <div className="space-y-4">
