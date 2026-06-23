@@ -250,7 +250,7 @@ function ChangePasswordModal({ onClose }: { onClose: () => void }) {
 // ─── ChangeEmailModal ─────────────────────────────────────────────────────────
 function ChangeEmailModal({ onClose, onSuccess }: { onClose: () => void; onSuccess: (msg: string) => void }) {
     const { t } = useTranslation();
-    const { user, userProfile, updateUserEmail, logSecurityActivity, refreshUser } = useAuth();
+    const { user, userProfile, updateUserEmail, logSecurityActivity, refreshUser, hasPassword } = useAuth();
     const [newEmail, setNewEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
@@ -321,11 +321,13 @@ function ChangeEmailModal({ onClose, onSuccess }: { onClose: () => void; onSucce
                             <input type="email" value={newEmail} onChange={e => setNewEmail(e.target.value)} required
                                 className="w-full px-3 py-2.5 rounded-xl border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
                         </div>
-                        <div>
-                            <label className="block text-xs font-medium mb-1">{t("account.currentPassword")}</label>
-                            <input type="password" value={password} onChange={e => setPassword(e.target.value)} required
-                                className="w-full px-3 py-2.5 rounded-xl border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
-                        </div>
+                        {hasPassword && (
+                            <div>
+                                <label className="block text-xs font-medium mb-1">{t("account.currentPassword")}</label>
+                                <input type="password" value={password} onChange={e => setPassword(e.target.value)} required
+                                    className="w-full px-3 py-2.5 rounded-xl border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
+                            </div>
+                        )}
                         <button type="submit" disabled={saving} className="w-full py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-medium flex items-center justify-center gap-2">
                             {saving && <Loader2 size={14} className="animate-spin" />}
                             {t("account.updateBtn")}
@@ -735,23 +737,23 @@ export function AccountPage() {
                         <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-3 px-2">{t("account.security")}</h3>
                         <div className="space-y-6">
                             <div className="bg-white rounded-[2rem] overflow-hidden divide-y divide-slate-50 shadow-sm border border-slate-100">
+                                <button onClick={() => setShowPhoneModal(true)} className="w-full flex items-center justify-between p-5 hover:bg-slate-50 transition-colors">
+                                    <div className="flex items-center gap-4">
+                                        <div className="size-11 rounded-2xl bg-slate-50 text-slate-600 flex items-center justify-center"><Smartphone size={18} /></div>
+                                        <div className="text-left font-lexend">
+                                            <p className="text-sm font-black uppercase tracking-tight text-slate-900">{t("account.changePhone")}</p>
+                                            <p className="text-[10px] font-bold text-slate-400 mt-1">{userProfile?.phoneNumber || t("account.notSet")}</p>
+                                        </div>
+                                    </div>
+                                    <ChevronRight size={16} className="text-slate-300" />
+                                </button>
+
                                 <button onClick={() => setShowEmailModal(true)} className="w-full flex items-center justify-between p-5 hover:bg-slate-50 transition-colors">
                                     <div className="flex items-center gap-4">
                                         <div className="size-11 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center"><Mail size={18} /></div>
                                         <div className="text-left font-lexend">
                                             <p className="text-sm font-black uppercase tracking-tight text-slate-900">{t("account.changeEmail")}</p>
                                             <p className="text-[10px] font-bold text-slate-400 mt-1">{user?.email || "Not Set"}</p>
-                                        </div>
-                                    </div>
-                                    <ChevronRight size={16} className="text-slate-300" />
-                                </button>
-
-                                <button onClick={() => setShowPhoneModal(true)} className="w-full flex items-center justify-between p-5 hover:bg-slate-50 transition-colors">
-                                    <div className="flex items-center gap-4">
-                                        <div className="size-11 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center"><Smartphone size={18} /></div>
-                                        <div className="text-left font-lexend">
-                                            <p className="text-sm font-black uppercase tracking-tight text-slate-900">{t("account.changePhone")}</p>
-                                            <p className="text-[10px] font-bold text-slate-400 mt-1">{userProfile?.phoneNumber || t("account.notSet")}</p>
                                         </div>
                                     </div>
                                     <ChevronRight size={16} className="text-slate-300" />

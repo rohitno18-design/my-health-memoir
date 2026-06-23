@@ -14,7 +14,8 @@ function VerificationBanner() {
 
     const navigate = useNavigate();
     const emailStr = userProfile?.email?.trim() || user?.email?.trim();
-    const hasEmail = Boolean(emailStr);
+    const pendingEmail = (userProfile as any)?.pendingEmail?.trim();
+    const hasEmail = Boolean(emailStr) || Boolean(pendingEmail);
     const isEmailVerified = userProfile?.emailVerified || user?.emailVerified || false;
     if (!userProfile || (hasEmail && isEmailVerified)) return null;
 
@@ -30,7 +31,12 @@ function VerificationBanner() {
     const handleResend = async () => {
         setSending(true);
         try {
-            await resendVerification(userProfile.email || undefined);
+            const emailToVerify = userProfile.pendingEmail || userProfile.email || undefined;
+            if (!emailToVerify && !user?.email) {
+                console.error("No email to verify.");
+                return;
+            }
+            await resendVerification(emailToVerify);
             setSent(true);
         } catch (error) {
             console.error("Failed to resend verification", error);

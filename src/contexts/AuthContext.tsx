@@ -354,8 +354,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (!auth.currentUser) throw new Error("Not authenticated");
         if (!auth.currentUser.email && pendingEmail) {
             await verifyBeforeUpdateEmail(auth.currentUser, pendingEmail, actionCodeSettings);
-        } else {
+        } else if (auth.currentUser.email) {
             await sendEmailVerification(auth.currentUser, actionCodeSettings);
+        } else {
+            throw new Error("No email to verify.");
         }
     };
 
