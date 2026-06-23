@@ -637,8 +637,6 @@ export function AccountPage() {
     const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
     const fileRef = useRef<HTMLInputElement>(null);
 
-    const emailStr = userProfile?.email?.trim() || user?.email?.trim();
-    const pendingEmailStr = (userProfile as any)?.pendingEmail?.trim();
     const isEmailVerified = userProfile?.emailVerified || user?.emailVerified || false;
 
     useEffect(() => {
