@@ -343,7 +343,7 @@ function ChangeEmailModal({ onClose, onSuccess }: { onClose: () => void; onSucce
 // ─── ChangePhoneModal ─────────────────────────────────────────────────────────
 function ChangePhoneModal({ onClose, onSuccess }: { onClose: () => void; onSuccess: (msg: string) => void }) {
     const { t } = useTranslation();
-    const { sendPhoneChangeOtp, verifyPhoneChangeOtp } = useAuth();
+    const { userProfile, sendPhoneChangeOtp, verifyPhoneChangeOtp } = useAuth();
     const [phone, setPhone] = useState("");
     const [otpSent, setOtpSent] = useState(false);
     const [verificationId, setVerificationId] = useState("");
@@ -639,7 +639,6 @@ export function AccountPage() {
 
     const emailStr = userProfile?.email?.trim() || user?.email?.trim();
     const pendingEmailStr = (userProfile as any)?.pendingEmail?.trim();
-    const hasEmail = Boolean(emailStr) || Boolean(pendingEmailStr);
     const isEmailVerified = userProfile?.emailVerified || user?.emailVerified || false;
 
     useEffect(() => {
