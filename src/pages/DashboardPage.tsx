@@ -78,7 +78,7 @@ export function DashboardPage() {
     const { userProfile, user, isPremium } = useAuth();
     const { flags } = useFeatureFlags();
     const navigate = useNavigate();
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
 
     // Data State
     const [patients, setPatients] = useState<any[]>([]);

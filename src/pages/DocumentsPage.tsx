@@ -68,7 +68,7 @@ export function DocumentsPage() {
     const { user } = useAuth();
     const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
 
     // States
     const [docs, setDocs] = useState<Document[]>([]);
