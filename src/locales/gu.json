@@ -721,5 +721,23 @@
     "confirmUnlink": "આ ઘટનામાંથી {{name}} ને અનલિંક કરવું છે?",
     "deleteEvent": "ઘટના કાઢી નાખો",
     "timelineDesc": "વ્યાપક મેડિકલ યાત્રા અને માઇલસ્ટોન"
+  },
+  "missed": {
+    "secureFamily": "તમારા પરિવારની સુરક્ષા કરો",
+    "healthLegacy": "સ્વાસ્થ્ય વારસો",
+    "askAI": "તમારા સ્વાસ્થ્ય વિશે AI ને પૂછો",
+    "addDocument": "દસ્તાવેજ ઉમેરો",
+    "selectFamilyMember": "તેમનો દસ્તાવેજ જોવા માટે પરિવારના સભ્યને પસંદ કરો",
+    "viewGlobalTimeline": "વૈશ્વિક આજીવન સમયરેખા જુઓ",
+    "myDocuments": "મારા દસ્તાવેજો",
+    "startTyping": "પરિવારના સભ્યોનું નામ લખવાનું શરૂ કરો",
+    "manageProfiles": "પરિવારના સભ્યોની પ્રોફાઇલ મેનેજ કરો",
+    "lifeEvents": "જીવન ઘટનાઓ",
+    "myDocumentVaults": "મારા દસ્તાવેજ તિજોરીઓ",
+    "remindersTitle": "રીમાઇન્ડર્સ",
+    "upcoming": "આગામી",
+    "new": "નવું",
+    "standard": "માનક",
+    "addDocs": "દસ્તાવેજો ઉમેરો"
   }
 }

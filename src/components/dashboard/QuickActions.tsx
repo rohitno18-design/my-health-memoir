@@ -15,18 +15,34 @@ export function QuickActions({ onAddDocument, documentAnalysisEnabled = true }: 
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           onClick={onAddDocument}
-          className="tour-upload-btn w-full h-16 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl font-black text-sm shadow-xl shadow-blue-500/30 flex items-center justify-center gap-3 relative overflow-hidden group"
-        >
-          <div className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
-          <div className="p-2 bg-white/20 rounded-xl">
-            <Plus size={20} strokeWidth={3} />
-          </div>
-          <span className="text-base tracking-wide">Add Document</span>
-        </motion.button>
+        <>
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={onAddDocument}
+            className="hidden lg:flex tour-upload-btn w-full h-16 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl font-black text-sm shadow-xl shadow-blue-500/30 items-center justify-center gap-3 relative overflow-hidden group"
+          >
+            <div className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
+            <div className="p-2 bg-white/20 rounded-xl">
+              <Plus size={20} strokeWidth={3} />
+            </div>
+            <span className="text-base tracking-wide">{t("missed.addDocument", "Add Document")}</span>
+          </motion.button>
+
+          <button
+            onClick={() => onAddDocument?.()}
+            className="flex lg:hidden flex-col items-center gap-2 p-3 rounded-2xl bg-white border border-indigo-100 shadow-sm hover:shadow-md hover:bg-indigo-50 transition-all group"
+          >
+            <div className="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center group-hover:scale-110 group-hover:bg-white transition-all shadow-inner">
+              <FilePlus size={24} />
+            </div>
+            <span className="text-xs font-bold text-slate-700">{t("missed.addDocument", "Add Document")}</span>
+          </button>
+        </>
       ) : (
         <div className="w-full h-16 bg-slate-100 border border-slate-200 text-slate-400 rounded-2xl font-bold text-sm flex items-center justify-center gap-3 opacity-60">
           <UploadCloud size={20} />
-          <span>Add Document</span>
+          <span>{t("missed.addDocument", "Add Document")}</span>
         </div>
       )}
     </div>

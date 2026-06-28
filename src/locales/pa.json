@@ -721,5 +721,23 @@
     "confirmUnlink": "ਕੀ ਤੁਸੀਂ {{name}} ਨੂੰ ਇਸ ਘਟਨਾ ਤੋਂ ਅਨਲਿੰਕ ਕਰਨਾ ਚਾਹੁੰਦੇ ਹੋ?",
     "deleteEvent": "ਘਟਨਾ ਮਿਟਾਓ",
     "timelineDesc": "ਵਿਆਪਕ ਮੈਡੀਕਲ ਯਾਤਰਾ ਅਤੇ ਮੀਲ ਪੱਥਰ"
+  },
+  "missed": {
+    "secureFamily": "ਆਪਣੇ ਪਰਿਵਾਰ ਦੀ",
+    "healthLegacy": "ਸਿਹਤ ਵਿਰਾਸਤ ਨੂੰ ਸੁਰੱਖਿਅਤ ਕਰੋ",
+    "askAI": "ਆਪਣੀ ਸਿਹਤ ਬਾਰੇ AI ਨੂੰ ਪੁੱਛੋ",
+    "addDocument": "ਦਸਤਾਵੇਜ਼ ਜੋੜੋ",
+    "selectFamilyMember": "ਉਨ੍ਹਾਂ ਦੇ ਦਸਤਾਵੇਜ਼ ਦੇਖਣ ਲਈ ਪਰਿਵਾਰ ਦੇ ਮੈਂਬਰ ਦੀ ਚੋਣ ਕਰੋ",
+    "viewGlobalTimeline": "ਗਲੋਬਲ ਲਾਈਫਟਾਈਮ ਟਾਈਮਲਾਈਨ ਦੇਖੋ",
+    "myDocuments": "ਮੇਰੇ ਦਸਤਾਵੇਜ਼",
+    "startTyping": "ਪਰਿਵਾਰ ਦੇ ਮੈਂਬਰਾਂ ਨੂੰ ਟਾਈਪ ਕਰਨਾ ਸ਼ੁਰੂ ਕਰੋ",
+    "manageProfiles": "ਪਰਿਵਾਰ ਦੇ ਮੈਂਬਰਾਂ ਦੇ ਪ੍ਰੋਫਾਈਲਾਂ ਦਾ ਪ੍ਰਬੰਧਨ ਕਰੋ",
+    "lifeEvents": "ਜੀਵਨ ਘਟਨਾਵਾਂ",
+    "myDocumentVaults": "ਮੇਰੇ ਦਸਤਾਵੇਜ਼ ਵਾਲਟ",
+    "remindersTitle": "ਯਾਦ-ਦਹਾਨੀਆਂ",
+    "upcoming": "ਆਉਣ ਵਾਲੇ",
+    "new": "ਨਵਾਂ",
+    "standard": "ਸਟੈਂਡਰਡ",
+    "addDocs": "ਦਸਤਾਵੇਜ਼ ਜੋੜੋ"
   }
 }

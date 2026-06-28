@@ -721,5 +721,23 @@
     "confirmUnlink": "{{name}} ला या घटनेतून अनलिंक करायचे?",
     "deleteEvent": "घटना हटवा",
     "timelineDesc": "व्यापक वैद्यकीय प्रवास आणि टप्पे"
+  },
+  "missed": {
+    "secureFamily": "तुमच्या कुटुंबाचे सुरक्षित करा",
+    "healthLegacy": "आरोग्य वारसा",
+    "askAI": "तुमच्या आरोग्याबद्दल AI ला विचारा",
+    "addDocument": "दस्तऐवज जोडा",
+    "selectFamilyMember": "त्यांचे दस्तऐवज पाहण्यासाठी कुटुंबातील सदस्य निवडा",
+    "viewGlobalTimeline": "जागतिक जीवनकाळ टाइमलाइन पहा",
+    "myDocuments": "माझे दस्तऐवज",
+    "startTyping": "कुटुंबातील सदस्यांची नावे टाइप करणे सुरू करा",
+    "manageProfiles": "कुटुंबातील सदस्यांचे प्रोफाइल व्यवस्थापित करा",
+    "lifeEvents": "जीवन घटना",
+    "myDocumentVaults": "माझे दस्तऐवज व्हॉल्ट्स",
+    "remindersTitle": "स्मरणपत्रे",
+    "upcoming": "आगामी",
+    "new": "नवीन",
+    "standard": "मानक",
+    "addDocs": "दस्तऐवज जोडा"
   }
 }

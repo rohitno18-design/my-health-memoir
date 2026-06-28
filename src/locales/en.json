@@ -557,8 +557,25 @@
     "personalInfo": "Identity",
     "settings": "Settings",
     "errEmailUsed": "This email is already registered",
-    "errTimeout": "Session timed out. Please login again.",
-    "sendCode": "Send Code"
+    "errTimeout": "Session timed out. Please login again."
+  },
+  "missed": {
+    "secureFamily": "Secure your family's",
+    "healthLegacy": "health legacy",
+    "askAI": "Ask AI about your health",
+    "addDocument": "Add Document",
+    "selectFamilyMember": "Select a family member to view their document",
+    "viewGlobalTimeline": "View Global Lifetime timeline",
+    "myDocuments": "My Documents",
+    "startTyping": "Start typing the family members",
+    "manageProfiles": "Manage family members profiles",
+    "lifeEvents": "Life Events",
+    "myDocumentVaults": "My document vaults",
+    "remindersTitle": "Reminders",
+    "upcoming": "Upcoming",
+    "new": "New",
+    "standard": "Standard",
+    "addDocs": "Add Documents"
   },
   "emergency": {
     "title": "Emergency QR Code",

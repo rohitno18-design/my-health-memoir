@@ -4,9 +4,11 @@ import { Plus, Bell, Pill, CalendarDays, Clock, Trash2, X, Activity, Repeat, Vol
 import { useAuth } from "@/contexts/AuthContext";
 import { collection, query, where, onSnapshot, addDoc, deleteDoc, doc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { useTranslation } from "react-i18next";
 
 export function RemindersPage() {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const [reminders, setReminders] = useState<any[]>([]);
   const [patients, setPatients] = useState<any[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -228,18 +230,18 @@ export function RemindersPage() {
       
       <div className="flex items-center justify-between pt-6">
         <h1 className="text-xl font-bold flex items-center gap-2">
-          <Bell className="text-primary" /> Reminders
+          <Bell className="text-primary" /> {t("missed.remindersTitle", "Reminders")}
         </h1>
         <button 
           onClick={() => { resetForm(); setIsModalOpen(true); }}
           className="flex items-center gap-1.5 text-sm bg-primary text-primary-foreground px-4 py-2 rounded-xl font-medium shadow-sm hover:bg-primary/90 transition-colors min-h-[44px]"
         >
-          <Plus size={16} /> New
+          <Plus size={16} /> {t("missed.new", "New")}
         </button>
       </div>
 
       <div className="space-y-4">
-        <h2 className="text-lg font-bold text-slate-800">Upcoming</h2>
+        <h2 className="text-lg font-bold text-slate-800">{t("missed.upcoming", "Upcoming")}</h2>
         {upcoming.length === 0 ? (
           <div className="bg-white/60 backdrop-blur-md rounded-[1.5rem] p-6 text-center border border-white/60">
             <Bell size={32} className="mx-auto text-slate-300 mb-3" />

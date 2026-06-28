@@ -1363,7 +1363,7 @@ export function DocumentsPage() {
                                                             <button 
                                                                 onClick={() => setAddDocToEventId(event.id)}
                                                                 className="size-7 rounded-lg bg-green-50 text-green-600 flex items-center justify-center hover:bg-green-100 transition-colors"
-                                                                title="Add Document"
+                                                                title={t("missed.addDocument", "Add Document")}
                                                             >
                                                                 <Plus size={13} />
                                                             </button>
@@ -2028,7 +2028,7 @@ export function DocumentsPage() {
             <div className="fixed inset-0 z-[110] bg-black/50 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4 pt-safe pb-safe" onClick={() => setAddDocToEventId(null)}>
                 <div className="w-full max-w-sm bg-white rounded-t-[2.5rem] sm:rounded-[2rem] p-6 shadow-2xl animate-in slide-in-from-bottom-5 duration-200 relative overflow-hidden" onClick={e => e.stopPropagation()}>
                     <div className="flex items-center justify-between mb-4">
-                        <h3 className="font-extrabold text-lg text-slate-900">Add Document</h3>
+                        <h3 className="font-extrabold text-lg text-slate-900">{t("missed.addDocument", "Add Document")}</h3>
                         <button onClick={() => setAddDocToEventId(null)} className="size-9 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 hover:bg-slate-200"><X size={18} /></button>
                     </div>
                     <div className="max-h-[50vh] overflow-y-auto space-y-2 pr-1">
