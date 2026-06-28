@@ -129,10 +129,10 @@ export const getEmergencyInfo = onCall({ cors: true }, async (request) => {
     medications: data.medications || [],
     iceContacts: data.iceContacts || [],
     notifiedOnSOS: data.notifiedOnSOS || false,
-    patientName: patientData.name || "",
-    photoURL: patientData.photoURL || "",
-    dob: patientData.dob || "",
-    gender: patientData.gender || "",
+    patientName: patientData.name || data.patientName || "",
+    photoURL: patientData.photoURL || data.photoURL || "",
+    dob: patientData.dob || data.dob || "",
+    gender: patientData.gender || data.gender || "",
   };
 });
 
