@@ -312,7 +312,8 @@
     "fileCount": "{{count}} ഫയൽ(കൾ)",
     "addTimelineError": "സംഭവം ചേർക്കാൻ കഴിഞ്ഞില്ല",
     "addToTimeline": "സംഭവങ്ങളിലേക്ക് ചേർക്കുക",
-    "linkedTimeline": "ലിങ്ക് ചെയ്ത സംഭവങ്ങൾ"
+    "linkedTimeline": "ലിങ്ക് ചെയ്ത സംഭവങ്ങൾ",
+    "vault": "വോൾട്ട്"
   },
   "patients": {
     "title": "കുടുംബം",
@@ -738,6 +739,21 @@
     "upcoming": "വരാനിരിക്കുന്നവ",
     "new": "പുതിയത്",
     "standard": "സാധാരണ",
-    "addDocs": "ഡോക്യുമെന്റുകൾ ചേർക്കുക"
+    "addDocs": "ഡോക്യുമെന്റുകൾ ചേർക്കുക",
+    "sDocuments": "'s Documents",
+    "sortNewest": "Sort: Newest First",
+    "sortOldest": "Sort: Oldest First",
+    "sFolders": "'s Folders",
+    "newFolder": "New Folder",
+    "docsEmpty": "No documents yet",
+    "uploadMedical": "Upload medical reports, prescriptions, and test results here.",
+    "uploadHere": "Upload Here",
+    "folderEmpty": "Folder is empty.",
+    "noFamilyAdded": "No family members added yet.",
+    "allMembers": "All Members",
+    "filterSort": "Filter & Sort",
+    "folders": "Folders",
+    "events": "Events",
+    "myDocs": "My Docs"
   }
 }

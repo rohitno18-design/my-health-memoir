@@ -312,7 +312,8 @@
     "fileCount": "{{count}} ફાઇલ(ઓ)",
     "addTimelineError": "ઘટના ઉમેરવામાં નિષ્ફળ",
     "addToTimeline": "ઘટનાઓમાં ઉમેરો",
-    "linkedTimeline": "લિંક કરેલી ઘટનાઓ"
+    "linkedTimeline": "લિંક કરેલી ઘટનાઓ",
+    "vault": "વૉલ્ટ"
   },
   "patients": {
     "title": "કુટુંબ",
@@ -738,6 +739,21 @@
     "upcoming": "આગામી",
     "new": "નવું",
     "standard": "માનક",
-    "addDocs": "દસ્તાવેજો ઉમેરો"
+    "addDocs": "દસ્તાવેજો ઉમેરો",
+    "sDocuments": "'s Documents",
+    "sortNewest": "Sort: Newest First",
+    "sortOldest": "Sort: Oldest First",
+    "sFolders": "'s Folders",
+    "newFolder": "New Folder",
+    "docsEmpty": "No documents yet",
+    "uploadMedical": "Upload medical reports, prescriptions, and test results here.",
+    "uploadHere": "Upload Here",
+    "folderEmpty": "Folder is empty.",
+    "noFamilyAdded": "No family members added yet.",
+    "allMembers": "All Members",
+    "filterSort": "Filter & Sort",
+    "folders": "Folders",
+    "events": "Events",
+    "myDocs": "My Docs"
   }
 }

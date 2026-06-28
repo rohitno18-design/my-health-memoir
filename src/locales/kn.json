@@ -312,7 +312,8 @@
     "fileCount": "{{count}} ಫೈಲ್(ಗಳು)",
     "addTimelineError": "ಘಟನೆಯನ್ನು ಸೇರಿಸಲು ವಿಫಲವಾಗಿದೆ",
     "addToTimeline": "ಘಟನೆಗಳಿಗೆ ಸೇರಿಸಿ",
-    "linkedTimeline": "ಲಿಂಕ್ ಮಾಡಿದ ಘಟನೆಗಳು"
+    "linkedTimeline": "ಲಿಂಕ್ ಮಾಡಿದ ಘಟನೆಗಳು",
+    "vault": "ವಾಲ್ಟ್"
   },
   "patients": {
     "title": "ಕುಟುಂಬ",
@@ -738,6 +739,21 @@
     "upcoming": "ಮುಂಬರುವ",
     "new": "ಹೊಸದು",
     "standard": "ಪ್ರಮಾಣಿತ",
-    "addDocs": "ದಾಖಲೆಗಳನ್ನು ಸೇರಿಸಿ"
+    "addDocs": "ದಾಖಲೆಗಳನ್ನು ಸೇರಿಸಿ",
+    "sDocuments": "'s Documents",
+    "sortNewest": "Sort: Newest First",
+    "sortOldest": "Sort: Oldest First",
+    "sFolders": "'s Folders",
+    "newFolder": "New Folder",
+    "docsEmpty": "No documents yet",
+    "uploadMedical": "Upload medical reports, prescriptions, and test results here.",
+    "uploadHere": "Upload Here",
+    "folderEmpty": "Folder is empty.",
+    "noFamilyAdded": "No family members added yet.",
+    "allMembers": "All Members",
+    "filterSort": "Filter & Sort",
+    "folders": "Folders",
+    "events": "Events",
+    "myDocs": "My Docs"
   }
 }

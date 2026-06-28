@@ -312,7 +312,8 @@
     "fileCount": "{{count}} ਫਾਈਲ(ਾਂ)",
     "addTimelineError": "ਘਟਨਾ ਸ਼ਾਮਲ ਕਰਨ ਵਿੱਚ ਅਸਫਲ",
     "addToTimeline": "ਘਟਨਾਵਾਂ ਵਿੱਚ ਸ਼ਾਮਲ ਕਰੋ",
-    "linkedTimeline": "ਲਿੰਕ ਕੀਤੀਆਂ ਘਟਨਾਵਾਂ"
+    "linkedTimeline": "ਲਿੰਕ ਕੀਤੀਆਂ ਘਟਨਾਵਾਂ",
+    "vault": "ਵਾਲਟ"
   },
   "patients": {
     "title": "ਪਰਿਵਾਰ",
@@ -738,6 +739,21 @@
     "upcoming": "ਆਉਣ ਵਾਲੇ",
     "new": "ਨਵਾਂ",
     "standard": "ਸਟੈਂਡਰਡ",
-    "addDocs": "ਦਸਤਾਵੇਜ਼ ਜੋੜੋ"
+    "addDocs": "ਦਸਤਾਵੇਜ਼ ਜੋੜੋ",
+    "sDocuments": "'s Documents",
+    "sortNewest": "Sort: Newest First",
+    "sortOldest": "Sort: Oldest First",
+    "sFolders": "'s Folders",
+    "newFolder": "New Folder",
+    "docsEmpty": "No documents yet",
+    "uploadMedical": "Upload medical reports, prescriptions, and test results here.",
+    "uploadHere": "Upload Here",
+    "folderEmpty": "Folder is empty.",
+    "noFamilyAdded": "No family members added yet.",
+    "allMembers": "All Members",
+    "filterSort": "Filter & Sort",
+    "folders": "Folders",
+    "events": "Events",
+    "myDocs": "My Docs"
   }
 }

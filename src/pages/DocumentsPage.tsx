@@ -1068,7 +1068,7 @@ export function DocumentsPage() {
             </div>
 
             <div className="flex items-center justify-between pt-6 mt-6">
-                <h1 className="text-3xl font-black text-slate-800 tracking-tight">Vault</h1>
+                <h1 className="text-3xl font-black text-slate-800 tracking-tight">{t("documents.vault", "Vault")}</h1>
                 {selectedPatientId !== 'all' && (
                     <button
                         onClick={() => navigate('/dashboard')}
@@ -1090,14 +1090,14 @@ export function DocumentsPage() {
                             <div className="text-center py-4 space-y-4">
                                 <div>
                                     <span className="material-symbols-outlined text-4xl text-slate-300 block mb-2">folder_shared</span>
-                                    <p className="font-bold text-slate-700 text-[15px]">Select a family member to view their documents</p>
+                                    <p className="font-bold text-slate-700 text-[15px]">{t("missed.selectFamilyMember", "Select a family member to view their documents")}</p>
                                 </div>
                                 {isPremium && (
                                     <button
                                         onClick={() => navigate('/timeline')}
                                         className="inline-flex items-center gap-2 bg-blue-50 text-blue-600 px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-blue-100 transition-colors shadow-sm"
                                     >
-                                        <Activity size={16} /> View Global Life Timeline
+                                        <Activity size={16} /> {t("missed.viewGlobalTimeline", "View Global Lifetime timeline")}
                                     </button>
                                 )}
                             </div>
@@ -1138,13 +1138,13 @@ export function DocumentsPage() {
                                                         onClick={(e) => { e.stopPropagation(); handlePatientChange(p.id); }}
                                                         className="flex-1 bg-primary text-white text-[11px] font-bold py-2.5 px-1 rounded-xl flex items-center justify-center gap-1.5 hover:bg-primary/90 transition-colors shadow-sm"
                                                     >
-                                                        <FolderOpen size={14} /> My Docs
+                                                        <FolderOpen size={14} /> {t("missed.myDocs", "My Docs")}
                                                     </button>
                                                     <button
                                                         onClick={(e) => { e.stopPropagation(); navigate('/patients'); }}
                                                         className="flex-[0.6] bg-white text-slate-700 text-[11px] font-bold py-2.5 px-1 rounded-xl flex items-center justify-center gap-1.5 hover:bg-slate-50 transition-colors shadow-sm border border-slate-200"
                                                     >
-                                                        <Edit2 size={14} /> Edit
+                                                        <Edit2 size={14} /> {t("common.edit", "Edit")}
                                                     </button>
                                                 </div>
                                             </div>
@@ -1156,7 +1156,7 @@ export function DocumentsPage() {
                     ) : (
                         <div className="glass-card text-center p-12 text-slate-500 rounded-[2rem] border border-white/40 shadow-sm mt-4">
                             <span className="material-symbols-outlined text-4xl opacity-30 block mb-3">group</span>
-                            <p className="font-bold text-foreground">No family members added yet.</p>
+                            <p className="font-bold text-foreground">{t("missed.noFamilyAdded", "No family members added yet.")}</p>
                             <p className="text-sm mt-1 max-w-xs mx-auto">Go to Patients to add one.</p>
                         </div>
                     )}
@@ -1172,9 +1172,9 @@ export function DocumentsPage() {
                             onClick={() => handlePatientChange('all')}
                             className="flex items-center gap-1.5 text-sm font-bold text-slate-600 hover:text-slate-900 transition-colors"
                         >
-                            <span className="text-lg">←</span> All Members
+                            <span className="text-lg">←</span> {t("missed.allMembers", "All Members")}
                         </button>
-                        <h2 className="text-[19px] font-extrabold text-slate-900 truncate" title={`${selectedPatientName}'s Documents`}>{selectedPatientName}'s Documents</h2>
+                        <h2 className="text-[19px] font-extrabold text-slate-900 truncate" title={`${selectedPatientName} ${t("missed.sDocuments", "'s Documents")}`}>{selectedPatientName}{t("missed.sDocuments", "'s Documents")}</h2>
                     </div>
 
                     {/* Filter & Sort Bar */}
@@ -1184,7 +1184,7 @@ export function DocumentsPage() {
                             className={`flex items-center gap-2 px-4 py-2 rounded-xl border transition-all font-bold text-sm ${showFilters ? 'bg-primary text-white border-primary shadow-md' : 'bg-white/60 border-white/40 text-slate-600 hover:bg-white/80 shadow-sm'}`}
                         >
                             <span className="material-symbols-outlined text-[18px]">filter_list</span>
-                            Filter & Sort
+                            {t("missed.filterSort", "Filter & Sort")}
                         </button>
                     </div>
 
@@ -1213,8 +1213,8 @@ export function DocumentsPage() {
                                 </select>
 
                                 <select value={sortBy} onChange={e => setSortBy(e.target.value as any)} className="px-4 py-3 rounded-xl border border-white/40 bg-white/60 text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-primary/20 appearance-none">
-                                    <option value="newest">Sort: Newest First</option>
-                                    <option value="oldest">Sort: Oldest First</option>
+                                    <option value="newest">{t("missed.sortNewest", "Sort: Newest First")}</option>
+                                    <option value="oldest">{t("missed.sortOldest", "Sort: Oldest First")}</option>
                                 </select>
                             </div>
                         </div>
@@ -1236,14 +1236,14 @@ export function DocumentsPage() {
                                 className={`flex-1 py-2.5 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1 min-h-[44px] ${viewMode === "dashboard" ? "bg-white text-primary shadow-sm" : "text-slate-500 hover:text-slate-700 hover:bg-white/20"}`}
                             >
                                 <span className="material-symbols-outlined text-[20px]">grid_view</span>
-                                <span className="hidden sm:inline">Folders</span>
+                                <span className="hidden sm:inline">{t("missed.folders", "Folders")}</span>
                             </button>
                             <button
                                 onClick={() => { setViewMode("timeline"); setTimelineFilterCategory(null); setTimelineFilterFolderId(null); }}
                                 className={`flex-1 py-2.5 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1 min-h-[44px] ${viewMode === "timeline" ? "bg-white text-primary shadow-sm" : "text-slate-500 hover:text-slate-700 hover:bg-white/20"}`}
                             >
                                 <span className="material-symbols-outlined text-[20px]">timeline</span>
-                                <span className="hidden sm:inline">Events</span>
+                                <span className="hidden sm:inline">{t("missed.events", "Events")}</span>
                             </button>
                         </div>
                     )}
@@ -1254,9 +1254,9 @@ export function DocumentsPage() {
                             {/* Folders Section */}
                             <div className="space-y-4">
                                 <div className="flex items-center justify-between">
-                                    <h2 className="text-[17px] font-extrabold text-slate-900 ml-1">{selectedPatientName}'s Folders</h2>
+                                    <h2 className="text-[17px] font-extrabold text-slate-900 ml-1">{selectedPatientName}{t("missed.sFolders", "'s Folders")}</h2>
                                     <button onClick={() => setCreateFolderModalOpen(true)} className="text-blue-600 text-[13px] font-bold flex items-center gap-1 hover:text-blue-700 transition-colors bg-blue-50 px-3 py-1.5 rounded-lg">
-                                        <Plus size={16} /> New Folder
+                                        <Plus size={16} /> {t("missed.newFolder", "New Folder")}
                                     </button>
                                 </div>
                                 {folders.length > 0 ? (
@@ -1483,8 +1483,8 @@ export function DocumentsPage() {
                                     <div className="w-40 h-40 mb-6 relative">
                                         <img src="/assets/images/document-empty-state.png" alt="No documents" className="absolute inset-0 w-full h-full object-contain" />
                                     </div>
-                                    <p className="font-bold text-foreground text-lg mb-1">{t("documents.empty")}</p>
-                                    <p className="text-sm max-w-xs mx-auto">Upload medical reports, prescriptions, and test results here.</p>
+                                    <p className="font-bold text-foreground text-lg mb-1">{t("missed.docsEmpty", "No documents")}</p>
+                                    <p className="text-sm max-w-xs mx-auto">{t("missed.uploadMedical", "Upload medical reports, prescriptions, and test results here.")}</p>
                                 </div>
                             )}
 
@@ -1512,7 +1512,7 @@ export function DocumentsPage() {
                                         onClick={() => navigate(`/dashboard?folderId=${viewingFolderId}`)}
                                         className="flex items-center gap-1.5 text-[13px] font-bold bg-blue-50 text-blue-600 px-3 py-1.5 rounded-lg hover:bg-blue-100 transition-colors"
                                     >
-                                        <Upload size={16} /> Upload Here
+                                        <Upload size={16} /> {t("missed.uploadHere", "Upload Here")}
                                     </button>
                                 </div>
                             </div>
@@ -1523,7 +1523,7 @@ export function DocumentsPage() {
                                 {docs.filter(d => d.folderId === viewingFolderId).length === 0 && (
                                     <div className="col-span-full py-8 text-center text-slate-400">
                                         <FolderOpen size={32} className="mx-auto mb-2 opacity-40" />
-                                        <p className="text-sm font-semibold">Folder is empty.</p>
+                                        <p className="text-sm font-semibold">{t("missed.folderEmpty", "Folder is empty.")}</p>
                                     </div>
                                 )}
                             </div>

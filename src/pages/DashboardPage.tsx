@@ -456,7 +456,7 @@ export function DashboardPage() {
                                 {formatGreeting()}, {userProfile?.displayName?.split(' ')[0] || t("dashboard.guest")}
                             </motion.p>
                             <motion.h2 initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="text-2xl font-black text-white leading-tight tracking-tighter">
-                                Secure your family's <br /> <span className="text-blue-400">health legacy</span>
+                                {t("missed.secureFamily", "Secure your family's")} <br /> <span className="text-blue-400">{t("missed.healthLegacy", "health legacy")}</span>
                             </motion.h2>
                         </div>
                     </motion.div>

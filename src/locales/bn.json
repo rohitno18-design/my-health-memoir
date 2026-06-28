@@ -312,7 +312,8 @@
     "fileCount": "{{count}}টি ফাইল",
     "addTimelineError": "ঘটনা যোগ করতে ব্যর্থ হয়েছে",
     "addToTimeline": "ঘটনাগুলিতে যোগ করুন",
-    "linkedTimeline": "লিঙ্ক করা ঘটনা"
+    "linkedTimeline": "লিঙ্ক করা ঘটনা",
+    "vault": "ভল্ট"
   },
   "patients": {
     "title": "পরিবার",
@@ -738,6 +739,21 @@
     "upcoming": "আসন্ন",
     "new": "নতুন",
     "standard": "স্ট্যান্ডার্ড",
-    "addDocs": "ডকুমেন্টস যোগ করুন"
+    "addDocs": "ডকুমেন্টস যোগ করুন",
+    "sDocuments": "'s Documents",
+    "sortNewest": "Sort: Newest First",
+    "sortOldest": "Sort: Oldest First",
+    "sFolders": "'s Folders",
+    "newFolder": "New Folder",
+    "docsEmpty": "No documents yet",
+    "uploadMedical": "Upload medical reports, prescriptions, and test results here.",
+    "uploadHere": "Upload Here",
+    "folderEmpty": "Folder is empty.",
+    "noFamilyAdded": "No family members added yet.",
+    "allMembers": "All Members",
+    "filterSort": "Filter & Sort",
+    "folders": "Folders",
+    "events": "Events",
+    "myDocs": "My Docs"
   }
 }

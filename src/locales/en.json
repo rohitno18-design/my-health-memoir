@@ -312,7 +312,8 @@
     "fileCount": "{{count}} file(s)",
     "addTimelineError": "Failed to add event",
     "addToTimeline": "Add to Events",
-    "linkedTimeline": "Linked Events"
+    "linkedTimeline": "Linked Events",
+    "vault": "Vault"
   },
   "patients": {
     "title": "Family",
@@ -575,7 +576,22 @@
     "upcoming": "Upcoming",
     "new": "New",
     "standard": "Standard",
-    "addDocs": "Add Documents"
+    "addDocs": "Add Documents",
+    "sDocuments": "'s Documents",
+    "sortNewest": "Sort: Newest First",
+    "sortOldest": "Sort: Oldest First",
+    "sFolders": "'s Folders",
+    "newFolder": "New Folder",
+    "docsEmpty": "No documents yet",
+    "uploadMedical": "Upload medical reports, prescriptions, and test results here.",
+    "uploadHere": "Upload Here",
+    "folderEmpty": "Folder is empty.",
+    "noFamilyAdded": "No family members added yet.",
+    "allMembers": "All Members",
+    "filterSort": "Filter & Sort",
+    "folders": "Folders",
+    "events": "Events",
+    "myDocs": "My Docs"
   },
   "emergency": {
     "title": "Emergency QR Code",

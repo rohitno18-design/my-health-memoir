@@ -312,7 +312,8 @@
     "fileCount": "{{count}} ఫైల్(లు)",
     "addTimelineError": "ఈవెంట్‌ను జోడించడంలో విఫలమైంది",
     "addToTimeline": "ఈవెంట్‌లకు జోడించండి",
-    "linkedTimeline": "లింక్ చేయబడిన ఈవెంట్‌లు"
+    "linkedTimeline": "లింక్ చేయబడిన ఈవెంట్‌లు",
+    "vault": "వాల్ట్"
   },
   "patients": {
     "title": "కుటుంబం",
@@ -738,6 +739,21 @@
     "upcoming": "రాబోయేవి",
     "new": "కొత్త",
     "standard": "ప్రామాణికం",
-    "addDocs": "పత్రాలను జోడించండి"
+    "addDocs": "పత్రాలను జోడించండి",
+    "sDocuments": "'s Documents",
+    "sortNewest": "Sort: Newest First",
+    "sortOldest": "Sort: Oldest First",
+    "sFolders": "'s Folders",
+    "newFolder": "New Folder",
+    "docsEmpty": "No documents yet",
+    "uploadMedical": "Upload medical reports, prescriptions, and test results here.",
+    "uploadHere": "Upload Here",
+    "folderEmpty": "Folder is empty.",
+    "noFamilyAdded": "No family members added yet.",
+    "allMembers": "All Members",
+    "filterSort": "Filter & Sort",
+    "folders": "Folders",
+    "events": "Events",
+    "myDocs": "My Docs"
   }
 }
