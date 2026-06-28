@@ -466,7 +466,6 @@ export function DashboardPage() {
                 <section>
                     <QuickActions onAddDocument={() => setUploadStep("selectSource")} documentAnalysisEnabled={flags.documentAnalysisEnabled} />
                 </section>
-{{ ... }}
 
                 {/* 2. Emergency Card (Safety) */}
                 <section>

@@ -11,10 +11,6 @@ export function QuickActions({ onAddDocument, documentAnalysisEnabled = true }: 
   return (
     <div className="flex flex-col h-full items-center justify-center gap-4 py-2">
       {documentAnalysisEnabled ? (
-        <motion.button
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          onClick={onAddDocument}
         <>
           <motion.button
             whileHover={{ scale: 1.02 }}
