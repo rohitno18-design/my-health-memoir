@@ -70,11 +70,14 @@ export function Header() {
                     <div className="relative">
                         <button
                             onClick={() => setLangDropdownOpen(!langDropdownOpen)}
-                            className="h-9 px-3 flex items-center justify-center gap-1.5 rounded-full bg-slate-100 text-slate-600 hover:bg-blue-50 hover:text-blue-600 transition-colors active:scale-95 font-medium text-sm border border-transparent focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-                            title="Toggle Language"
+                            className="h-9 px-3 flex items-center justify-center gap-1.5 rounded-full bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition-colors active:scale-95 font-semibold text-sm border border-indigo-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                            title="Change Language"
                         >
                             <Globe size={15} />
-                            <span className="max-w-[40px] truncate hidden sm:inline-block uppercase tracking-wider text-xs font-bold">
+                            <span className="hidden sm:inline-block tracking-wide text-xs">
+                                {SUPPORTED_LANGUAGES.find(l => i18n.language.startsWith(l.code))?.nativeName || 'Language'}
+                            </span>
+                            <span className="sm:hidden tracking-wide text-xs uppercase font-bold">
                                 {i18n.language.split('-')[0]}
                             </span>
                             <ChevronDown size={14} className={`transition-transform duration-200 ${langDropdownOpen ? 'rotate-180' : ''}`} />
