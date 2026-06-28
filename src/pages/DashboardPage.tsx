@@ -188,7 +188,17 @@ export function DashboardPage() {
     const handleFileSelect = (file: File | null | undefined) => {
         if (!file) return;
         setSelectedFile(file);
-        setForm(prev => ({ ...prev, language: userProfile?.preferredLanguage || "English" }));
+        
+        // Map i18n code to full language name for the prompt
+        const langCode = i18n.language.split('-')[0];
+        const langMap: Record<string, string> = {
+            en: 'English', hi: 'Hindi', bn: 'Bengali', te: 'Telugu', mr: 'Marathi',
+            ta: 'Tamil', ur: 'Urdu', gu: 'Gujarati', kn: 'Kannada', ml: 'Malayalam',
+            or: 'Odia', pa: 'Punjabi'
+        };
+        const currentLangName = langMap[langCode] || 'English';
+
+        setForm(prev => ({ ...prev, language: currentLangName }));
         setUploadStep("form");
     };
 

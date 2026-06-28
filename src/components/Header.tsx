@@ -2,7 +2,8 @@ import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Bell, Search, HelpCircle } from "lucide-react";
+import { SUPPORTED_LANGUAGES } from "@/i18n";
+import { Bell, Search, HelpCircle, Globe, ChevronDown } from "lucide-react";
 import AppTour from "@/components/AppTour";
 import { GlobalSearchModal } from "@/components/GlobalSearchModal";
 
@@ -12,14 +13,17 @@ export function Header() {
     const { t, i18n } = useTranslation();
     const [runTour, setRunTour] = useState(false);
     const [searchOpen, setSearchOpen] = useState(false);
+    const [langDropdownOpen, setLangDropdownOpen] = useState(false);
 
     const handleSearchClick = () => {
         setSearchOpen(true);
     };
 
-    const toggleLanguage = () => {
-        const newLang = i18n.language.startsWith('en') ? 'hi' : 'en';
-        i18n.changeLanguage(newLang);
+    const changeLanguage = (code: string) => {
+        i18n.changeLanguage(code);
+        setLangDropdownOpen(false);
+        // Set body direction for RTL languages like Urdu
+        document.documentElement.dir = code === 'ur' ? 'rtl' : 'ltr';
     };
 
     return (
@@ -63,13 +67,59 @@ export function Header() {
                     >
                         <HelpCircle size={17} />
                     </button>
-                    <button
-                        onClick={toggleLanguage}
-                        className="size-9 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full bg-slate-100 text-slate-600 hover:bg-blue-50 hover:text-blue-600 transition-colors active:scale-95 font-bold text-sm"
-                        title="Toggle Language"
-                    >
-                        {i18n.language.startsWith('en') ? 'अ' : 'A'}
-                    </button>
+                    <div className="relative">
+                        <button
+                            onClick={() => setLangDropdownOpen(!langDropdownOpen)}
+                            className="h-9 px-3 flex items-center justify-center gap-1.5 rounded-full bg-slate-100 text-slate-600 hover:bg-blue-50 hover:text-blue-600 transition-colors active:scale-95 font-medium text-sm border border-transparent focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                            title="Toggle Language"
+                        >
+                            <Globe size={15} />
+                            <span className="max-w-[40px] truncate hidden sm:inline-block uppercase tracking-wider text-xs font-bold">
+                                {i18n.language.split('-')[0]}
+                            </span>
+                            <ChevronDown size={14} className={`transition-transform duration-200 ${langDropdownOpen ? 'rotate-180' : ''}`} />
+                        </button>
+
+                        {/* Language Dropdown Menu */}
+                        {langDropdownOpen && (
+                            <>
+                                {/* Invisible backdrop to close dropdown when clicking outside */}
+                                <div 
+                                    className="fixed inset-0 z-40" 
+                                    onClick={() => setLangDropdownOpen(false)} 
+                                />
+                                <div className="absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 py-2 z-50 animate-in fade-in zoom-in-95 duration-200 origin-top-right overflow-hidden">
+                                    <div className="px-3 pb-2 mb-2 border-b border-slate-50">
+                                        <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{t('docs.chooseLanguage', 'Choose Language')}</p>
+                                    </div>
+                                    <div className="max-h-[300px] overflow-y-auto px-1 scrollbar-hide">
+                                        {SUPPORTED_LANGUAGES.map((lang) => {
+                                            const isActive = i18n.language.startsWith(lang.code);
+                                            return (
+                                                <button
+                                                    key={lang.code}
+                                                    onClick={() => changeLanguage(lang.code)}
+                                                    className={`w-full text-left px-3 py-2 rounded-xl text-sm flex items-center justify-between transition-colors ${
+                                                        isActive 
+                                                            ? 'bg-indigo-50 text-indigo-700 font-semibold' 
+                                                            : 'text-slate-700 hover:bg-slate-50'
+                                                    }`}
+                                                >
+                                                    <span className="flex items-center gap-2">
+                                                        <span className="text-lg w-5 text-center">{lang.nativeName.charAt(0)}</span>
+                                                        <span>{lang.nativeName}</span>
+                                                    </span>
+                                                    <span className={`text-[10px] uppercase tracking-wider ${isActive ? 'text-indigo-400' : 'text-slate-400'}`}>
+                                                        {lang.code}
+                                                    </span>
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            </>
+                        )}
+                    </div>
                     <button
                         onClick={handleSearchClick}
                         className="size-9 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full bg-slate-100 text-slate-600 hover:bg-blue-50 hover:text-blue-600 transition-colors active:scale-95"

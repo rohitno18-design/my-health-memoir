@@ -153,7 +153,7 @@ export function GlobalSearchModal({ isOpen, onClose }: { isOpen: boolean, onClos
                         type="text"
                         value={searchQuery}
                         onChange={e => setSearchQuery(e.target.value)}
-                        placeholder="Search..."
+                        placeholder={t("search.placeholder", "Search...")}
                         className="flex-1 min-w-0 bg-transparent text-base sm:text-lg font-semibold text-slate-800 outline-none placeholder:text-slate-300 placeholder:truncate"
                     />
                     <button 
@@ -169,10 +169,10 @@ export function GlobalSearchModal({ isOpen, onClose }: { isOpen: boolean, onClos
                     <div className="px-3 sm:px-4 py-2 sm:py-3 bg-slate-50/50 border-b border-slate-100 flex flex-col sm:flex-row gap-2 sm:gap-3 sm:items-center shrink-0">
                         <div className="flex gap-1.5 sm:gap-2 overflow-x-auto custom-scrollbar pb-1 sm:-mb-1 w-full sm:w-auto sm:mr-auto">
                             {([
-                                { id: "all", label: "All" },
-                                { id: "docs", label: "Documents" },
-                                { id: "events", label: "Events" },
-                                { id: "patients", label: "Family" }
+                                { id: "all", label: t("search.filterAll", "All") },
+                                { id: "docs", label: t("search.filterDocs", "Documents") },
+                                { id: "events", label: t("search.filterEvents", "Events") },
+                                { id: "patients", label: t("search.filterFamily", "Family") }
                             ] as const).map(f => (
                                 <button
                                     key={f.id}
@@ -191,21 +191,21 @@ export function GlobalSearchModal({ isOpen, onClose }: { isOpen: boolean, onClos
                             <button
                                 onClick={() => setSortBy("relevance")}
                                 className={`p-1.5 rounded-md ${sortBy === 'relevance' ? 'bg-slate-100 text-slate-800' : 'text-slate-400 hover:text-slate-600'}`}
-                                title="Sort by Relevance"
+                                title={t("search.sortRelevance", "Sort by Relevance")}
                             >
                                 <Filter size={16} />
                             </button>
                             <button
                                 onClick={() => setSortBy("newest")}
                                 className={`p-1.5 rounded-md ${sortBy === 'newest' ? 'bg-slate-100 text-slate-800' : 'text-slate-400 hover:text-slate-600'}`}
-                                title="Newest First"
+                                title={t("search.sortNewest", "Newest First")}
                             >
                                 <Clock size={16} />
                             </button>
                             <button
                                 onClick={() => setSortBy("alpha")}
                                 className={`p-1.5 rounded-md ${sortBy === 'alpha' ? 'bg-slate-100 text-slate-800' : 'text-slate-400 hover:text-slate-600'}`}
-                                title="A-Z"
+                                title={t("search.sortAlpha", "A-Z")}
                             >
                                 <ArrowDownAZ size={16} />
                             </button>
@@ -225,14 +225,14 @@ export function GlobalSearchModal({ isOpen, onClose }: { isOpen: boolean, onClos
                     <div className="overflow-y-auto p-2 custom-scrollbar flex-1 relative">
                         {!hasResults ? (
                             <div className="p-8 text-center text-slate-400 font-medium">
-                                No results found for "{searchQuery}"
+                                {t("search.noResults", "No results found for")} "{searchQuery}"
                             </div>
                         ) : (
                             <div className="space-y-4 p-2 pb-20 md:pb-4">
                                 {/* Patients Results */}
                                 {filteredPatients.length > 0 && (
                                     <div>
-                                        <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 px-2">Family Members</h3>
+                                        <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 px-2">{t("search.familyMembers", "Family Members")}</h3>
                                         <div className="space-y-1">
                                             {filteredPatients.map(p => (
                                                 <button 
@@ -245,7 +245,7 @@ export function GlobalSearchModal({ isOpen, onClose }: { isOpen: boolean, onClos
                                                     </div>
                                                     <div>
                                                         <div className="font-bold text-slate-800 group-hover:text-blue-700">{p.name}</div>
-                                                        <div className="text-xs text-slate-500 font-medium">View Document Vault</div>
+                                                        <div className="text-xs text-slate-500 font-medium">{t("search.viewDocumentVault", "View Document Vault")}</div>
                                                     </div>
                                                 </button>
                                             ))}
@@ -256,7 +256,7 @@ export function GlobalSearchModal({ isOpen, onClose }: { isOpen: boolean, onClos
                                 {/* Events Results */}
                                 {filteredEvents.length > 0 && (
                                     <div>
-                                        <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 px-2 mt-4">Health Events</h3>
+                                        <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 px-2 mt-4">{t("search.healthEvents", "Health Events")}</h3>
                                         <div className="space-y-1">
                                             {filteredEvents.map(e => {
                                                 const pName = patients.find(p => p.id === e.patientId)?.name || 'Unknown';
@@ -283,7 +283,7 @@ export function GlobalSearchModal({ isOpen, onClose }: { isOpen: boolean, onClos
                                 {/* Documents Results */}
                                 {filteredDocs.length > 0 && (
                                     <div>
-                                        <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 px-2 mt-4">Documents</h3>
+                                        <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 px-2 mt-4">{t("search.documents", "Documents")}</h3>
                                         <div className="space-y-1">
                                             {filteredDocs.map(d => {
                                                 const pName = patients.find(p => p.id === d.patientId)?.name || 'Unknown';
@@ -316,7 +316,7 @@ export function GlobalSearchModal({ isOpen, onClose }: { isOpen: boolean, onClos
                 {!loading && searchQuery.length <= 1 && (
                     <div className="p-8 text-center text-slate-400 font-medium flex-1">
                         <Search className="mx-auto mb-3 opacity-20" size={40} />
-                        Type at least 2 characters to search.
+                        {t("search.typeToSearch", "Type at least 2 characters to search.")}
                     </div>
                 )}
 

@@ -22,12 +22,17 @@ USE MARKDOWN FORMATTING: Translate section headers to '### ' and keep bullet poi
 const languages = [
   { id: "English", tKey: "common.language_en" },
   { id: "Hindi", tKey: "common.language_hi" },
-  { id: "Hinglish", tKey: "common.language_hinglish" },
-  { id: "Marathi", tKey: "common.language_mr" },
-  { id: "Gujarati", tKey: "common.language_gu" },
-  { id: "Tamil", tKey: "common.language_ta" },
+  { id: "Bengali", tKey: "common.language_bn" },
   { id: "Telugu", tKey: "common.language_te" },
-  { id: "Bengali", tKey: "common.language_bn" }
+  { id: "Marathi", tKey: "common.language_mr" },
+  { id: "Tamil", tKey: "common.language_ta" },
+  { id: "Urdu", tKey: "common.language_ur" },
+  { id: "Gujarati", tKey: "common.language_gu" },
+  { id: "Kannada", tKey: "common.language_kn" },
+  { id: "Malayalam", tKey: "common.language_ml" },
+  { id: "Odia", tKey: "common.language_or" },
+  { id: "Punjabi", tKey: "common.language_pa" },
+  { id: "Hinglish", tKey: "common.language_hinglish" }
 ];
 
 const CATEGORIES = [
@@ -98,7 +103,16 @@ export function DocumentsPage() {
     // Modals state
     const [viewSummary, setViewSummary] = useState<{ text: string, lang: string } | null>(null);
     const [showLanguageModalForDoc, setShowLanguageModalForDoc] = useState<Document | null>(null);
-    const [summaryLanguage, setSummaryLanguage] = useState(t("common.localeCode") === "hi-IN" ? "Hindi" : "English");
+    // Map i18n code to full language name
+    const langCode = i18n.language.split('-')[0];
+    const langMap: Record<string, string> = {
+        en: 'English', hi: 'Hindi', bn: 'Bengali', te: 'Telugu', mr: 'Marathi',
+        ta: 'Tamil', ur: 'Urdu', gu: 'Gujarati', kn: 'Kannada', ml: 'Malayalam',
+        or: 'Odia', pa: 'Punjabi'
+    };
+    const defaultLangName = langMap[langCode] || 'English';
+
+    const [summaryLanguage, setSummaryLanguage] = useState(defaultLangName);
     const [summarizingDocId, setSummarizingDocId] = useState<string | null>(null);
     const [_generationProgress, setGenerationProgress] = useState<string>("");
 
