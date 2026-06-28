@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
-import { UploadCloud, Plus } from "lucide-react";
+import { UploadCloud, Plus, FilePlus } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 interface QuickActionsProps {
   onAddDocument: () => void;
@@ -7,6 +8,7 @@ interface QuickActionsProps {
 }
 
 export function QuickActions({ onAddDocument, documentAnalysisEnabled = true }: QuickActionsProps) {
+  const { t } = useTranslation();
 
   return (
     <div className="flex flex-col h-full items-center justify-center gap-4 py-2">
