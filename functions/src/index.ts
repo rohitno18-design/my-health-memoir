@@ -35,12 +35,17 @@ export const proxyGemini = onCall({ invoker: "public", cors: true }, async (requ
   let currentCalls = 0;
   let usageRef: any = null;
 
+  // ── Enforce Authentication ──
+  if (!request.auth || !request.auth.uid) {
+    throw new HttpsError("unauthenticated", "You must be logged in to access AI features.");
+  }
+  const uid = request.auth.uid;
+
   // ── Per-user daily rate limit (using tokens) ──
-  if (data.userId) {
-    try {
-      const today = new Date().toISOString().split("T")[0];
-      usageRef = adminDb.collection("user_usage").doc(data.userId).collection("daily").doc(today) as any;
-      const usageDoc = await usageRef!.get();
+  try {
+    const today = new Date().toISOString().split("T")[0];
+    usageRef = adminDb.collection("user_usage").doc(uid).collection("daily").doc(today) as any;
+    const usageDoc = await usageRef!.get();
       
       currentTokens = usageDoc.exists ? (usageDoc.data()?.tokens || 0) : 0;
       currentCalls = usageDoc.exists ? (usageDoc.data()?.calls || 0) : 0;
@@ -53,7 +58,6 @@ export const proxyGemini = onCall({ invoker: "public", cors: true }, async (requ
       if (e.code === "resource-exhausted") throw e;
       console.warn("Rate limit check failed (non-blocking):", e.message);
     }
-  }
 
   try {
     const apiKey = process.env.GEMINI_API_KEY || "";
