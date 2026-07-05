@@ -17,9 +17,12 @@ service cloud.firestore {
     }
 
     // User Lookup (uniqueness enforcement by email/phone)
+    // get-only: existence checks work, but the collection cannot be listed
+    // (prevents email/phone enumeration by authenticated users)
     match /user_lookup/{key} {
-      allow read: if request.auth != null;
-      allow create: if request.auth != null;
+      allow get: if request.auth != null;
+      allow list: if isSuperAdmin();
+      allow create: if (request.auth != null && request.resource.data.uid == request.auth.uid) || isSuperAdmin();
       allow update, delete: if isSuperAdmin();
     }
 
@@ -31,8 +34,20 @@ service cloud.firestore {
     }
 
     // Users collection and sub-collections
+    // Owners may manage their profile but can never grant themselves
+    // privileged fields (role, tier) — those are set only by admins/Cloud Functions
     match /users/{userId} {
-      allow read, write: if (request.auth != null && request.auth.uid == userId) || isSuperAdmin();
+      allow read: if (request.auth != null && request.auth.uid == userId) || isSuperAdmin();
+      allow create: if isSuperAdmin() || (
+        request.auth != null && request.auth.uid == userId &&
+        (!("role" in request.resource.data) || request.resource.data.role == "patient") &&
+        (!("tier" in request.resource.data) || request.resource.data.tier == "free")
+      );
+      allow update: if isSuperAdmin() || (
+        request.auth != null && request.auth.uid == userId &&
+        !request.resource.data.diff(resource.data).affectedKeys().hasAny(["role", "tier"])
+      );
+      allow delete: if (request.auth != null && request.auth.uid == userId) || isSuperAdmin();
       match /{allPaths=**} {
         allow read, write: if (request.auth != null && request.auth.uid == userId) || isSuperAdmin();
       }
@@ -109,9 +124,10 @@ service cloud.firestore {
       allow read: if isSuperAdmin();
     }
 
-    // Shared Links — public read, owner write
+    // Shared Links — public read only while unexpired (expiry enforced server-side,
+    // not just in the client), owner write
     match /shared_links/{shareId} {
-      allow read: if true;
+      allow read: if resource.data.expiresAt == null || request.time < resource.data.expiresAt;
       allow update, delete: if (request.auth != null && resource.data.userId == request.auth.uid) || isSuperAdmin();
       allow create: if (request.auth != null && request.resource.data.userId == request.auth.uid) || isSuperAdmin();
     }

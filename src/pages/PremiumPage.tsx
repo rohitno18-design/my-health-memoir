@@ -59,8 +59,8 @@ export function PremiumPage() {
             <div className="pt-6">
                 <div className="bg-gradient-to-br from-slate-900 to-slate-800 p-6 rounded-[2rem] text-white shadow-xl relative overflow-hidden">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-2xl -mr-10 -mt-10"></div>
-                    <h3 className="font-bold text-lg mb-1">Upgrade Today</h3>
-                    <p className="text-sm text-slate-300 font-medium mb-6">Coming soon! We are currently rolling out Premium in beta.</p>
+                    <h3 className="font-bold text-lg mb-1">Premium is Coming Soon</h3>
+                    <p className="text-sm text-slate-300 font-medium mb-6">Premium is rolling out in beta and cannot be purchased yet. These features will unlock in a future update.</p>
                     
                     <button 
                         onClick={() => navigate('/dashboard')}

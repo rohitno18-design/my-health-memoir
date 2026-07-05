@@ -35,6 +35,7 @@ const GlobalTimelinePage = lazy(() => import("@/pages/GlobalTimelinePage").then(
 const NotificationsPage = lazy(() => import("@/pages/NotificationsPage").then(m => ({ default: m.NotificationsPage })));
 const PrivacyPage = lazy(() => import("@/pages/PrivacyPage").then(m => ({ default: m.PrivacyPage })));
 const TermsPage = lazy(() => import("@/pages/TermsPage").then(m => ({ default: m.TermsPage })));
+const DeleteAccountPage = lazy(() => import("@/pages/DeleteAccountPage").then(m => ({ default: m.DeleteAccountPage })));
 const SharedDocumentView = lazy(() => import("@/pages/SharedDocumentView").then(m => ({ default: m.SharedDocumentView })));
 import { LandingPage } from "@/pages/LandingPage";
 
@@ -70,6 +71,7 @@ function App() {
             
             <Route path="/privacy" element={<PrivacyPage />} />
             <Route path="/terms" element={<TermsPage />} />
+            <Route path="/delete-account" element={<DeleteAccountPage />} />
 
             {/* Protected routes */}
             <Route

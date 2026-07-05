@@ -16,6 +16,7 @@ import { useTranslation } from "react-i18next";
 import { db } from "@/lib/firebase";
 import { APP_VERSION } from "@/config/version";
 import { isBiometricEnabled, setBiometricEnabled, checkBiometricAvailability } from "@/lib/biometric";
+import { exportMyData } from "@/lib/dataExport";
 
 
 interface UserSettings {
@@ -635,6 +636,7 @@ export function AccountPage() {
     const [showEmailModal, setShowEmailModal] = useState(false);
     const [showPhoneModal, setShowPhoneModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [exporting, setExporting] = useState(false);
     const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
     const fileRef = useRef<HTMLInputElement>(null);
     const [searchParams, setSearchParams] = useSearchParams();
@@ -804,7 +806,24 @@ export function AccountPage() {
                                 <BiometricLockToggle />
                             </div>
 
-                            <div className="pt-2">
+                            <div className="pt-2 space-y-3">
+                                <button
+                                    onClick={async () => {
+                                        if (!user?.uid || exporting) return;
+                                        setExporting(true);
+                                        try {
+                                            await exportMyData(user.uid);
+                                            setToast({ message: "Your data export has been downloaded.", type: "success" });
+                                        } catch {
+                                            setToast({ message: "Export failed. Please try again.", type: "error" });
+                                        } finally { setExporting(false); }
+                                    }}
+                                    disabled={exporting}
+                                    className="w-full py-3 rounded-xl border border-slate-200 text-slate-700 text-sm font-bold bg-white hover:bg-slate-50 transition-colors flex items-center justify-center gap-2 disabled:opacity-60"
+                                >
+                                    {exporting && <Loader2 size={14} className="animate-spin" />}
+                                    Download My Data (JSON)
+                                </button>
                                 <button onClick={() => setShowDeleteModal(true)} className="w-full py-3 rounded-xl border border-destructive/20 text-destructive text-sm font-bold bg-destructive/5 hover:bg-destructive/10 transition-colors">
                                     Delete Account permanently
                                 </button>

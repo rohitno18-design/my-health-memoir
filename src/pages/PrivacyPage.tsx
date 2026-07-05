@@ -43,8 +43,9 @@ export function PrivacyPage() {
                     </section>
                     
                     <section>
-                        <h2 className="text-xl font-bold text-slate-900 mb-3">4. Data Deletion</h2>
-                        <p>You have the right to request the deletion of all your data. You can delete your account and all associated medical records directly within the App's Account Settings. Data is permanently deleted within 30 days of account termination.</p>
+                        <h2 className="text-xl font-bold text-slate-900 mb-3">4. Data Deletion &amp; Retention</h2>
+                        <p>You have the right to request the deletion of all your data. You can delete your account and all associated medical records directly within the App's Account Settings (Account → Delete Account permanently), or request deletion without the app at <a href="/delete-account" className="font-bold text-blue-600">imsmrti.app/delete-account</a>. In-app deletion takes effect immediately; email requests are completed within 30 days.</p>
+                        <p className="mt-2">We retain your data only as long as your account is active. After deletion, minimal security/audit logs required for fraud prevention and legal compliance are removed on a rolling basis within 90 days.</p>
                     </section>
 
                     <section>
@@ -76,15 +77,31 @@ export function PrivacyPage() {
                         <h2 className="text-xl font-bold text-slate-900 mb-3">7. DPDP Act (India Users)</h2>
                         <p>Under the Digital Personal Data Protection (DPDP) Act, 2023 of India:</p>
                         <ul className="list-disc pl-5 mt-2 space-y-2">
-                            <li>Your personal data is processed with your consent, which you provide during account registration.</li>
-                            <li>You have the right to access, correct, and erase your data at any time.</li>
-                            <li>A Data Protection Officer (DPO) is available at <strong>hii@imsmrti.app</strong> for grievance redressal.</li>
+                            <li>Your personal data is processed with your consent, which you provide during account registration. You may withdraw consent at any time by deleting your account.</li>
+                            <li>You have the right to access, correct, and erase your data at any time, and the right to nominate another individual to exercise these rights on your behalf in case of death or incapacity.</li>
                             <li>In the event of a data breach, we will notify affected users and the Data Protection Board of India as required by law.</li>
+                            <li>If you are unsatisfied with our grievance resolution, you may escalate to the Data Protection Board of India.</li>
                         </ul>
                     </section>
 
                     <section>
-                        <h2 className="text-xl font-bold text-slate-900 mb-3">8. Cookies & Tracking</h2>
+                        <h2 className="text-xl font-bold text-slate-900 mb-3">8. Grievance Officer</h2>
+                        <p>In accordance with the DPDP Act, 2023 and the Information Technology Act, 2000, the contact details of our Grievance Officer are:</p>
+                        <ul className="list-disc pl-5 mt-2 space-y-2">
+                            <li><strong>Name:</strong> Rohit (Founder, I M Smrti)</li>
+                            <li><strong>Email:</strong> hii@imsmrti.app (subject line: "Grievance")</li>
+                            <li><strong>Address:</strong> Ashbag Road, Infront of Police Station, Chouwky, Barkhedi, Plot No J 59, Bhopal, Madhya Pradesh, India</li>
+                            <li><strong>Response time:</strong> acknowledgment within 48 hours, resolution within 30 days.</li>
+                        </ul>
+                    </section>
+
+                    <section>
+                        <h2 className="text-xl font-bold text-slate-900 mb-3">9. Records of Family Members</h2>
+                        <p>If you add health records of a family member or dependent, you confirm that you are their parent, legal guardian, or authorized caregiver, or that you have their consent to manage their health information. The same protection, deletion and access rights described in this policy apply to their data.</p>
+                    </section>
+
+                    <section>
+                        <h2 className="text-xl font-bold text-slate-900 mb-3">10. Cookies & Tracking</h2>
                         <p>This application uses essential cookies and local storage to:</p>
                         <ul className="list-disc pl-5 mt-2 space-y-2">
                             <li>Maintain your login session securely</li>
@@ -95,8 +112,8 @@ export function PrivacyPage() {
                     </section>
 
                     <section>
-                        <h2 className="text-xl font-bold text-slate-900 mb-3">9. Children's Privacy</h2>
-                        <p>I M Smrti is not intended for use by individuals under the age of 13 without parental consent. We do not knowingly collect personal data from children under 13. If you believe a child has provided us with personal data, please contact us immediately.</p>
+                        <h2 className="text-xl font-bold text-slate-900 mb-3">11. Children's Privacy</h2>
+                        <p>You must be at least 18 years old to create an I M Smrti account. Health records of children may only be added and managed by a parent or legal guardian through their own account, as described in "Records of Family Members". We do not knowingly allow children to create accounts or collect personal data directly from children. If you believe a child has created an account, please contact us immediately.</p>
                     </section>
 
                     <section className="bg-slate-50 p-6 rounded-2xl mt-8">

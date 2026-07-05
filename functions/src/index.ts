@@ -20,6 +20,9 @@ function appCheck() { if (!_appCheck) _appCheck = getAppCheck(); return _appChec
 
 // ── proxyGemini — secure API key server-side with per-user daily limits ──
 const MAX_TOKENS_PER_DAY = 2000000; // 2 Million tokens is ~$0.15 (12-15 rupees) on Flash, safely under ₹100 limit
+const MAX_CALLS_PER_DAY = 300; // hard stop against runaway/scripted clients even under the token cap
+const MAX_REQUEST_CHARS = 200000; // ~50k tokens of input per call
+const MAX_OUTPUT_TOKENS = 4096;
 
 export const proxyGemini = onCall({ invoker: "public", cors: true }, async (request) => {
   const data = request.data as {
@@ -41,6 +44,14 @@ export const proxyGemini = onCall({ invoker: "public", cors: true }, async (requ
   }
   const uid = request.auth.uid;
 
+  // ── Validate input shape and size before spending anything ──
+  if (!Array.isArray(data.contents) || data.contents.length === 0) {
+    throw new HttpsError("invalid-argument", "contents must be a non-empty array.");
+  }
+  if (JSON.stringify(data.contents).length > MAX_REQUEST_CHARS) {
+    throw new HttpsError("invalid-argument", "Request too large.");
+  }
+
   // ── Per-user daily rate limit (using tokens) ──
   try {
     const today = new Date().toISOString().split("T")[0];
@@ -52,6 +63,9 @@ export const proxyGemini = onCall({ invoker: "public", cors: true }, async (requ
 
       if (currentTokens >= MAX_TOKENS_PER_DAY) {
         throw new HttpsError("resource-exhausted", `DAILY_LIMIT: You have reached your daily AI token usage limit (${MAX_TOKENS_PER_DAY} tokens). Limit resets at midnight UTC.`);
+      }
+      if (currentCalls >= MAX_CALLS_PER_DAY) {
+        throw new HttpsError("resource-exhausted", `DAILY_LIMIT: You have reached your daily AI request limit (${MAX_CALLS_PER_DAY} requests). Limit resets at midnight UTC.`);
       }
     } catch (e: any) {
       // If it's a rate limit error, re-throw it; otherwise ignore and continue
@@ -74,7 +88,8 @@ export const proxyGemini = onCall({ invoker: "public", cors: true }, async (requ
 
     const genConfig = data.generationConfig || {};
     if (!genConfig.temperature) genConfig.temperature = 0.2;
-    if (!genConfig.maxOutputTokens) genConfig.maxOutputTokens = 2048;
+    const requestedMax = Number(genConfig.maxOutputTokens) || 2048;
+    genConfig.maxOutputTokens = Math.min(requestedMax, MAX_OUTPUT_TOKENS);
     body.generation_config = genConfig;
 
     const response = await fetch(url, {
@@ -118,7 +133,9 @@ export const getEmergencyInfo = onCall({ cors: true }, async (request) => {
 
   const data = doc.data();
   if (!data) throw new Error("Emergency info is empty");
-  if (data.pulseToken && pulseToken !== data.pulseToken) {
+  // Token is mandatory — without this, anyone who guesses a userId could
+  // pull that user's emergency medical data
+  if (!data.pulseToken || pulseToken !== data.pulseToken) {
     throw new Error("Invalid or missing pulse token");
   }
 
@@ -200,6 +217,52 @@ export const enableAppCheck = onCall(async (request) => {
   return { success: true, message: "App Check configured" };
 });
 
+// ── deleteMyAccount — full DPDP-compliant erasure of a user's footprint ───
+// Deletes all Firestore records, Storage files, lookup entries and finally
+// the Auth user itself. Callable only by the account owner.
+export const deleteMyAccount = onCall(async (request) => {
+  if (!request.auth?.uid) {
+    throw new HttpsError("unauthenticated", "Authentication required");
+  }
+  const uid = request.auth.uid;
+
+  // 1. Top-level collections keyed by a userId field
+  const ownedCollections = [
+    "patients", "folders", "documents", "appointments",
+    "life_events", "vitals", "reminders", "shared_links", "emergency_info",
+  ];
+  for (const coll of ownedCollections) {
+    const snap = await adminDb.collection(coll).where("userId", "==", uid).get();
+    let batch = adminDb.batch();
+    let count = 0;
+    for (const d of snap.docs) {
+      batch.delete(d.ref);
+      count++;
+      if (count % 400 === 0) { await batch.commit(); batch = adminDb.batch(); }
+    }
+    if (count % 400 !== 0 || count === 0) await batch.commit().catch(() => undefined);
+  }
+
+  // 2. Docs keyed directly by uid (incl. all subcollections)
+  await adminDb.recursiveDelete(adminDb.collection("users").doc(uid));
+  await adminDb.recursiveDelete(adminDb.collection("user_usage").doc(uid));
+  await adminDb.recursiveDelete(adminDb.collection("emergency_info").doc(uid)).catch(() => undefined);
+
+  // 3. Lookup entries pointing at this uid
+  const lookups = await adminDb.collection("user_lookup").where("uid", "==", uid).get();
+  await Promise.all(lookups.docs.map((d) => d.ref.delete()));
+
+  // 4. Storage files
+  await bucket().deleteFiles({ prefix: `documents/${uid}/` }).catch((e) => console.warn("doc file cleanup:", e.message));
+  await bucket().deleteFiles({ prefix: `profile-photos/${uid}` }).catch((e) => console.warn("photo cleanup:", e.message));
+
+  // 5. The Auth account itself — last, so a mid-way failure leaves the user
+  // able to retry rather than locked out with orphaned data
+  await fAdminAuth.deleteUser(uid);
+
+  return { success: true };
+});
+
 // ── getSignedUrl — generate time-limited download URL for documents ──────
 export const getSignedUrl = onCall(async (request) => {
   const { storagePath, expiryMinutes } = request.data as { storagePath: string; expiryMinutes?: number };
@@ -208,7 +271,21 @@ export const getSignedUrl = onCall(async (request) => {
   // Only authenticated users can get signed URLs
   if (!request.auth?.uid) throw new Error("Authentication required");
 
-  const expires = Date.now() + (expiryMinutes || 10) * 60 * 1000;
+  // Only allow access to the caller's own files (admins exempt) —
+  // without this check any user could download any user's documents
+  const uid = request.auth.uid;
+  const callerEmail = request.auth.token?.email;
+  const isAdmin = request.auth.token?.admin === true ||
+    callerEmail === "rohit.official36@gmail.com" ||
+    callerEmail === "rohit.no18@gmail.com";
+  const normalizedPath = storagePath.replace(/^\/+/, "");
+  const ownsPath = normalizedPath.startsWith(`documents/${uid}/`) ||
+    normalizedPath === `profile-photos/${uid}`;
+  if (!isAdmin && !ownsPath) {
+    throw new HttpsError("permission-denied", "You can only access your own files.");
+  }
+
+  const expires = Date.now() + Math.min(expiryMinutes || 10, 60) * 60 * 1000;
 
   const [signedUrl] = await bucket().file(storagePath).getSignedUrl({
     action: "read",

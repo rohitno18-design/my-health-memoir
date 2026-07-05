@@ -24,6 +24,7 @@
             { "source": "/admin/*", "destination": "/index.html" },
             { "source": "/privacy", "destination": "/index.html" },
             { "source": "/terms", "destination": "/index.html" },
+            { "source": "/delete-account", "destination": "/index.html" },
             { "source": "/pulse/*", "destination": "/index.html" },
             { "source": "/share/*", "destination": "/index.html" }
         ],

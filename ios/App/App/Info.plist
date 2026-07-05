@@ -22,6 +22,12 @@
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSFaceIDUsageDescription</key>
+	<string>Face ID is used to lock the app and protect your private medical records.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>The camera is used to photograph medical documents and prescriptions you choose to save.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Photo library access lets you attach existing photos of medical documents and set a profile picture.</string>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>

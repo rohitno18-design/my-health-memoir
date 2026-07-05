@@ -10,7 +10,6 @@ import {
     updatePassword as firebaseUpdatePassword,
     sendEmailVerification,
     sendPasswordResetEmail,
-    deleteUser,
     EmailAuthProvider,
     PhoneAuthProvider,
     linkWithCredential as firebaseLinkWithCredential,
@@ -21,9 +20,10 @@ import {
     type ConfirmationResult,
 } from "firebase/auth";
 import {
-    doc, getDoc, setDoc, deleteDoc, serverTimestamp, addDoc, collection, onSnapshot
+    doc, getDoc, setDoc, serverTimestamp, addDoc, collection, onSnapshot
 } from "firebase/firestore";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
+import { getFunctions, httpsCallable } from "firebase/functions";
 import { auth, db, storage } from "@/lib/firebase";
 
 const actionCodeSettings = {
@@ -345,8 +345,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const deleteAccount = async () => {
         const currentUser = auth.currentUser;
         if (!currentUser) throw new Error("Not authenticated");
-        await deleteDoc(doc(db, "users", currentUser.uid));
-        await deleteUser(currentUser);
+        // Full server-side erasure: all Firestore records, Storage files,
+        // lookup entries and the Auth user (DPDP right to erasure)
+        const wipe = httpsCallable(getFunctions(), "deleteMyAccount");
+        await wipe({});
+        await signOut(auth).catch(() => undefined);
         setUserProfile(null);
     };
 

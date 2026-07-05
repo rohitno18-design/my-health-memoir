@@ -13,8 +13,8 @@ service firebase.storage {
 
     // Profile photos — only the owner (or superadmin) can read/write
     match /profile-photos/{userId} {
-      allow read: if request.auth != null && request.auth.uid == userId || isSuperAdmin();
-      allow write: if request.auth != null;
+      allow read: if (request.auth != null && request.auth.uid == userId) || isSuperAdmin();
+      allow write: if (request.auth != null && request.auth.uid == userId) || isSuperAdmin();
     }
 
     // Documents — only the owner (or superadmin) can read/write

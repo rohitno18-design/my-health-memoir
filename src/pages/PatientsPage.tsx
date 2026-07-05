@@ -128,6 +128,7 @@ export function PatientsPage() {
     const [editingId, setEditingId] = useState<string | null>(null);
     const [form, setForm] = useState<Omit<Patient, "id">>(emptyForm);
     const [saving, setSaving] = useState(false);
+    const [consentChecked, setConsentChecked] = useState(false);
     const [toastMessage, setToastMessage] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState<"Basic" | "Contact" | "Medical" | "SOS" | "Misc">("Basic");
 
@@ -167,6 +168,7 @@ export function PatientsPage() {
     const openCreate = () => {
         setForm(emptyForm);
         setEditingId(null);
+        setConsentChecked(false);
         setActiveTab("Basic");
         setShowModal(true);
     };
@@ -188,6 +190,8 @@ export function PatientsPage() {
             insuranceProvider: p.insuranceProvider || "", policyNumber: p.policyNumber || "",
         });
         setEditingId(p.id);
+        // Existing records were saved under an earlier acknowledgment (or are Self)
+        setConsentChecked(true);
         setActiveTab("Basic");
         setShowModal(true);
     };
@@ -215,18 +219,28 @@ export function PatientsPage() {
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!user) return;
+        // DPDP: records of another person require an explicit authorization acknowledgment
+        if (form.relationship !== "Self" && !consentChecked) {
+            setActiveTab("Basic");
+            alert("Please confirm you are authorized to manage this person's health records.");
+            return;
+        }
         setSaving(true);
         let patientIdToUse = editingId;
+        const consentFields = form.relationship === "Self"
+            ? {}
+            : { consentAcknowledged: true, consentAt: serverTimestamp() };
         try {
             // Step 1: Save patient profile
             if (editingId) {
-                await updateDoc(doc(db, "patients", editingId), { ...form, userId: user.uid });
+                await updateDoc(doc(db, "patients", editingId), { ...form, userId: user.uid, ...consentFields });
                 patientIdToUse = editingId;
                 await logUserAction(user.uid, "PROFILE_UPDATED", `Updated patient profile: ${form.name}`, { patientId: editingId });
             } else {
                 const newDoc = await addDoc(collection(db, "patients"), {
                     ...form,
                     userId: user.uid,
+                    ...consentFields,
                     createdAt: serverTimestamp()
                 });
                 patientIdToUse = newDoc.id;
@@ -536,6 +550,21 @@ export function PatientsPage() {
                                             { label: t("common.other"), value: "Other" }
                                         ])}
                                     </div>
+
+                                    {form.relationship !== "Self" && (
+                                        <label className="flex items-start gap-3 p-4 bg-blue-50 border border-blue-100 rounded-2xl cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                checked={consentChecked}
+                                                onChange={e => setConsentChecked(e.target.checked)}
+                                                className="mt-0.5 size-4 accent-blue-600 flex-shrink-0"
+                                            />
+                                            <span className="text-xs text-slate-700 leading-relaxed">
+                                                I confirm that I am this person's parent, legal guardian, or authorized caregiver,
+                                                or that I have their consent to store and manage their health information in this app.
+                                            </span>
+                                        </label>
+                                    )}
 
                                     <div className="pt-2 border-t border-border/50">
                                         <h3 className="text-sm font-bold mb-4">{t("patients.identification")}</h3>
