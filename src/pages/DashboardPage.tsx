@@ -552,9 +552,12 @@ export function DashboardPage() {
                         <motion.button
                             initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.22 }}
                             onClick={() => navigate("/visit-summary")}
-                            className="relative overflow-hidden rounded-[1.5rem] p-5 text-left active:scale-[0.98] transition-all group flex flex-col justify-end min-h-[130px] w-full shadow-sm hover:shadow-md bg-gradient-to-br from-blue-600 to-indigo-700"
+                            className="relative overflow-hidden rounded-[1.5rem] p-5 text-left active:scale-[0.98] transition-all group flex flex-col justify-end min-h-[130px] w-full shadow-sm hover:shadow-md"
                         >
-                            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-10 -mt-10"></div>
+                            <div className="absolute inset-0 w-full h-full">
+                                <img src="/assets/images/bg-patient.png" alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out" />
+                                <div className="absolute inset-0 bg-gradient-to-t from-blue-900/90 via-blue-900/50 to-indigo-900/20"></div>
+                            </div>
                             <div className="relative z-10 flex items-center gap-4">
                                 <div className="size-12 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center shrink-0 group-hover:bg-white/30 transition-colors">
                                     <Stethoscope size={24} className="text-white drop-shadow-md" />
