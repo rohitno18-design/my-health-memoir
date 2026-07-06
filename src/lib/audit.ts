@@ -16,7 +16,8 @@ export type AuditActionType =
     | "DOCUMENT_DUPLICATED"
     | "FOLDER_DUPLICATED"
     | "EVENT_DUPLICATED"
-    | "DOCUMENT_SHARED";
+    | "DOCUMENT_SHARED"
+    | "VISIT_SUMMARY_GENERATED";
 
 export interface AuditLog {
     userId: string;

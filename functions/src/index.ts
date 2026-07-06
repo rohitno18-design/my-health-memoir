@@ -1,6 +1,6 @@
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { initializeApp } from "firebase-admin/app";
-import { getFirestore } from "firebase-admin/firestore";
+import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import { getAuth } from "firebase-admin/auth";
 import { getStorage } from "firebase-admin/storage";
 import { getAppCheck } from "firebase-admin/app-check";
@@ -109,11 +109,19 @@ export const proxyGemini = onCall({ invoker: "public", cors: true }, async (requ
     // ── Update token count asynchronously ──
     if (usageRef && result.usageMetadata?.totalTokenCount) {
       const usedTokens = result.usageMetadata.totalTokenCount;
-      usageRef.set({ 
-        tokens: currentTokens + usedTokens, 
-        calls: currentCalls + 1, 
-        lastCallAt: new Date().toISOString() 
+      usageRef.set({
+        tokens: currentTokens + usedTokens,
+        calls: currentCalls + 1,
+        lastCallAt: new Date().toISOString()
       }, { merge: true }).catch((err: any) => console.error("Failed to update token usage:", err));
+
+      // Global per-day counters for the admin analytics dashboard
+      const today = new Date().toISOString().split("T")[0];
+      adminDb.collection("app_stats").doc("ai_usage").collection("daily").doc(today).set({
+        calls: FieldValue.increment(1),
+        tokens: FieldValue.increment(usedTokens),
+        date: today,
+      }, { merge: true }).catch((err: any) => console.error("Failed to update global AI stats:", err));
     }
 
     return result as Record<string, unknown>;

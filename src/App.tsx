@@ -26,9 +26,11 @@ const DocumentsPage = lazy(() => import("@/pages/DocumentsPage").then(m => ({ de
 const RemindersPage = lazy(() => import("@/pages/RemindersPage").then(m => ({ default: m.RemindersPage })));
 const ChatListPage = lazy(() => import("@/pages/ChatListPage").then(m => ({ default: m.ChatListPage })));
 const AIChatPage = lazy(() => import("@/pages/AIChatPage").then(m => ({ default: m.AIChatPage })));
+const VisitSummaryPage = lazy(() => import("@/pages/VisitSummaryPage").then(m => ({ default: m.VisitSummaryPage })));
 const PremiumPage = lazy(() => import("@/pages/PremiumPage").then(m => ({ default: m.PremiumPage })));
 const AdminPage = lazy(() => import("@/pages/AdminPage").then(m => ({ default: m.AdminPage })));
 const AdminUsersPage = lazy(() => import("@/pages/admin/AdminUsersPage").then(m => ({ default: m.AdminUsersPage })));
+const AdminAnalyticsPage = lazy(() => import("@/pages/admin/AdminAnalyticsPage").then(m => ({ default: m.AdminAnalyticsPage })));
 const AdminContentPage = lazy(() => import("@/pages/admin/AdminContentPage").then(m => ({ default: m.AdminContentPage })));
 const AdminSettingsPage = lazy(() => import("@/pages/admin/AdminSettingsPage").then(m => ({ default: m.AdminSettingsPage })));
 const GlobalTimelinePage = lazy(() => import("@/pages/GlobalTimelinePage").then(m => ({ default: m.GlobalTimelinePage })));
@@ -89,6 +91,7 @@ function App() {
               <Route path="/reminders" element={<RemindersPage />} />
               <Route path="/notifications" element={<NotificationsPage />} />
               <Route path="/premium" element={<PremiumPage />} />
+              <Route path="/visit-summary" element={<ProtectedRoute requirePremium><VisitSummaryPage /></ProtectedRoute>} />
               <Route path="/ai-chat" element={<ProtectedRoute requirePremium><ChatListPage /></ProtectedRoute>} />
               <Route path="/ai-chat/:chatId?" element={<ProtectedRoute requirePremium><AIChatPage /></ProtectedRoute>} />
               <Route path="/emergency" element={<EmergencyPage />} />
@@ -106,6 +109,14 @@ function App() {
                   element={
                     <ProtectedRoute requireAdmin>
                       <AdminUsersPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="analytics"
+                  element={
+                    <ProtectedRoute requireAdmin>
+                      <AdminAnalyticsPage />
                     </ProtectedRoute>
                   }
                 />

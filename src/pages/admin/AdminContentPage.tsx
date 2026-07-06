@@ -1,5 +1,5 @@
 ﻿import { useState, useEffect } from "react";
-import { ArrowLeft, Megaphone, FileText, Languages, Plus, Trash2, Send } from "lucide-react";
+import { ArrowLeft, Megaphone, FileText, Plus, Trash2, Send } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
@@ -171,28 +171,20 @@ export function AdminContentPage() {
                 )}
             </div>
 
-            {/* Page Editor — Coming Soon */}
-            <div className="bg-card border border-border rounded-2xl p-5 shadow-sm opacity-60">
-                <div className="flex items-center gap-3 mb-2">
+            {/* Legal pages — quick links (content is versioned in code, edited via deploys) */}
+            <div className="bg-card border border-border rounded-2xl p-5 shadow-sm">
+                <div className="flex items-center gap-3 mb-3">
                     <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center text-blue-700">
                         <FileText size={16} />
                     </div>
-                    <h3 className="font-semibold text-foreground">Page Editor</h3>
-                    <span className="ml-auto text-[10px] uppercase font-bold text-muted-foreground bg-muted px-2 py-0.5 rounded-full">Coming Soon</span>
+                    <h3 className="font-semibold text-foreground">Legal Pages</h3>
                 </div>
-                <p className="text-sm text-muted-foreground pl-11">Edit Privacy Policy and Terms of Service.</p>
-            </div>
-
-            {/* Dictionary Tune — Coming Soon */}
-            <div className="bg-card border border-border rounded-2xl p-5 shadow-sm opacity-60">
-                <div className="flex items-center gap-3 mb-2">
-                    <div className="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center text-purple-700">
-                        <Languages size={16} />
-                    </div>
-                    <h3 className="font-semibold text-foreground">Dictionary Tune</h3>
-                    <span className="ml-auto text-[10px] uppercase font-bold text-muted-foreground bg-muted px-2 py-0.5 rounded-full">Coming Soon</span>
+                <p className="text-sm text-muted-foreground pl-11 mb-3">Live legal pages served to users. Content is versioned in code and updated via deployment.</p>
+                <div className="pl-11 flex flex-wrap gap-2">
+                    <a href="/privacy" target="_blank" rel="noreferrer" className="px-3 py-1.5 rounded-lg bg-muted text-xs font-bold hover:bg-muted/70 transition-colors">Privacy Policy ↗</a>
+                    <a href="/terms" target="_blank" rel="noreferrer" className="px-3 py-1.5 rounded-lg bg-muted text-xs font-bold hover:bg-muted/70 transition-colors">Terms ↗</a>
+                    <a href="/delete-account" target="_blank" rel="noreferrer" className="px-3 py-1.5 rounded-lg bg-muted text-xs font-bold hover:bg-muted/70 transition-colors">Data Deletion ↗</a>
                 </div>
-                <p className="text-sm text-muted-foreground pl-11">Update Hinglish translations over the air.</p>
             </div>
         </div>
     );

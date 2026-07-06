@@ -118,6 +118,17 @@ service cloud.firestore {
       }
     }
 
+    // App Stats — global analytics counters, written only by Cloud Functions
+    // (Admin SDK bypasses rules), readable by admins for the analytics dashboard
+    match /app_stats/{docId} {
+      allow read: if isSuperAdmin();
+      allow write: if false;
+      match /{allPaths=**} {
+        allow read: if isSuperAdmin();
+        allow write: if false;
+      }
+    }
+
     // Debug Logs — authenticated writes only, read by superadmin
     match /debug_logs/{logId} {
       allow create: if request.auth != null;

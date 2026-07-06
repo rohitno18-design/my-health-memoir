@@ -7,7 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import {
   Bot, UploadCloud, Loader2, X, FileText, Users,
   ChevronRight, WifiOff, AlertTriangle,
-  Activity, CheckCircle2, QrCode, Bell
+  Activity, CheckCircle2, QrCode, Bell, Stethoscope
 } from "lucide-react";
 
 import { useNavigate } from "react-router-dom";
@@ -546,6 +546,26 @@ export function DashboardPage() {
                             </div>
                         </div>
                     </motion.button>
+
+                    {/* Doctor Visit Summary (Premium Only) */}
+                    {isPremium && (
+                        <motion.button
+                            initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.22 }}
+                            onClick={() => navigate("/visit-summary")}
+                            className="relative overflow-hidden rounded-[1.5rem] p-5 text-left active:scale-[0.98] transition-all group flex flex-col justify-end min-h-[130px] w-full shadow-sm hover:shadow-md bg-gradient-to-br from-blue-600 to-indigo-700"
+                        >
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-10 -mt-10"></div>
+                            <div className="relative z-10 flex items-center gap-4">
+                                <div className="size-12 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center shrink-0 group-hover:bg-white/30 transition-colors">
+                                    <Stethoscope size={24} className="text-white drop-shadow-md" />
+                                </div>
+                                <div>
+                                    <h3 className="font-black text-white text-[1.05rem] tracking-tight mb-0.5 drop-shadow-md">{t("visitSummary.title", "Doctor Visit Summary")}</h3>
+                                    <p className="text-[12px] font-semibold text-blue-100 leading-tight drop-shadow-md">{t("visitSummary.cardDesc", "AI briefing for the next appointment")}</p>
+                                </div>
+                            </div>
+                        </motion.button>
+                    )}
 
                     {/* AI Chat (Premium Only) */}
                     {isPremium && (

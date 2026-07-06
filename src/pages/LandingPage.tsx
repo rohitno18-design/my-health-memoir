@@ -35,16 +35,18 @@ export function LandingPage() {
             <main className="relative pt-36 sm:pt-44 pb-16 sm:pb-24 px-6 z-10 flex flex-col items-center text-center">
                 <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/70 border border-indigo-100 shadow-sm mb-8 backdrop-blur-md animate-fade-in">
                     <Sparkles size={14} className="text-brand-purple" />
-                    <span className="text-xs font-bold text-slate-600 uppercase tracking-widest">AI-Powered Health OS</span>
+                    <span className="text-xs font-bold text-slate-600 uppercase tracking-widest">For The One Who Takes Care of Everyone</span>
                 </div>
 
                 <h1 className="text-3xl sm:text-5xl md:text-7xl font-black text-slate-900 leading-tight tracking-tighter mb-6 max-w-4xl animate-slide-up">
-                    Your Entire Medical<br className="hidden md:block"/> 
-                    History, <span className="gradient-text">Powered by AI</span>
+                    Your Parents' Health,<br className="hidden md:block"/>
+                    <span className="gradient-text">Finally Organized</span>
                 </h1>
-                
+
                 <p className="text-base sm:text-lg text-slate-500 mb-10 max-w-2xl leading-relaxed animate-fade-in">
-                    I M Smrti centralizes your health records, analyzes documents with AI, and provides life-saving emergency access to paramedics — all in one place.
+                    Every prescription, report and medication for your whole family — in one secure place.
+                    AI briefings before every doctor visit. A life-saving emergency card in every wallet.
+                    Built for Indian families.
                 </p>
 
                 <div className="flex flex-col sm:flex-row items-center gap-4 animate-slide-up">
@@ -60,18 +62,18 @@ export function LandingPage() {
                 {/* Stats bar */}
                 <div className="mt-16 sm:mt-20 flex flex-wrap items-center justify-center gap-8 sm:gap-16 text-center animate-fade-in">
                     <div>
+                        <div className="text-2xl sm:text-3xl font-black text-slate-900">1 App</div>
+                        <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mt-1">Whole Family</div>
+                    </div>
+                    <div className="w-px h-10 bg-slate-200 hidden sm:block" />
+                    <div>
                         <div className="text-2xl sm:text-3xl font-black text-slate-900">24/7</div>
                         <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mt-1">Emergency Access</div>
                     </div>
                     <div className="w-px h-10 bg-slate-200 hidden sm:block" />
                     <div>
-                        <div className="text-2xl sm:text-3xl font-black text-slate-900">8+</div>
-                        <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mt-1">Languages</div>
-                    </div>
-                    <div className="w-px h-10 bg-slate-200 hidden sm:block" />
-                    <div>
-                        <div className="text-2xl sm:text-3xl font-black gradient-text">AI</div>
-                        <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mt-1">Powered Analysis</div>
+                        <div className="text-2xl sm:text-3xl font-black text-slate-900">12</div>
+                        <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mt-1">Indian Languages</div>
                     </div>
                 </div>
             </main>
@@ -81,31 +83,32 @@ export function LandingPage() {
                 <div className="max-w-6xl mx-auto">
                     <div className="text-center mb-14">
                         <h2 className="text-2xl sm:text-4xl font-black text-slate-900 mb-4">
-                            Everything you need, <span className="gradient-text">in one place</span>
+                            Built for the family <span className="gradient-text">caregiver</span>
                         </h2>
                         <p className="text-slate-500 text-sm sm:text-base max-w-xl mx-auto">
-                            From AI document analysis to emergency QR codes — built for Indian families.
+                            Papa's cardiology reports. Mummy's diabetes prescriptions. Your child's vaccinations.
+                            No more plastic bags of papers and WhatsApp forwards.
                         </p>
                     </div>
 
                     <div className="grid md:grid-cols-3 gap-6">
                         <div className="card-premium p-8 group">
                             <div className="size-12 rounded-2xl bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                                <Brain size={24} className="text-brand-indigo" />
+                                <FileText size={24} className="text-brand-indigo" />
                             </div>
-                            <h3 className="text-lg font-bold text-slate-900 mb-3">AI Intelligence</h3>
+                            <h3 className="text-lg font-bold text-slate-900 mb-3">One Vault, Whole Family</h3>
                             <p className="text-slate-500 text-sm leading-relaxed">
-                                Instantly summarize doctor reports in plain language. Track vitals trends and get smart health insights.
+                                Manage records for your parents, spouse, and children from a single account — prescriptions, lab reports, scans, vitals, all organized by person.
                             </p>
                         </div>
 
                         <div className="card-premium p-8 group glow-purple">
                             <div className="size-12 rounded-2xl bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                                <FileText size={24} className="text-brand-purple" />
+                                <Brain size={24} className="text-brand-purple" />
                             </div>
-                            <h3 className="text-lg font-bold text-slate-900 mb-3">Universal Records</h3>
+                            <h3 className="text-lg font-bold text-slate-900 mb-3">Doctor Visit Briefings</h3>
                             <p className="text-slate-500 text-sm leading-relaxed">
-                                Store prescriptions, lab reports, and scans securely. Access them anywhere, anytime.
+                                Before every appointment, AI prepares a one-page summary of medications, recent reports, and vitals trends — so no detail gets forgotten in the consultation room.
                             </p>
                         </div>
 
@@ -113,9 +116,9 @@ export function LandingPage() {
                             <div className="size-12 rounded-2xl bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                                 <QrCode size={24} className="text-brand-accent" />
                             </div>
-                            <h3 className="text-lg font-bold text-slate-900 mb-3">Emergency Pulse</h3>
+                            <h3 className="text-lg font-bold text-slate-900 mb-3">Emergency Pulse Card</h3>
                             <p className="text-slate-500 text-sm leading-relaxed">
-                                QR code on your lock screen. Paramedics scan it to see your allergies, medications, and emergency contacts.
+                                A QR code in your parent's wallet or on their phone. Anyone can scan it in an emergency to see blood group, medications, allergies, and whom to call.
                             </p>
                         </div>
                     </div>
@@ -127,11 +130,12 @@ export function LandingPage() {
                 <div className="max-w-6xl mx-auto px-6 py-10 flex flex-col md:flex-row items-center justify-between gap-6">
                     <div className="flex items-center gap-2 text-slate-400">
                         <Shield size={16} />
-                        <span className="text-sm font-medium">End-to-end encrypted. HIPAA & GDPR compliant.</span>
+                        <span className="text-sm font-medium">Encrypted &amp; secured. DPDP Act 2023 compliant. Your data is never sold.</span>
                     </div>
                     <div className="flex flex-wrap items-center gap-6">
                         <button onClick={() => navigate("/privacy")} className="text-sm font-bold text-slate-500 hover:text-brand-indigo transition-colors">Privacy</button>
                         <button onClick={() => navigate("/terms")} className="text-sm font-bold text-slate-500 hover:text-brand-indigo transition-colors">Terms</button>
+                        <button onClick={() => navigate("/delete-account")} className="text-sm font-bold text-slate-500 hover:text-brand-indigo transition-colors">Data Deletion</button>
                     </div>
                 </div>
             </footer>

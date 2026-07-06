@@ -1,7 +1,7 @@
 ﻿import { useState, useEffect } from "react";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { ShieldCheck, Users, FileText, KeyRound, Globe, ArrowRight, Loader2, Sparkles } from "lucide-react";
+import { ShieldCheck, Users, FileText, KeyRound, Globe, ArrowRight, Loader2, Sparkles, TrendingUp } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 export function AdminPage() {
@@ -32,6 +32,14 @@ export function AdminPage() {
     ];
 
     const modules = [
+        {
+            id: "analytics",
+            title: "Growth Analytics",
+            description: "Signups, activation funnel, AI usage, engagement — live.",
+            icon: TrendingUp,
+            color: "text-emerald-600 bg-emerald-50",
+            path: "/admin/analytics"
+        },
         {
             id: "users",
             title: "User Management",
