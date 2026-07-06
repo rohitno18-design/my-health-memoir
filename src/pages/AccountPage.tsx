@@ -843,17 +843,14 @@ export function AccountPage() {
                     <div>
                         <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-3 px-2">{t("account.helpLegal", "Help & Legal")}</h3>
                         <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden divide-y divide-slate-50">
-                            <a
-                                href={`mailto:hii@imsmrti.app?subject=${encodeURIComponent("Support Request — I M Smrti")}&body=${encodeURIComponent(`\n\n—\nApp version: ${APP_VERSION}\nAccount email: ${user?.email || user?.phoneNumber || "n/a"}`)}`}
-                                className="w-full p-4 flex items-center gap-4 hover:bg-slate-50 transition-colors"
-                            >
+                            <button onClick={() => navigate("/support")} className="w-full p-4 flex items-center gap-4 hover:bg-slate-50 transition-colors">
                                 <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center flex-shrink-0"><MessageSquareText size={18} /></div>
                                 <div className="flex-1 text-left min-w-0">
                                     <p className="text-sm font-black uppercase tracking-tight text-slate-900">{t("account.contactSupport", "Contact Support")}</p>
-                                    <p className="text-[11px] text-muted-foreground">{t("account.contactSupportDesc", "Something wrong? Email us — we reply within 48 hours.")}</p>
+                                    <p className="text-[11px] text-muted-foreground">{t("account.contactSupportDesc", "Ask us anything — track the conversation in-app")}</p>
                                 </div>
                                 <ChevronRight size={16} className="text-slate-300" />
-                            </a>
+                            </button>
                             <button onClick={() => navigate("/privacy")} className="w-full p-4 flex items-center gap-4 hover:bg-slate-50 transition-colors">
                                 <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center flex-shrink-0"><ShieldCheck size={18} /></div>
                                 <div className="flex-1 text-left min-w-0">

@@ -27,6 +27,8 @@ const RemindersPage = lazy(() => import("@/pages/RemindersPage").then(m => ({ de
 const ChatListPage = lazy(() => import("@/pages/ChatListPage").then(m => ({ default: m.ChatListPage })));
 const AIChatPage = lazy(() => import("@/pages/AIChatPage").then(m => ({ default: m.AIChatPage })));
 const VisitSummaryPage = lazy(() => import("@/pages/VisitSummaryPage").then(m => ({ default: m.VisitSummaryPage })));
+const SupportPage = lazy(() => import("@/pages/SupportPage").then(m => ({ default: m.SupportPage })));
+const AdminSupportPage = lazy(() => import("@/pages/admin/AdminSupportPage").then(m => ({ default: m.AdminSupportPage })));
 const PremiumPage = lazy(() => import("@/pages/PremiumPage").then(m => ({ default: m.PremiumPage })));
 const AdminPage = lazy(() => import("@/pages/AdminPage").then(m => ({ default: m.AdminPage })));
 const AdminUsersPage = lazy(() => import("@/pages/admin/AdminUsersPage").then(m => ({ default: m.AdminUsersPage })));
@@ -92,6 +94,7 @@ function App() {
               <Route path="/notifications" element={<NotificationsPage />} />
               <Route path="/premium" element={<PremiumPage />} />
               <Route path="/visit-summary" element={<ProtectedRoute requirePremium><VisitSummaryPage /></ProtectedRoute>} />
+              <Route path="/support" element={<SupportPage />} />
               <Route path="/ai-chat" element={<ProtectedRoute requirePremium><ChatListPage /></ProtectedRoute>} />
               <Route path="/ai-chat/:chatId?" element={<ProtectedRoute requirePremium><AIChatPage /></ProtectedRoute>} />
               <Route path="/emergency" element={<EmergencyPage />} />
@@ -117,6 +120,14 @@ function App() {
                   element={
                     <ProtectedRoute requireAdmin>
                       <AdminAnalyticsPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="support"
+                  element={
+                    <ProtectedRoute requireAdmin>
+                      <AdminSupportPage />
                     </ProtectedRoute>
                   }
                 />

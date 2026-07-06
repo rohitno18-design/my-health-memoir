@@ -129,6 +129,32 @@ service cloud.firestore {
       }
     }
 
+    // Support Tickets — user-created, threaded conversation with admins.
+    // Owners see only their own tickets; admins see all.
+    match /support_tickets/{ticketId} {
+      allow read: if (request.auth != null && resource.data.userId == request.auth.uid) || isSuperAdmin();
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      // Owner may update thread metadata but never reassign the ticket
+      allow update: if isSuperAdmin() || (
+        request.auth != null && resource.data.userId == request.auth.uid &&
+        !request.resource.data.diff(resource.data).affectedKeys().hasAny(["userId"])
+      );
+      allow delete: if isSuperAdmin();
+
+      match /messages/{messageId} {
+        allow read: if isSuperAdmin() || (
+          request.auth != null &&
+          get(/databases/$(database)/documents/support_tickets/$(ticketId)).data.userId == request.auth.uid
+        );
+        allow create: if isSuperAdmin() || (
+          request.auth != null &&
+          request.resource.data.sender == "user" &&
+          get(/databases/$(database)/documents/support_tickets/$(ticketId)).data.userId == request.auth.uid
+        );
+        allow update, delete: if isSuperAdmin();
+      }
+    }
+
     // Debug Logs — authenticated writes only, read by superadmin
     match /debug_logs/{logId} {
       allow create: if request.auth != null;

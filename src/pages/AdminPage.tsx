@@ -1,7 +1,7 @@
 ﻿import { useState, useEffect } from "react";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { ShieldCheck, Users, FileText, KeyRound, Globe, ArrowRight, Loader2, Sparkles, TrendingUp } from "lucide-react";
+import { ShieldCheck, Users, FileText, KeyRound, Globe, ArrowRight, Loader2, Sparkles, TrendingUp, Inbox } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 export function AdminPage() {
@@ -39,6 +39,14 @@ export function AdminPage() {
             icon: TrendingUp,
             color: "text-emerald-600 bg-emerald-50",
             path: "/admin/analytics"
+        },
+        {
+            id: "support",
+            title: "Support Inbox",
+            description: "User support conversations — reply and resolve.",
+            icon: Inbox,
+            color: "text-indigo-600 bg-indigo-50",
+            path: "/admin/support"
         },
         {
             id: "users",

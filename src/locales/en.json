@@ -816,5 +816,26 @@
         "notifiedOk": "You're on the list!",
         "backHome": "Return to Home",
         "openVisitSummary": "Prepare a Doctor Visit Briefing"
+    },
+    "support": {
+        "title": "Support",
+        "subtitle": "We're here to help — track every conversation",
+        "newRequest": "New Support Request",
+        "empty": "No conversations yet",
+        "emptyDesc": "Facing a problem or have a question? Start a request and we'll get back to you here.",
+        "statusOpen": "Open",
+        "statusResolved": "Resolved",
+        "newReply": "New reply",
+        "replyPlaceholder": "Write a message…",
+        "send": "Send",
+        "sla": "We usually reply within 48 hours.",
+        "team": "I M Smrti Support",
+        "error": "Something went wrong. Please try again.",
+        "subjectLabel": "Subject",
+        "subjectPlaceholder": "e.g. Can't upload a document",
+        "messageLabel": "Message",
+        "messagePlaceholder": "Describe the problem or question in as much detail as you can…",
+        "submit": "Send Request",
+        "emailFallback": "Prefer email?"
     }
 }

@@ -18,6 +18,7 @@
             { "source": "/ai-chat/*", "destination": "/index.html" },
             { "source": "/visit-summary", "destination": "/index.html" },
             { "source": "/premium", "destination": "/index.html" },
+            { "source": "/support", "destination": "/index.html" },
             { "source": "/timeline", "destination": "/index.html" },
             { "source": "/notifications", "destination": "/index.html" },
             { "source": "/reminders", "destination": "/index.html" },
