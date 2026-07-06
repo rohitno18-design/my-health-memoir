@@ -7,6 +7,7 @@ import {
     Check, Loader2, LogOut, Pencil, ShieldCheck,
     AlertTriangle, X,
     Bell, Share2, Sparkles, CheckCircle2, RefreshCw, ScanLine, Globe,
+    LifeBuoy, Scale, Trash2, MessageSquareText,
 } from "lucide-react";
 // Remove old useNavigate import since it's now grouped
 import {
@@ -836,6 +837,57 @@ export function AccountPage() {
                     <div>
                         <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-3 px-2">{t("account.settings")}</h3>
                         <SettingsSection userId={user?.uid} initialSettings={(userProfile as any)?.settings} />
+                    </div>
+
+                    {/* Help & Legal */}
+                    <div>
+                        <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-3 px-2">{t("account.helpLegal", "Help & Legal")}</h3>
+                        <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden divide-y divide-slate-50">
+                            <a
+                                href={`mailto:hii@imsmrti.app?subject=${encodeURIComponent("Support Request — I M Smrti")}&body=${encodeURIComponent(`\n\n—\nApp version: ${APP_VERSION}\nAccount email: ${user?.email || user?.phoneNumber || "n/a"}`)}`}
+                                className="w-full p-4 flex items-center gap-4 hover:bg-slate-50 transition-colors"
+                            >
+                                <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center flex-shrink-0"><MessageSquareText size={18} /></div>
+                                <div className="flex-1 text-left min-w-0">
+                                    <p className="text-sm font-black uppercase tracking-tight text-slate-900">{t("account.contactSupport", "Contact Support")}</p>
+                                    <p className="text-[11px] text-muted-foreground">{t("account.contactSupportDesc", "Something wrong? Email us — we reply within 48 hours.")}</p>
+                                </div>
+                                <ChevronRight size={16} className="text-slate-300" />
+                            </a>
+                            <button onClick={() => navigate("/privacy")} className="w-full p-4 flex items-center gap-4 hover:bg-slate-50 transition-colors">
+                                <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center flex-shrink-0"><ShieldCheck size={18} /></div>
+                                <div className="flex-1 text-left min-w-0">
+                                    <p className="text-sm font-black uppercase tracking-tight text-slate-900">{t("account.privacyPolicy", "Privacy Policy")}</p>
+                                    <p className="text-[11px] text-muted-foreground">{t("account.privacyPolicyDesc", "How we protect and handle your data")}</p>
+                                </div>
+                                <ChevronRight size={16} className="text-slate-300" />
+                            </button>
+                            <button onClick={() => navigate("/terms")} className="w-full p-4 flex items-center gap-4 hover:bg-slate-50 transition-colors">
+                                <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center flex-shrink-0"><Scale size={18} /></div>
+                                <div className="flex-1 text-left min-w-0">
+                                    <p className="text-sm font-black uppercase tracking-tight text-slate-900">{t("account.termsOfService", "Terms of Service")}</p>
+                                    <p className="text-[11px] text-muted-foreground">{t("account.termsOfServiceDesc", "The rules of using I M Smrti")}</p>
+                                </div>
+                                <ChevronRight size={16} className="text-slate-300" />
+                            </button>
+                            <button onClick={() => navigate("/delete-account")} className="w-full p-4 flex items-center gap-4 hover:bg-slate-50 transition-colors">
+                                <div className="w-10 h-10 rounded-xl bg-rose-50 text-rose-500 flex items-center justify-center flex-shrink-0"><Trash2 size={18} /></div>
+                                <div className="flex-1 text-left min-w-0">
+                                    <p className="text-sm font-black uppercase tracking-tight text-slate-900">{t("account.dataDeletion", "Data Deletion")}</p>
+                                    <p className="text-[11px] text-muted-foreground">{t("account.dataDeletionDesc", "Your right to erase everything, explained")}</p>
+                                </div>
+                                <ChevronRight size={16} className="text-slate-300" />
+                            </button>
+                            <div className="p-4 flex items-center gap-4 bg-slate-50/50">
+                                <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-400 flex items-center justify-center flex-shrink-0"><LifeBuoy size={18} /></div>
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-[11px] text-muted-foreground leading-relaxed">
+                                        {t("account.grievanceNote", "Grievance Officer:")} <span className="font-bold text-slate-600">hii@imsmrti.app</span>
+                                        <br />I M Smrti · Bhopal, Madhya Pradesh, India
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div className="mt-8 mb-4 text-center">
