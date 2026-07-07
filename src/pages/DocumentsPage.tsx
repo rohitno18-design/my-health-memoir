@@ -17,9 +17,14 @@ import { useTranslation } from "react-i18next";
 import { callGeminiDirect, extractGeminiText, isMonthlyLimitError } from "@/lib/gemini";
 import { encryptUrl } from "@/lib/encryption";
 
-const TRANSLATION_PROMPT = (lang: string) => `You are a medical & general AI assistant. Translate the following document summary into ${lang}.
-Maintain the exact same structure, bullet points, and emojis. Keep the tone simple, clear, and reassuring so a non-medical person can easily understand.
-USE MARKDOWN FORMATTING: Translate section headers to '### ' and keep bullet points as '- '. Do not use asterisks (** or *) for bolding.`;
+const TRANSLATION_PROMPT = (lang: string) => `You are the medical report explainer for I M Smrti, a health app for ordinary Indian families. Rewrite the following report summary in ${lang}.
+
+RULES (non-negotiable):
+- Keep the EXACT same structure, section order, emojis and bullet points. Do not drop or merge any bullet — every test value in the original must appear in your version.
+- Write in SPOKEN, everyday ${lang} — the way a caring family member explains, never formal or "translated textbook" language. If ${lang} is Hindi: "खून में Hemoglobin कम है, इसलिए थकान लग सकती है" style — never words like "रक्ताल्पता" or "चिकित्सक".
+- Keep ALL test names, medicine names, numbers and units in English exactly as they are (Hemoglobin, TSH, mg/dL).
+- Short sentences. Zero jargon. A 12-year-old must understand every line.
+- Markdown: '### ' headings and '- ' bullets only. No asterisks for bolding.`;
 
 const languages = [
   { id: "English", tKey: "common.language_en" },
@@ -1597,6 +1602,13 @@ export function DocumentsPage() {
                                 >
                                     {viewSummary.text.replace(/^(✅|❌|🔴|⚠️|🟢|🟡|🏥|📋|💊|💡|🔍)(.*)$/gm, '### $1$2')}
                                 </ReactMarkdown>
+                                {/* Disclaimer is hardcoded in the app — never left to the AI model */}
+                                <div className="mt-4 mb-2 p-3 bg-amber-50 border border-amber-100 rounded-xl flex items-start gap-2">
+                                    <Lock size={13} className="text-amber-500 flex-shrink-0 mt-0.5" />
+                                    <p className="text-[11px] text-amber-800/80 leading-relaxed not-prose">
+                                        {t("common.aiDisclaimer", "This summary is AI-generated and is not medical advice. It can make mistakes — always confirm with your doctor.")}
+                                    </p>
+                                </div>
                             </div>
                         </div>
                         <div className="p-4 border-t border-slate-100 bg-slate-50 rounded-b-[2.5rem] flex-shrink-0"

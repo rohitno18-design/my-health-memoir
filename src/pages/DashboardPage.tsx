@@ -26,7 +26,45 @@ import { callGeminiDirect, extractGeminiText as extractText, isMonthlyLimitError
 import { usePlanLimits } from "@/lib/planLimits";
 import { LimitModal } from "@/components/LimitModal";
 
-const SUMMARY_PROMPT = (lang: string) => `You are a medical AI assistant for I M Smrti. Analyze the document and provide a summary in ${lang}. Use Markdown formatting.`;
+const SUMMARY_PROMPT = (lang: string) => `You are the medical report explainer for I M Smrti, a health app for ordinary Indian families. Your reader knows NOTHING about medicine — explain like you would to your own mother who never studied science.
+
+## STEP 1 — EXTRACT (do this silently, with total precision, before writing anything)
+Read the ENTIRE document line by line and note:
+- Report metadata: patient name, age/sex, report/lab number, lab or hospital name, report date.
+- EVERY measured value with its unit, the lab's reference/normal range, and whether it is LOW, HIGH, or NORMAL.
+Missing even one measured value is a CRITICAL FAILURE. Values slightly outside the range still count as HIGH/LOW — never round them into "normal". If the document is a prescription or clinical note instead of a lab report, extract every medicine (name, dose, timing) or every finding the same exhaustive way.
+
+## STEP 2 — WRITE the summary in ${lang}, in this EXACT structure (translate the section headings into simple ${lang}):
+
+### 📋 (Heading meaning: "What this report is")
+One or two lines: whose report, which test, which lab, what date.
+
+### (Start with ✅ if everything is normal, ⚠️ if anything needs attention — heading meaning: "Everything is fine" OR "Some things need attention")
+One-line verdict a person understands in 2 seconds.
+
+### ⚠️ (Heading meaning: "What is not normal" — include ONLY if something is out of range)
+For EACH out-of-range value, one bullet:
+- Test name in English + value + normal range, then in the SIMPLEST ${lang}: what this thing does in the body, what being high/low can feel like in daily life, and whether it usually sounds minor or needs prompt attention. Do not diagnose diseases — describe possibilities gently.
+
+### ✅ (Heading meaning: "What is fine")
+Short reassuring list of the normal results (group them, no need to explain each).
+
+### 📊 (Heading meaning: "Complete test list")
+EVERY measured value as a bullet — this list must be COMPLETE:
+- TestName: value unit (Normal: range) 🟢/🔴/🟡
+Use 🔴 for HIGH, 🟡 for LOW, 🟢 for NORMAL.
+
+### 🩺 (Heading meaning: "What to do now")
+2-4 simple, practical bullets: whether to show a doctor and roughly how soon it sounds, exactly what to ask the doctor, simple everyday habits if relevant. Never prescribe medicines or doses.
+
+## LANGUAGE RULES (non-negotiable)
+- Write in SPOKEN, everyday ${lang} — the way a caring family member talks. NEVER formal, literary, or "translated textbook" language.
+- If ${lang} is Hindi: say "खून में Hemoglobin कम है, इसलिए थकान या कमज़ोरी लग सकती है" style — NEVER words like "रक्ताल्पता", "चिकित्सक", "परामर्श".
+- Keep ALL test names, medicine names and units in English exactly as printed (Hemoglobin, TSH, HbA1c, mg/dL) — that is what the doctor and the report say.
+- Short sentences. Zero jargon. A 12-year-old must understand every line.
+- Markdown: '### ' headings and '- ' bullets only. NO tables, NO asterisks for bold.
+- Never invent a value that is not in the document. If a value is unreadable, write that it could not be read clearly.
+- If the document is not a medical document, say so in one friendly line and briefly describe what it actually is.`;
 
 const CATEGORIES = [
     "cat_prescription", "cat_labreport", "cat_imagingxraymri", "cat_clinicalnote", "cat_billinginsurance", "cat_other"
@@ -338,7 +376,7 @@ export function DashboardPage() {
                                 { inline_data: { mime_type: getSafeMimeType(selectedFile), data: base64Data } }
                             ]
                         }],
-                        generationConfig: { temperature: 0.2, maxOutputTokens: 4096 },
+                        generationConfig: { temperature: 0.1, maxOutputTokens: 4096 },
                         feature: "doc_summary",
                     });
                     const text = extractText(result);
@@ -884,6 +922,13 @@ export function DashboardPage() {
                         </div>
                         <div className="prose prose-slate max-w-none">
                           <ReactMarkdown rehypePlugins={[rehypeSanitize]}>{aiSummary}</ReactMarkdown>
+                        </div>
+                        {/* Disclaimer is hardcoded in the app — never left to the AI model */}
+                        <div className="mt-4 p-3 bg-amber-50 border border-amber-100 rounded-xl flex items-start gap-2">
+                          <AlertTriangle size={14} className="text-amber-500 flex-shrink-0 mt-0.5" />
+                          <p className="text-[11px] text-amber-800/80 leading-relaxed">
+                            {t("common.aiDisclaimer", "This summary is AI-generated and is not medical advice. It can make mistakes — always confirm with your doctor.")}
+                          </p>
                         </div>
                         <div className="flex flex-col gap-3 mt-6 pb-2">
                           <button onClick={() => navigate("/documents")} className="w-full py-4 bg-slate-900 text-white rounded-xl font-black">

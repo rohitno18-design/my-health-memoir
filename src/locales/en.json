@@ -51,7 +51,8 @@
         "done": "Done",
         "processing": "Processing...",
         "applying": "Applying...",
-        "download": "Download"
+        "download": "Download",
+        "aiDisclaimer": "This summary is AI-generated and is not medical advice. It can make mistakes — always confirm with your doctor."
     },
     "header": {
         "title": "I M Smrti",
