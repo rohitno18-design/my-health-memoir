@@ -3,7 +3,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { logUserAction } from "@/lib/audit";
 import ReactMarkdown from "react-markdown";
 import rehypeSanitize from "rehype-sanitize";
-import { collection, query, where, getDocs, updateDoc, doc as fsDoc, addDoc, serverTimestamp, deleteDoc, onSnapshot } from "firebase/firestore";
+import { collection, query, where, getDocs, updateDoc, doc as fsDoc, addDoc, serverTimestamp, deleteDoc, onSnapshot, getCountFromServer } from "firebase/firestore";
+import { usePlanLimits } from "@/lib/planLimits";
+import { LimitModal } from "@/components/LimitModal";
 import { ref, deleteObject } from "firebase/storage";
 import { db, storage } from "@/lib/firebase";
 import { FileText, Upload, Loader2, Download, Bot, X, Globe, Activity, Edit2, Trash2, Save, Plus, FolderOpen, MoreVertical, FolderMinus, Lock, Link as LinkIcon, Copy } from "lucide-react";
@@ -12,7 +14,7 @@ import { downloadFile } from "@/lib/utils";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { DocumentViewerModal } from "@/components/DocumentViewerModal";
 import { useTranslation } from "react-i18next";
-import { callGeminiDirect, extractGeminiText } from "@/lib/gemini";
+import { callGeminiDirect, extractGeminiText, isMonthlyLimitError } from "@/lib/gemini";
 import { encryptUrl } from "@/lib/encryption";
 
 const TRANSLATION_PROMPT = (lang: string) => `You are a medical & general AI assistant. Translate the following document summary into ${lang}.
@@ -95,6 +97,29 @@ export function DocumentsPage() {
     // Organization States
     const [viewMode, setViewMode] = useState<"list" | "dashboard" | "timeline" | "folder">("list");
     const { isPremium } = useAuth();
+    const { limits } = usePlanLimits();
+    const [limitMessage, setLimitMessage] = useState<string | null>(null);
+
+    // Free-tier total document cap (docs state is per-patient, so count server-side)
+    const isDocLimitReached = async (adding: number): Promise<boolean> => {
+        if (!user) return false;
+        try {
+            const snap = await getCountFromServer(query(collection(db, "documents"), where("userId", "==", user.uid)));
+            const maxDocs = isPremium ? limits.premiumMaxDocuments : limits.freeMaxDocuments;
+            if (snap.data().count + adding > maxDocs) {
+                setLimitMessage(isPremium
+                    ? t("limits.docsPremiumBody", "You've reached the document storage ceiling. Contact support to extend it.")
+                    : t("limits.docsBody", {
+                        count: limits.freeMaxDocuments,
+                        defaultValue: "Free accounts can store up to {{count}} documents in total. Upgrade to Premium for unlimited storage.",
+                    }));
+                return true;
+            }
+        } catch (e) {
+            console.warn("Doc limit check failed (non-blocking):", e);
+        }
+        return false;
+    };
     const [viewingFolderId, setViewingFolderId] = useState<string | null>(null);
     const [timelineFilterCategory, setTimelineFilterCategory] = useState<string | null>(null);
     const [timelineFilterFolderId, setTimelineFilterFolderId] = useState<string | null>(null);
@@ -693,6 +718,7 @@ export function DocumentsPage() {
                     ]
                 }],
                 generationConfig: { temperature: 0.2, maxOutputTokens: 4096 },
+                feature: "doc_summary",
             });
             const newSummary = extractGeminiText(result);
 
@@ -719,6 +745,13 @@ export function DocumentsPage() {
 
         } catch (error: any) {
             console.error("Error generating summary:", error);
+            if (isMonthlyLimitError(error)) {
+                setLimitMessage(t("limits.summariesBody", {
+                    count: limits.freeDocSummariesPerMonth,
+                    defaultValue: "You've used all {{count}} free AI summaries this month. Your document was saved — upgrade to Premium for unlimited summaries.",
+                }));
+                return;
+            }
             alert("Failed to generate summary. Please try again.");
         } finally {
             setSummarizingDocId(null);
@@ -796,6 +829,7 @@ export function DocumentsPage() {
 
     const handleDuplicateDoc = async (docObj: Document) => {
         if (!user) return;
+        if (await isDocLimitReached(1)) return;
         try {
             const newName = `Copy of ${docObj.name}`;
             const newDoc = {
@@ -824,6 +858,7 @@ export function DocumentsPage() {
 
     const handleDuplicateFolder = async (folderObj: { id: string, name: string, patientId?: string }) => {
         if (!user) return;
+        if (await isDocLimitReached(docs.filter(d => d.folderId === folderObj.id).length)) return;
         try {
             const newName = `Copy of ${folderObj.name}`;
             const addedFolder = await addDoc(collection(db, 'folders'), {
@@ -1823,13 +1858,15 @@ export function DocumentsPage() {
                 </div>
             , document.body)}
 
-            <DocumentViewerModal 
+            <DocumentViewerModal
                 isOpen={viewerOpen}
                 onClose={() => setViewerOpen(false)}
                 url={viewerData.url}
                 title={viewerData.title}
                 type={viewerData.type}
             />
+
+            {limitMessage && <LimitModal message={limitMessage} onClose={() => setLimitMessage(null)} />}
 
             {createFolderModalOpen && createPortal(
                 <div className="fixed inset-0 z-[110] flex items-center justify-center p-6">

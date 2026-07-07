@@ -4,7 +4,9 @@ import { useTranslation } from "react-i18next";
 import { collection, query, where, getDocs, doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/contexts/AuthContext";
-import { callGeminiDirect, extractGeminiText } from "@/lib/gemini";
+import { callGeminiDirect, extractGeminiText, isMonthlyLimitError } from "@/lib/gemini";
+import { usePlanLimits } from "@/lib/planLimits";
+import { LimitModal } from "@/components/LimitModal";
 import { logUserAction } from "@/lib/audit";
 import { SUPPORTED_LANGUAGES } from "@/i18n";
 import ReactMarkdown from "react-markdown";
@@ -54,6 +56,8 @@ export function VisitSummaryPage() {
     const [generating, setGenerating] = useState(false);
     const [summary, setSummary] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const [limitMessage, setLimitMessage] = useState<string | null>(null);
+    const { limits } = usePlanLimits();
 
     const uiLang = SUPPORTED_LANGUAGES.find(l => l.code === i18n.language.split("-")[0]);
     const showLangToggle = uiLang && uiLang.code !== "en";
@@ -147,18 +151,26 @@ Rules:
             const response = await callGeminiDirect({
                 contents: [{ role: "user", parts: [{ text: prompt }] }],
                 generationConfig: { temperature: 0.1, maxOutputTokens: 2048 },
+                feature: "visit_briefing",
             });
             const text = extractGeminiText(response);
             if (!text) throw new Error("Empty response");
             setSummary(text);
             logUserAction(user.uid, "VISIT_SUMMARY_GENERATED", `Generated visit summary for ${member.name}`, { patientId: member.id }).catch(() => undefined);
-        } catch (e) {
+        } catch (e: any) {
             console.error("Visit summary generation failed:", e);
-            setError(t("visitSummary.error", "Could not generate the summary. Please try again."));
+            if (isMonthlyLimitError(e)) {
+                setLimitMessage(t("limits.briefingsBody", {
+                    count: limits.freeVisitBriefingsPerMonth,
+                    defaultValue: "You've used your {{count}} free doctor visit briefings this month. Upgrade to Premium for unlimited briefings.",
+                }));
+            } else {
+                setError(t("visitSummary.error", "Could not generate the summary. Please try again."));
+            }
         } finally {
             setGenerating(false);
         }
-    }, [user, visitReason, outputLang, uiLang, t]);
+    }, [user, visitReason, outputLang, uiLang, t, limits]);
 
     const downloadPDF = useCallback(() => {
         if (!summary || !selected) return;
@@ -203,6 +215,7 @@ Rules:
 
     return (
         <div className="pb-32 w-full max-w-lg mx-auto space-y-5 px-5 pt-5">
+            {limitMessage && <LimitModal message={limitMessage} onClose={() => setLimitMessage(null)} />}
             {/* Header */}
             <div className="flex items-center gap-3">
                 <button onClick={() => navigate(-1)} className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center shadow-sm">

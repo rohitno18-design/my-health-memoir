@@ -5,10 +5,12 @@ import { useAuth } from "@/contexts/AuthContext";
 interface ProtectedRouteProps {
     children: React.ReactNode;
     requireAdmin?: boolean;
+    /** Full admins OR sub-admins (analytics-only partner role) */
+    requireStaff?: boolean;
     requirePremium?: boolean;
 }
 
-export function ProtectedRoute({ children, requireAdmin = false, requirePremium = false }: ProtectedRouteProps) {
+export function ProtectedRoute({ children, requireAdmin = false, requireStaff = false, requirePremium = false }: ProtectedRouteProps) {
     const { user, userProfile, loading, isPremium } = useAuth();
     const location = useLocation();
 
@@ -24,13 +26,17 @@ export function ProtectedRoute({ children, requireAdmin = false, requirePremium 
         return <Navigate to="/login" state={{ from: location }} replace />;
     }
 
-    if (requireAdmin) {
-        const isAdminByRole = userProfile?.role === "admin";
-        const isAdminByEmail = user.email === "rohit.official36@gmail.com" || user.email === "rohit.no18@gmail.com";
-        
-        if (!isAdminByRole && !isAdminByEmail) {
-            return <Navigate to="/dashboard" replace />;
-        }
+    const isAdminByRole = userProfile?.role === "admin";
+    const isAdminByEmail = user.email === "rohit.official36@gmail.com" || user.email === "rohit.no18@gmail.com";
+    const isFullAdmin = isAdminByRole || isAdminByEmail;
+    const isSubAdmin = userProfile?.role === "subadmin";
+
+    if (requireAdmin && !isFullAdmin) {
+        return <Navigate to="/dashboard" replace />;
+    }
+
+    if (requireStaff && !isFullAdmin && !isSubAdmin) {
+        return <Navigate to="/dashboard" replace />;
     }
 
     if (requirePremium && !isPremium) {

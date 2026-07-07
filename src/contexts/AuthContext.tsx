@@ -43,7 +43,7 @@ export interface UserProfile {
     bloodGroup: string | null;
     emailVerified: boolean;
     phoneVerified: boolean;
-    role: "patient" | "admin";
+    role: "patient" | "subadmin" | "admin";
     preferredLanguage?: string;
     suspended?: boolean;
     tier?: "free" | "premium";
@@ -55,6 +55,7 @@ interface AuthContextType {
     userProfile: UserProfile | null;
     loading: boolean;
     isAdmin: boolean;
+    isSubAdmin: boolean;
     isPremium: boolean;
     isFullyVerified: boolean;
     hasPassword: boolean;
@@ -497,12 +498,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const isFullyVerified = !!(userProfile?.emailVerified || userProfile?.phoneVerified);
     const isAdmin = userProfile?.role === "admin" || user?.email === "rohit.official36@gmail.com" || user?.email === "rohit.no18@gmail.com";
+    const isSubAdmin = userProfile?.role === "subadmin";
     const isPremium = isAdmin || userProfile?.tier === "premium";
 
     return (
         <AuthContext.Provider value={{
             user, userProfile, loading,
             isAdmin,
+            isSubAdmin,
             isPremium,
             isFullyVerified, hasPassword: user?.providerData?.some(p => p?.providerId === 'password') || false,
             sendOtp, confirmOtp, setupPhoneProfile, sendPhoneChangeOtp, verifyPhoneChangeOtp,

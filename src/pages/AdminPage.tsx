@@ -3,13 +3,19 @@ import { collection, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { ShieldCheck, Users, FileText, KeyRound, Globe, ArrowRight, Loader2, Sparkles, TrendingUp, Inbox } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 
 export function AdminPage() {
     const navigate = useNavigate();
+    const { isAdmin, isSubAdmin } = useAuth();
+    const subAdminOnly = isSubAdmin && !isAdmin;
     const [loading, setLoading] = useState(true);
     const [stats, setStats] = useState({ users: 0, docs: 0 });
 
     useEffect(() => {
+        // Sub-admins have no direct collection access — their numbers come
+        // from the analytics snapshot function on the Analytics page
+        if (subAdminOnly) { setLoading(false); return; }
         const fetchStats = async () => {
             try {
                 const [usersSnap, docsSnap] = await Promise.all([
@@ -24,7 +30,7 @@ export function AdminPage() {
             }
         };
         fetchStats();
-    }, []);
+    }, [subAdminOnly]);
 
     const statCards = [
         { label: "Total Users", value: stats.users, icon: Users, color: "bg-blue-50 text-blue-600" },
@@ -74,6 +80,9 @@ export function AdminPage() {
         }
     ];
 
+    // Sub-admins (business partners) get aggregate analytics only
+    const visibleModules = subAdminOnly ? modules.filter(m => m.id === "analytics") : modules;
+
     if (loading) {
         return (
             <div className="flex justify-center py-20">
@@ -89,11 +98,13 @@ export function AdminPage() {
                     <ShieldCheck size={28} className="text-primary" />
                     <h1 className="text-2xl font-bold tracking-tight">Command Center</h1>
                 </div>
-                <p className="text-sm text-muted-foreground">Manage users, content, and system configuration.</p>
+                <p className="text-sm text-muted-foreground">
+                    {subAdminOnly ? "Partner view — live growth analytics." : "Manage users, content, and system configuration."}
+                </p>
             </div>
 
-            {/* Top Level Stats */}
-            <div className="grid grid-cols-2 gap-4">
+            {/* Top Level Stats (full admins only — sub-admins have no collection access) */}
+            {!subAdminOnly && <div className="grid grid-cols-2 gap-4">
                 {statCards.map(({ label, value, icon: Icon, color }) => (
                     <div key={label} className="bg-card border border-border/50 shadow-sm rounded-2xl p-4 text-center">
                         <div className={`w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-3 ${color}`}>
@@ -103,14 +114,14 @@ export function AdminPage() {
                         <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider mt-1">{label}</p>
                     </div>
                 ))}
-            </div>
+            </div>}
 
             {/* Modules */}
             <div className="space-y-4 pt-4">
                 <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground ml-1">Modules</h2>
-                
+
                 <div className="grid gap-3">
-                    {modules.map((mod) => (
+                    {visibleModules.map((mod) => (
                         <button
                             key={mod.id}
                             onClick={() => navigate(mod.path)}

@@ -24,11 +24,11 @@ const adminNavItems = [
 export function BottomNav() {
     const navigate = useNavigate();
     const location = useLocation();
-    const { isAdmin, isPremium } = useAuth();
+    const { isAdmin, isSubAdmin, isPremium } = useAuth();
     const { t } = useTranslation();
 
     let items = isPremium ? premiumNavItems : freeNavItems;
-    if (isAdmin) {
+    if (isAdmin || isSubAdmin) {
         items = [...items, ...adminNavItems];
     }
 

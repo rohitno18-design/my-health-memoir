@@ -93,7 +93,7 @@ function App() {
               <Route path="/reminders" element={<RemindersPage />} />
               <Route path="/notifications" element={<NotificationsPage />} />
               <Route path="/premium" element={<PremiumPage />} />
-              <Route path="/visit-summary" element={<ProtectedRoute requirePremium><VisitSummaryPage /></ProtectedRoute>} />
+              <Route path="/visit-summary" element={<VisitSummaryPage />} />
               <Route path="/support" element={<SupportPage />} />
               <Route path="/ai-chat" element={<ProtectedRoute requirePremium><ChatListPage /></ProtectedRoute>} />
               <Route path="/ai-chat/:chatId?" element={<ProtectedRoute requirePremium><AIChatPage /></ProtectedRoute>} />
@@ -102,7 +102,7 @@ function App() {
                 <Route
                   index
                   element={
-                    <ProtectedRoute requireAdmin>
+                    <ProtectedRoute requireStaff>
                       <AdminPage />
                     </ProtectedRoute>
                   }
@@ -118,7 +118,7 @@ function App() {
                 <Route
                   path="analytics"
                   element={
-                    <ProtectedRoute requireAdmin>
+                    <ProtectedRoute requireStaff>
                       <AdminAnalyticsPage />
                     </ProtectedRoute>
                   }

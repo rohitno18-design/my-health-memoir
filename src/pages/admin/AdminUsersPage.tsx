@@ -1,8 +1,9 @@
 ﻿import { useState, useEffect } from "react";
 import { collection, getDocs, getDoc, setDoc, query, orderBy, doc, updateDoc, deleteDoc, getCountFromServer, where } from "firebase/firestore";
 import { createUserWithEmailAndPassword, sendSignInLinkToEmail } from "firebase/auth";
+import { getFunctions, httpsCallable } from "firebase/functions";
 import { auth, adminAuth, db } from "@/lib/firebase";
-import { Loader2, ArrowLeft, Search, ShieldAlert, Key, X, CheckSquare, Square, Trash2, Plus, Activity, FileText, Users, MessageSquare } from "lucide-react";
+import { Loader2, ArrowLeft, Search, ShieldAlert, Key, X, CheckSquare, Square, Trash2, Plus, Activity, FileText, Users, MessageSquare, Star, BellRing } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 interface UserRecord {
@@ -13,6 +14,8 @@ interface UserRecord {
     role: string;
     emailVerified: boolean;
     suspended?: boolean;
+    tier?: string;
+    premiumInterest?: boolean;
     createdAt: any;
 }
 
@@ -25,7 +28,7 @@ export function AdminUsersPage() {
     const [actionLoading, setActionLoading] = useState(false);
     
     // New States
-    const [activeTab, setActiveTab] = useState<"all" | "admins" | "suspended">("all");
+    const [activeTab, setActiveTab] = useState<"all" | "admins" | "waitlist" | "suspended">("all");
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [newUserForm, setNewUserForm] = useState({ email: "", password: "", name: "" });
@@ -89,7 +92,8 @@ export function AdminUsersPage() {
                               (u.email?.toLowerCase().includes(search.toLowerCase()) || "");
         if (!matchesSearch) return false;
         
-        if (activeTab === "admins") return u.role === "admin";
+        if (activeTab === "admins") return u.role === "admin" || u.role === "subadmin";
+        if (activeTab === "waitlist") return u.premiumInterest === true && u.tier !== "premium";
         if (activeTab === "suspended") return u.suspended === true;
         return u.suspended !== true; // "all" tab hides suspended users by default
     });
@@ -111,17 +115,35 @@ export function AdminUsersPage() {
     };
 
     // Actions
-    const toggleRole = async (userId: string, currentRole: string) => {
-        const newRole = currentRole === "admin" ? "patient" : "admin";
-        if (!confirm(`Are you sure you want to make this user an ${newRole}?`)) return;
-        
+    // Role changes go through the setUserRole Cloud Function so custom claims
+    // (used by security rules) stay in sync with the Firestore role field
+    const changeRole = async (userId: string, newRole: "patient" | "subadmin" | "admin") => {
+        if (!confirm(`Change this user's role to ${newRole}?`)) return;
         setActionLoading(true);
         try {
-            await updateDoc(doc(db, "users", userId), { role: newRole });
+            const setUserRole = httpsCallable(getFunctions(), "setUserRole");
+            await setUserRole({ targetUid: userId, role: newRole });
             setUsers(prev => prev.map(u => u.id === userId ? { ...u, role: newRole } : u));
             setSelectedUser(prev => prev ? { ...prev, role: newRole } : null);
         } catch (error) {
+            console.error("Role change failed:", error);
             alert("Failed to update role");
+        } finally {
+            setActionLoading(false);
+        }
+    };
+
+    const togglePremium = async (userId: string, currentTier?: string) => {
+        const newTier = currentTier === "premium" ? "free" : "premium";
+        if (!confirm(`${newTier === "premium" ? "Grant" : "Revoke"} Premium for this user?`)) return;
+        setActionLoading(true);
+        try {
+            await updateDoc(doc(db, "users", userId), { tier: newTier });
+            setUsers(prev => prev.map(u => u.id === userId ? { ...u, tier: newTier } : u));
+            setSelectedUser(prev => prev ? { ...prev, tier: newTier } : null);
+        } catch (error) {
+            console.error("Tier change failed:", error);
+            alert("Failed to update tier");
         } finally {
             setActionLoading(false);
         }
@@ -262,7 +284,8 @@ export function AdminUsersPage() {
                 <div className="flex gap-2 border-b border-border pb-2">
                     {[
                         { id: "all", label: "Active" },
-                        { id: "admins", label: "Admins" },
+                        { id: "admins", label: "Staff" },
+                        { id: "waitlist", label: "Waitlist" },
                         { id: "suspended", label: "Suspended" }
                     ].map(tab => (
                         <button
@@ -348,6 +371,21 @@ export function AdminUsersPage() {
                                     {user.role === "admin" && !user.suspended && (
                                         <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-700 uppercase tracking-wider">
                                             Admin
+                                        </span>
+                                    )}
+                                    {user.role === "subadmin" && !user.suspended && (
+                                        <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-indigo-100 text-indigo-700 uppercase tracking-wider">
+                                            Sub-admin
+                                        </span>
+                                    )}
+                                    {user.tier === "premium" && !user.suspended && (
+                                        <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-700 uppercase tracking-wider flex items-center gap-0.5">
+                                            <Star size={9} className="fill-emerald-600 text-emerald-600" /> Pro
+                                        </span>
+                                    )}
+                                    {user.premiumInterest && user.tier !== "premium" && !user.suspended && (
+                                        <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-700 uppercase tracking-wider flex items-center gap-0.5">
+                                            <BellRing size={9} /> Waitlist
                                         </span>
                                     )}
                                     {user.suspended && (
@@ -457,22 +495,54 @@ export function AdminUsersPage() {
                                         <p className="font-medium text-sm">{selectedUser.email || "Not set"} {selectedUser.emailVerified && <span className="text-blue-600 text-[10px] ml-2 font-bold uppercase tracking-wider">Verified</span>}</p>
                                     </div>
                                     
+                                    <div className="bg-muted/30 p-3 rounded-xl border border-border/50">
+                                        <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider mb-2">Account Role</p>
+                                        {!selectedUser.suspended ? (
+                                            <div className="flex gap-2">
+                                                {(["patient", "subadmin", "admin"] as const).map(r => (
+                                                    <button
+                                                        key={r}
+                                                        onClick={() => r !== selectedUser.role && changeRole(selectedUser.id, r)}
+                                                        disabled={actionLoading}
+                                                        className={`flex-1 py-2 rounded-xl text-xs font-bold capitalize transition-colors disabled:opacity-50 ${
+                                                            selectedUser.role === r
+                                                                ? r === "admin" ? "bg-amber-500 text-white"
+                                                                    : r === "subadmin" ? "bg-indigo-500 text-white"
+                                                                    : "bg-slate-700 text-white"
+                                                                : "bg-muted text-muted-foreground hover:bg-muted/70"
+                                                        }`}
+                                                    >
+                                                        {r === "subadmin" ? "Sub-admin" : r}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <p className="font-medium text-sm capitalize">{selectedUser.role}</p>
+                                        )}
+                                        <p className="text-[10px] text-muted-foreground mt-2">Sub-admins see aggregate analytics only — no user data, no destructive actions.</p>
+                                    </div>
+
                                     <div className="bg-muted/30 p-3 rounded-xl border border-border/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                                         <div>
-                                            <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider mb-1">Account Role</p>
-                                            <p className="font-medium text-sm capitalize">{selectedUser.role}</p>
+                                            <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider mb-1">Plan</p>
+                                            <p className="font-medium text-sm capitalize flex items-center gap-1.5">
+                                                {selectedUser.tier === "premium" ? <><Star size={13} className="fill-amber-500 text-amber-500" /> Premium</> : "Free"}
+                                                {selectedUser.premiumInterest && selectedUser.tier !== "premium" && (
+                                                    <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded uppercase">Wants Premium</span>
+                                                )}
+                                            </p>
                                         </div>
                                         {!selectedUser.suspended && (
                                             <button
-                                                onClick={() => toggleRole(selectedUser.id, selectedUser.role)}
+                                                onClick={() => togglePremium(selectedUser.id, selectedUser.tier)}
                                                 disabled={actionLoading}
-                                                className={`px-4 py-2 rounded-xl text-xs font-bold ${
-                                                    selectedUser.role === 'admin' 
-                                                        ? 'bg-red-50 text-red-600 hover:bg-red-100' 
-                                                        : 'bg-amber-50 text-amber-700 hover:bg-amber-100'
+                                                className={`px-4 py-2 rounded-xl text-xs font-bold disabled:opacity-50 ${
+                                                    selectedUser.tier === "premium"
+                                                        ? "bg-red-50 text-red-600 hover:bg-red-100"
+                                                        : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
                                                 }`}
                                             >
-                                                {actionLoading ? "Updating..." : selectedUser.role === 'admin' ? "Revoke Admin" : "Make Admin"}
+                                                {actionLoading ? "Updating..." : selectedUser.tier === "premium" ? "Revoke Premium" : "Grant Premium"}
                                             </button>
                                         )}
                                     </div>

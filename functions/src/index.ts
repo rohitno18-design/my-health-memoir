@@ -24,6 +24,18 @@ const MAX_CALLS_PER_DAY = 300; // hard stop against runaway/scripted clients eve
 const MAX_REQUEST_CHARS = 200000; // ~50k tokens of input per call
 const MAX_OUTPUT_TOKENS = 4096;
 
+// Default free-tier plan limits — overridable live via app_config/plan_limits
+const DEFAULT_PLAN_LIMITS = {
+  freeDocSummariesPerMonth: 20,
+  freeVisitBriefingsPerMonth: 2,
+};
+
+// Which monthly counter each metered feature uses
+const FEATURE_COUNTERS: Record<string, { counter: string; limitKey: keyof typeof DEFAULT_PLAN_LIMITS }> = {
+  doc_summary: { counter: "docSummaries", limitKey: "freeDocSummariesPerMonth" },
+  visit_briefing: { counter: "visitBriefings", limitKey: "freeVisitBriefingsPerMonth" },
+};
+
 export const proxyGemini = onCall({ invoker: "public", cors: true }, async (request) => {
   const data = request.data as {
     contents: unknown[];
@@ -32,6 +44,7 @@ export const proxyGemini = onCall({ invoker: "public", cors: true }, async (requ
     tools?: unknown[];
     toolConfig?: unknown;
     generationConfig?: Record<string, unknown>;
+    feature?: string;
   };
 
   let currentTokens = 0;
@@ -50,6 +63,45 @@ export const proxyGemini = onCall({ invoker: "public", cors: true }, async (requ
   }
   if (JSON.stringify(data.contents).length > MAX_REQUEST_CHARS) {
     throw new HttpsError("invalid-argument", "Request too large.");
+  }
+
+  // ── Freemium metering: premium users skip, free users are metered per
+  // feature per month. Untagged calls are treated as chat (fail-closed). ──
+  const feature = typeof data.feature === "string" ? data.feature : "chat";
+  let monthlyRef: FirebaseFirestore.DocumentReference | null = null;
+  let monthlyCounterField: string | null = null;
+  try {
+    const userSnap = await adminDb.collection("users").doc(uid).get();
+    const userData = userSnap.data() || {};
+    const isPremiumUser = userData.tier === "premium" || userData.role === "admin";
+
+    if (!isPremiumUser) {
+      if (!FEATURE_COUNTERS[feature]) {
+        // chat (and anything unrecognized) is premium-only
+        throw new HttpsError("permission-denied", "PREMIUM_ONLY: This AI feature requires Premium.");
+      }
+      const { counter, limitKey } = FEATURE_COUNTERS[feature];
+      const limitsSnap = await adminDb.collection("app_config").doc("plan_limits").get();
+      const limits = { ...DEFAULT_PLAN_LIMITS, ...(limitsSnap.data() || {}) };
+      const limit = Number(limits[limitKey]);
+
+      if (limit >= 0) {
+        const month = new Date().toISOString().slice(0, 7); // YYYY-MM
+        monthlyRef = adminDb.collection("user_usage").doc(uid).collection("monthly").doc(month);
+        const monthlySnap = await monthlyRef.get();
+        const used = monthlySnap.exists ? (monthlySnap.data()?.[counter] || 0) : 0;
+        if (used >= limit) {
+          throw new HttpsError(
+            "resource-exhausted",
+            `MONTHLY_LIMIT:${feature}:${limit}: Free plan allows ${limit} per month. Resets on the 1st.`
+          );
+        }
+        monthlyCounterField = counter;
+      }
+    }
+  } catch (e: any) {
+    if (e.code === "resource-exhausted" || e.code === "permission-denied") throw e;
+    console.warn("Plan metering check failed (non-blocking):", e.message);
   }
 
   // ── Per-user daily rate limit (using tokens) ──
@@ -122,6 +174,14 @@ export const proxyGemini = onCall({ invoker: "public", cors: true }, async (requ
         tokens: FieldValue.increment(usedTokens),
         date: today,
       }, { merge: true }).catch((err: any) => console.error("Failed to update global AI stats:", err));
+    }
+
+    // ── Count this successful call against the free-tier monthly quota ──
+    if (monthlyRef && monthlyCounterField) {
+      monthlyRef.set({
+        [monthlyCounterField]: FieldValue.increment(1),
+        updatedAt: new Date().toISOString(),
+      }, { merge: true }).catch((err: any) => console.error("Failed to update monthly usage:", err));
     }
 
     return result as Record<string, unknown>;
@@ -223,6 +283,131 @@ export const enableAppCheck = onCall(async (request) => {
   }
 
   return { success: true, message: "App Check configured" };
+});
+
+// ── Shared helper: is the caller a full admin? ────────────────────────────
+async function callerIsAdmin(auth: { uid: string } | undefined): Promise<boolean> {
+  if (!auth?.uid) return false;
+  const user = await fAdminAuth.getUser(auth.uid);
+  return user.customClaims?.admin === true ||
+    user.email === "rohit.official36@gmail.com" ||
+    user.email === "rohit.no18@gmail.com";
+}
+
+// ── setUserRole — three-way role management (admin-only) ─────────────────
+// Keeps custom claims and the Firestore role field in sync — fixes the gap
+// where role changes via updateDoc alone left claims stale.
+export const setUserRole = onCall(async (request) => {
+  const { targetUid, role } = request.data as { targetUid: string; role: "patient" | "subadmin" | "admin" };
+  if (!targetUid) throw new HttpsError("invalid-argument", "targetUid is required");
+  if (!["patient", "subadmin", "admin"].includes(role)) {
+    throw new HttpsError("invalid-argument", "role must be patient, subadmin, or admin");
+  }
+  if (!(await callerIsAdmin(request.auth))) {
+    throw new HttpsError("permission-denied", "Only admins can manage roles");
+  }
+
+  const existingClaims = (await fAdminAuth.getUser(targetUid)).customClaims || {};
+  await fAdminAuth.setCustomUserClaims(targetUid, {
+    ...existingClaims,
+    admin: role === "admin",
+    subadmin: role === "subadmin",
+  });
+  await adminDb.collection("users").doc(targetUid).set({ role }, { merge: true });
+  return { success: true, role };
+});
+
+// ── getAnalyticsSnapshot — aggregate growth metrics (admin + subadmin) ───
+// Sub-admins (business partners) get ONLY computed aggregates — never raw
+// user records or health data (DPDP). Full admins also get recent signups.
+export const getAnalyticsSnapshot = onCall(async (request) => {
+  if (!request.auth?.uid) throw new HttpsError("unauthenticated", "Authentication required");
+  const caller = await fAdminAuth.getUser(request.auth.uid);
+  const isAdmin = caller.customClaims?.admin === true ||
+    caller.email === "rohit.official36@gmail.com" ||
+    caller.email === "rohit.no18@gmail.com";
+  const isSubAdmin = caller.customClaims?.subadmin === true;
+  if (!isAdmin && !isSubAdmin) {
+    throw new HttpsError("permission-denied", "Staff access required");
+  }
+
+  const [usersSnap, patientsSnap, docsSnap, vitalsSnap, emergencySnap, aiDailySnap] = await Promise.all([
+    adminDb.collection("users").get(),
+    adminDb.collection("patients").get(),
+    adminDb.collection("documents").get(),
+    adminDb.collection("vitals").count().get(),
+    adminDb.collection("emergency_info").get(),
+    adminDb.collection("app_stats").doc("ai_usage").collection("daily")
+      .orderBy("date", "desc").limit(14).get().catch(() => null),
+  ]);
+
+  const users = usersSnap.docs.map(d => ({ id: d.id, ...(d.data() as any) }));
+  const premiumUsers = users.filter(u => u.tier === "premium").length;
+  const waitlistCount = users.filter(u => u.premiumInterest === true).length;
+
+  // Signups by week (last 8 weeks)
+  const weekKey = (d: Date) => {
+    const monday = new Date(d);
+    monday.setDate(d.getDate() - ((d.getDay() + 6) % 7));
+    return monday.toISOString().split("T")[0];
+  };
+  const buckets = new Map<string, number>();
+  for (let i = 7; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i * 7);
+    buckets.set(weekKey(d), 0);
+  }
+  const eightWeeksAgo = new Date();
+  eightWeeksAgo.setDate(eightWeeksAgo.getDate() - 56);
+  for (const u of users) {
+    const created = u.createdAt?.toDate?.() ?? (u.createdAt?._seconds ? new Date(u.createdAt._seconds * 1000) : null);
+    if (created && created >= eightWeeksAgo) {
+      const key = weekKey(created);
+      if (buckets.has(key)) buckets.set(key, (buckets.get(key) || 0) + 1);
+    }
+  }
+  const signupsByWeek = [...buckets.entries()].map(([week, signups]) => ({ week, signups }));
+
+  // Activation funnel
+  const patients = patientsSnap.docs.map(d => d.data() as any);
+  const familyOwners = new Set(patients.filter(p => p.relationship && p.relationship !== "Self").map(p => p.userId));
+  const docOwners = new Set(docsSnap.docs.map(d => (d.data() as any).userId));
+  const emergencyOwners = new Set(emergencySnap.docs.map(d => (d.data() as any).userId));
+
+  const aiUsage = aiDailySnap
+    ? aiDailySnap.docs.map(d => d.data()).sort((a: any, b: any) => (a.date || "").localeCompare(b.date || ""))
+    : [];
+
+  const snapshot: Record<string, unknown> = {
+    totalUsers: users.length,
+    premiumUsers,
+    waitlistCount,
+    totalFamilyMembers: patients.length,
+    usersWithFamily: familyOwners.size,
+    totalDocuments: docsSnap.size,
+    usersWithDocuments: docOwners.size,
+    usersWithEmergency: emergencyOwners.size,
+    totalVitals: vitalsSnap.data().count,
+    signupsByWeek,
+    aiUsage,
+  };
+
+  // Raw-ish user info only for full admins — never for sub-admins
+  if (isAdmin) {
+    snapshot.recentUsers = users
+      .map(u => ({
+        id: u.id,
+        name: u.displayName || u.name || "—",
+        email: u.email || u.phoneNumber || "—",
+        tier: u.tier || "free",
+        premiumInterest: u.premiumInterest === true,
+        createdAtMs: u.createdAt?.toDate?.()?.getTime() ?? (u.createdAt?._seconds ? u.createdAt._seconds * 1000 : null),
+      }))
+      .sort((a, b) => (b.createdAtMs || 0) - (a.createdAtMs || 0))
+      .slice(0, 8);
+  }
+
+  return snapshot;
 });
 
 // ── deleteMyAccount — full DPDP-compliant erasure of a user's footprint ───

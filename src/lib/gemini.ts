@@ -7,12 +7,21 @@ import { getFunctions, httpsCallable } from "firebase/functions";
 const functions = getFunctions();
 const proxyGemini = httpsCallable<Record<string, unknown>, Record<string, unknown>>(functions, 'proxyGemini');
 
+export type GeminiFeature = "doc_summary" | "visit_briefing" | "chat";
+
 export interface GeminiRequest {
     contents: unknown[];
     systemInstruction?: { parts: { text: string }[] };
     tools?: unknown[];
     toolConfig?: unknown;
     generationConfig?: Record<string, unknown>;
+    /** Which app feature is calling — server meters free-tier usage per feature */
+    feature?: GeminiFeature;
+}
+
+/** Thrown-error marker for monthly free-tier limits (see proxyGemini) */
+export function isMonthlyLimitError(err: any): boolean {
+    return typeof err?.message === "string" && err.message.includes("MONTHLY_LIMIT");
 }
 
 export interface GeminiResponse {
@@ -40,6 +49,7 @@ export async function callGeminiDirect(request: GeminiRequest): Promise<GeminiRe
             tools: request.tools,
             toolConfig: request.toolConfig,
             generationConfig: request.generationConfig,
+            feature: request.feature,
         });
         console.log("[Gemini] ✅ Cloud Function proxy succeeded");
         return result.data as unknown as GeminiResponse;

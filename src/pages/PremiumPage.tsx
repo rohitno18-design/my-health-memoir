@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { doc, setDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePlanLimits } from "@/lib/planLimits";
 import {
     Star, Bot, FolderSync, Check, Stethoscope, Sparkles,
     FileDown, BellRing, Minus, ArrowRight, Loader2, CheckCircle2,
@@ -13,6 +14,7 @@ export function PremiumPage() {
     const navigate = useNavigate();
     const { t } = useTranslation();
     const { user, userProfile, isPremium } = useAuth();
+    const { limits } = usePlanLimits();
     const [notifying, setNotifying] = useState(false);
     const [notified, setNotified] = useState(!!(userProfile as any)?.premiumInterest);
 
@@ -53,15 +55,18 @@ export function PremiumPage() {
         },
     ];
 
-    const comparison: Array<[string, boolean, boolean]> = [
-        [t("premium.cmpProfiles", "Family member profiles"), true, true],
-        [t("premium.cmpDocs", "Document storage"), true, true],
+    const unlimited = t("premium.unlimited", "Unlimited");
+    const perMonth = (n: number) => t("premium.perMonth", { count: n, defaultValue: "{{count}}/mo" });
+    // [label, free-tier value, premium value] — false renders a dash, true a check
+    const comparison: Array<[string, boolean | string, boolean | string]> = [
+        [t("premium.cmpProfiles", "Family member profiles"), String(limits.freeMaxPatients), unlimited],
+        [t("premium.cmpDocs", "Document storage"), String(limits.freeMaxDocuments), unlimited],
         [t("premium.cmpEmergency", "Emergency Pulse card"), true, true],
         [t("premium.cmpReminders", "Medicine & appointment reminders"), true, true],
         [t("premium.cmpVitals", "Vitals tracking"), true, true],
-        [t("premium.cmpBriefings", "Doctor visit briefings (PDF)"), false, true],
+        [t("premium.cmpAnalysis", "AI report analysis"), perMonth(limits.freeDocSummariesPerMonth), unlimited],
+        [t("premium.cmpBriefings", "Doctor visit briefings (PDF)"), perMonth(limits.freeVisitBriefingsPerMonth), unlimited],
         [t("premium.cmpChat", "AI medical chat"), false, true],
-        [t("premium.cmpAnalysis", "AI report analysis"), false, true],
         [t("premium.cmpTimeline", "Automated timeline"), false, true],
     ];
 
@@ -140,10 +145,14 @@ export function PremiumPage() {
                     <div key={label} className="grid grid-cols-[1fr_3.5rem_3.5rem] items-center px-5 py-3 border-b border-slate-50 last:border-0">
                         <p className="text-xs font-semibold text-slate-700 pr-2">{label}</p>
                         <div className="flex justify-center">
-                            {free ? <Check size={16} className="text-emerald-500" /> : <Minus size={16} className="text-slate-200" />}
+                            {typeof free === "string"
+                                ? <span className="text-[11px] font-black text-slate-600">{free}</span>
+                                : free ? <Check size={16} className="text-emerald-500" /> : <Minus size={16} className="text-slate-200" />}
                         </div>
                         <div className="flex justify-center">
-                            {pro ? <Check size={16} className="text-amber-500" /> : <Minus size={16} className="text-slate-200" />}
+                            {typeof pro === "string"
+                                ? <span className="text-[10px] font-black text-amber-600">{pro}</span>
+                                : pro ? <Check size={16} className="text-amber-500" /> : <Minus size={16} className="text-slate-200" />}
                         </div>
                     </div>
                 ))}

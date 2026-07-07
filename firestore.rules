@@ -116,6 +116,10 @@ service cloud.firestore {
         allow read: if (request.auth != null && request.auth.uid == userId) || isSuperAdmin();
         allow write: if isSuperAdmin();
       }
+      match /monthly/{month} {
+        allow read: if (request.auth != null && request.auth.uid == userId) || isSuperAdmin();
+        allow write: if isSuperAdmin(); // Written only by Cloud Functions via Admin SDK
+      }
     }
 
     // App Stats — global analytics counters, written only by Cloud Functions

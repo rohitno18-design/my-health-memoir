@@ -6,6 +6,8 @@ import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { db, storage } from "@/lib/firebase";
 import { Plus, User, Users, Loader2, Edit2, Trash2, X, CheckCircle2, Camera, AlertTriangle, FileText, Activity, QrCode } from "lucide-react";
 import { LifeTimeline } from "@/components/LifeTimeline";
+import { LimitModal } from "@/components/LimitModal";
+import { usePlanLimits } from "@/lib/planLimits";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -118,6 +120,7 @@ function Toast({ message }: { message: string }) {
 
 export function PatientsPage() {
     const { user, isPremium } = useAuth();
+    const { limits } = usePlanLimits();
     const navigate = useNavigate();
     const { t } = useTranslation();
     const [patients, setPatients] = useState<Patient[]>([]);
@@ -129,6 +132,7 @@ export function PatientsPage() {
     const [form, setForm] = useState<Omit<Patient, "id">>(emptyForm);
     const [saving, setSaving] = useState(false);
     const [consentChecked, setConsentChecked] = useState(false);
+    const [limitMessage, setLimitMessage] = useState<string | null>(null);
     const [toastMessage, setToastMessage] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState<"Basic" | "Contact" | "Medical" | "SOS" | "Misc">("Basic");
 
@@ -166,6 +170,14 @@ export function PatientsPage() {
     };
 
     const openCreate = () => {
+        // Free-tier cap on family member profiles
+        if (!isPremium && patients.length >= limits.freeMaxPatients) {
+            setLimitMessage(t("limits.patientsBody", {
+                count: limits.freeMaxPatients,
+                defaultValue: "Free accounts can manage up to {{count}} family member profiles. Upgrade to Premium for your whole family.",
+            }));
+            return;
+        }
         setForm(emptyForm);
         setEditingId(null);
         setConsentChecked(false);
@@ -351,6 +363,7 @@ export function PatientsPage() {
     return (
         <div className="pb-6 w-full max-w-lg mx-auto overflow-x-hidden space-y-6 px-5 pt-5">
             {toastMessage && <Toast message={toastMessage} />}
+            {limitMessage && <LimitModal message={limitMessage} onClose={() => setLimitMessage(null)} />}
 
             <div className="flex items-center justify-between pt-6">
                 <div>

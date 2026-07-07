@@ -815,7 +815,9 @@
         "notifyMe": "Notify me when it launches",
         "notifiedOk": "You're on the list!",
         "backHome": "Return to Home",
-        "openVisitSummary": "Prepare a Doctor Visit Briefing"
+        "openVisitSummary": "Prepare a Doctor Visit Briefing",
+        "unlimited": "Unlimited",
+        "perMonth": "{{count}}/mo"
     },
     "support": {
         "title": "Support",
@@ -837,5 +839,16 @@
         "messagePlaceholder": "Describe the problem or question in as much detail as you can…",
         "submit": "Send Request",
         "emailFallback": "Prefer email?"
+    },
+    "limits": {
+        "title": "Free plan limit reached",
+        "seePremium": "See Premium",
+        "notNow": "Not now",
+        "patientsBody": "Free accounts can manage up to {{count}} family member profiles. Upgrade to Premium for your whole family.",
+        "docsBody": "Free accounts can store up to {{count}} documents in total. Upgrade to Premium for unlimited storage.",
+        "docsPremiumBody": "You've reached the document storage ceiling. Contact support to extend it.",
+        "summariesBody": "You've used all {{count}} free AI summaries this month. Your document was saved — upgrade to Premium for unlimited summaries.",
+        "briefingsBody": "You've used your {{count}} free doctor visit briefings this month. Upgrade to Premium for unlimited briefings.",
+        "briefingsCardHint": "{{count}} free AI briefings every month"
     }
 }

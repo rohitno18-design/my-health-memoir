@@ -1,20 +1,20 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { collection, getDocs, query, orderBy, limit } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { getFunctions, httpsCallable } from "firebase/functions";
 import {
     ArrowLeft, TrendingUp, Users, FileText, Star, Bot,
-    Loader2, HeartPulse, UserPlus, RefreshCw, Target,
+    Loader2, HeartPulse, UserPlus, RefreshCw, Target, BellRing,
 } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 
 interface WeekBucket { week: string; signups: number; }
 interface DayUsage { date: string; calls: number; tokens: number; }
-interface RecentUser { id: string; name: string; email: string; tier: string; createdAt: Date | null; }
+interface RecentUser { id: string; name: string; email: string; tier: string; premiumInterest?: boolean; createdAtMs: number | null; }
 
 interface Analytics {
     totalUsers: number;
     premiumUsers: number;
+    waitlistCount: number;
     totalFamilyMembers: number;
     usersWithFamily: number;      // caregiver activation
     totalDocuments: number;
@@ -23,14 +23,7 @@ interface Analytics {
     totalVitals: number;
     signupsByWeek: WeekBucket[];
     aiUsage: DayUsage[];
-    recentUsers: RecentUser[];
-}
-
-function weekKey(d: Date): string {
-    // ISO-ish week label like "12 Jan"
-    const monday = new Date(d);
-    monday.setDate(d.getDate() - ((d.getDay() + 6) % 7));
-    return monday.toLocaleDateString("en-IN", { day: "numeric", month: "short" });
+    recentUsers?: RecentUser[];   // present for full admins only
 }
 
 export function AdminAnalyticsPage() {
@@ -39,77 +32,21 @@ export function AdminAnalyticsPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
+    // Aggregates are computed server-side (getAnalyticsSnapshot) so sub-admins
+    // never need — or get — direct access to user collections
     const load = async () => {
         setLoading(true);
         setError(null);
         try {
-            const [usersSnap, patientsSnap, docsSnap, vitalsSnap, emergencySnap, aiDailySnap] = await Promise.all([
-                getDocs(collection(db, "users")),
-                getDocs(collection(db, "patients")),
-                getDocs(collection(db, "documents")),
-                getDocs(collection(db, "vitals")),
-                getDocs(collection(db, "emergency_info")),
-                getDocs(query(collection(db, "app_stats", "ai_usage", "daily"), orderBy("date", "desc"), limit(14))).catch(() => null),
-            ]);
-
-            // ── Users & signups timeline ──
-            const users = usersSnap.docs.map(d => ({ id: d.id, ...d.data() } as any));
-            const premiumUsers = users.filter(u => u.tier === "premium").length;
-
-            const eightWeeksAgo = new Date();
-            eightWeeksAgo.setDate(eightWeeksAgo.getDate() - 8 * 7);
-            const buckets = new Map<string, number>();
-            // Seed all 8 weeks so empty weeks still show
-            for (let i = 7; i >= 0; i--) {
-                const d = new Date();
-                d.setDate(d.getDate() - i * 7);
-                buckets.set(weekKey(d), 0);
-            }
-            for (const u of users) {
-                const created: Date | null = u.createdAt?.toDate?.() ?? (u.createdAt?.seconds ? new Date(u.createdAt.seconds * 1000) : null);
-                if (created && created >= eightWeeksAgo) {
-                    const key = weekKey(created);
-                    if (buckets.has(key)) buckets.set(key, (buckets.get(key) || 0) + 1);
-                }
-            }
-            const signupsByWeek: WeekBucket[] = [...buckets.entries()].map(([week, signups]) => ({ week, signups }));
-
-            // ── Activation funnel (the caregiver metrics that matter) ──
-            const patients = patientsSnap.docs.map(d => d.data() as any);
-            const familyOwners = new Set(patients.filter(p => p.relationship && p.relationship !== "Self").map(p => p.userId));
-            const docOwners = new Set(docsSnap.docs.map(d => (d.data() as any).userId));
-            const emergencyOwners = new Set(emergencySnap.docs.map(d => (d.data() as any).userId));
-
-            // ── AI usage ──
-            const aiUsage: DayUsage[] = aiDailySnap
-                ? aiDailySnap.docs.map(d => d.data() as DayUsage).sort((a, b) => a.date.localeCompare(b.date))
-                : [];
-
-            // ── Recent signups ──
-            const recentUsers: RecentUser[] = users
-                .map(u => ({
-                    id: u.id,
-                    name: u.name || u.displayName || "—",
-                    email: u.email || u.phoneNumber || "—",
-                    tier: u.tier || "free",
-                    createdAt: u.createdAt?.toDate?.() ?? (u.createdAt?.seconds ? new Date(u.createdAt.seconds * 1000) : null),
-                }))
-                .sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0))
-                .slice(0, 8);
-
-            setData({
-                totalUsers: users.length,
-                premiumUsers,
-                totalFamilyMembers: patients.length,
-                usersWithFamily: familyOwners.size,
-                totalDocuments: docsSnap.size,
-                usersWithDocuments: docOwners.size,
-                usersWithEmergency: emergencyOwners.size,
-                totalVitals: vitalsSnap.size,
-                signupsByWeek,
-                aiUsage,
-                recentUsers,
-            });
+            const fn = httpsCallable(getFunctions(), "getAnalyticsSnapshot");
+            const result = await fn({});
+            const snapshot = result.data as Analytics;
+            // Week labels come as ISO dates — prettify for the chart
+            snapshot.signupsByWeek = (snapshot.signupsByWeek || []).map(w => ({
+                ...w,
+                week: new Date(w.week).toLocaleDateString("en-IN", { day: "numeric", month: "short" }),
+            }));
+            setData(snapshot);
         } catch (e: any) {
             console.error("Analytics load failed:", e);
             setError(e?.message || "Failed to load analytics");
@@ -277,27 +214,42 @@ export function AdminAnalyticsPage() {
                         </div>
                     </div>
 
-                    {/* Recent signups */}
-                    <div className="bg-card border border-border/50 shadow-sm rounded-2xl p-5">
-                        <div className="flex items-center gap-2 mb-3">
-                            <UserPlus size={16} className="text-blue-600" />
-                            <h3 className="font-bold text-sm">Recent Signups</h3>
+                    {/* Premium waitlist */}
+                    <div className="bg-card border border-border/50 shadow-sm rounded-2xl p-5 flex items-center gap-4">
+                        <div className="w-11 h-11 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center flex-shrink-0">
+                            <BellRing size={20} />
                         </div>
-                        <div className="space-y-2">
-                            {data.recentUsers.map(u => (
-                                <div key={u.id} className="flex items-center justify-between py-2 border-b border-border/40 last:border-0">
-                                    <div className="min-w-0">
-                                        <p className="text-sm font-semibold truncate">{u.name}</p>
-                                        <p className="text-[11px] text-muted-foreground truncate">{u.email}</p>
-                                    </div>
-                                    <div className="text-right flex-shrink-0 ml-3">
-                                        <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full ${u.tier === "premium" ? "bg-amber-100 text-amber-700" : "bg-muted text-muted-foreground"}`}>{u.tier}</span>
-                                        <p className="text-[10px] text-muted-foreground mt-0.5">{u.createdAt ? u.createdAt.toLocaleDateString("en-IN", { day: "numeric", month: "short" }) : "—"}</p>
-                                    </div>
-                                </div>
-                            ))}
+                        <div className="flex-1">
+                            <p className="text-2xl font-black">{data.waitlistCount}</p>
+                            <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Premium waitlist — tapped "Notify me"</p>
                         </div>
                     </div>
+
+                    {/* Recent signups — full admins only (sub-admins get aggregates, never user records) */}
+                    {data.recentUsers && (
+                        <div className="bg-card border border-border/50 shadow-sm rounded-2xl p-5">
+                            <div className="flex items-center gap-2 mb-3">
+                                <UserPlus size={16} className="text-blue-600" />
+                                <h3 className="font-bold text-sm">Recent Signups</h3>
+                            </div>
+                            <div className="space-y-2">
+                                {data.recentUsers.map(u => (
+                                    <div key={u.id} className="flex items-center justify-between py-2 border-b border-border/40 last:border-0">
+                                        <div className="min-w-0">
+                                            <p className="text-sm font-semibold truncate">{u.name}</p>
+                                            <p className="text-[11px] text-muted-foreground truncate">{u.email}</p>
+                                        </div>
+                                        <div className="text-right flex-shrink-0 ml-3">
+                                            <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full ${u.tier === "premium" ? "bg-amber-100 text-amber-700" : u.premiumInterest ? "bg-blue-100 text-blue-700" : "bg-muted text-muted-foreground"}`}>
+                                                {u.tier === "premium" ? "premium" : u.premiumInterest ? "waitlist" : "free"}
+                                            </span>
+                                            <p className="text-[10px] text-muted-foreground mt-0.5">{u.createdAtMs ? new Date(u.createdAtMs).toLocaleDateString("en-IN", { day: "numeric", month: "short" }) : "—"}</p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
                 </>
             )}
         </div>

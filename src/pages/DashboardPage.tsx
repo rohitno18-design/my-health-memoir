@@ -14,7 +14,7 @@ import { useNavigate } from "react-router-dom";
 import { db, storage } from "@/lib/firebase";
 import {
   collection, addDoc, serverTimestamp, query, where,
-  doc, updateDoc, onSnapshot, getDocs
+  doc, updateDoc, onSnapshot, getDocs, getCountFromServer
 } from "firebase/firestore";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { useTranslation } from "react-i18next";
@@ -22,7 +22,9 @@ import { useFeatureFlags } from "@/lib/featureFlags";
 
 // Bento Components
 import { QuickActions } from "@/components/dashboard/QuickActions";
-import { callGeminiDirect, extractGeminiText as extractText } from "@/lib/gemini";
+import { callGeminiDirect, extractGeminiText as extractText, isMonthlyLimitError } from "@/lib/gemini";
+import { usePlanLimits } from "@/lib/planLimits";
+import { LimitModal } from "@/components/LimitModal";
 
 const SUMMARY_PROMPT = (lang: string) => `You are a medical AI assistant for I M Smrti. Analyze the document and provide a summary in ${lang}. Use Markdown formatting.`;
 
@@ -92,6 +94,8 @@ export function DashboardPage() {
     const [progress, setProgress] = useState(0);
     const [aiSummary, setAiSummary] = useState("");
     const [error, setError] = useState("");
+    const [limitMessage, setLimitMessage] = useState<string | null>(null);
+    const { limits } = usePlanLimits();
 
     const [form, setForm] = useState({
         patientId: "",
@@ -206,6 +210,25 @@ export function DashboardPage() {
         e.preventDefault();
         if (!selectedFile || !user || !form.patientId) return;
 
+        // Free-tier document cap (premium has a high hidden abuse guard)
+        try {
+            const countSnap = await getCountFromServer(query(collection(db, "documents"), where("userId", "==", user.uid)));
+            const docCount = countSnap.data().count;
+            const maxDocs = isPremium ? limits.premiumMaxDocuments : limits.freeMaxDocuments;
+            if (docCount >= maxDocs) {
+                setUploadStep("idle");
+                setLimitMessage(isPremium
+                    ? t("limits.docsPremiumBody", "You've reached the document storage ceiling. Contact support to extend it.")
+                    : t("limits.docsBody", {
+                        count: limits.freeMaxDocuments,
+                        defaultValue: "Free accounts can store up to {{count}} documents in total. Upgrade to Premium for unlimited storage.",
+                    }));
+                return;
+            }
+        } catch (err) {
+            console.warn("Doc count check failed (non-blocking):", err);
+        }
+
         setUploadStep("uploading");
         setProgress(0);
         let uploadedUrl = "";
@@ -315,7 +338,8 @@ export function DashboardPage() {
                                 { inline_data: { mime_type: getSafeMimeType(selectedFile), data: base64Data } }
                             ]
                         }],
-                        generationConfig: { temperature: 0.2, maxOutputTokens: 4096 }
+                        generationConfig: { temperature: 0.2, maxOutputTokens: 4096 },
+                        feature: "doc_summary",
                     });
                     const text = extractText(result);
                         
@@ -337,6 +361,18 @@ export function DashboardPage() {
 
         } catch (err: any) {
             console.error("Upload/Analyze error:", err);
+            // Monthly free-tier AI limit — document is saved, only the summary is skipped
+            if (isMonthlyLimitError(err)) {
+                if (firestoreDocId) {
+                    updateDoc(doc(db, "documents", firestoreDocId), { status: "completed" }).catch(() => {});
+                }
+                setUploadStep("idle");
+                setLimitMessage(t("limits.summariesBody", {
+                    count: limits.freeDocSummariesPerMonth,
+                    defaultValue: "You've used all {{count}} free AI summaries this month. Your document was saved — upgrade to Premium for unlimited summaries.",
+                }));
+                return;
+            }
             const msg = err?.message || "Upload failed. Please check your connection and try again.";
             // Update Firestore doc status so user can retry later
             if (firestoreDocId) {
@@ -547,8 +583,8 @@ export function DashboardPage() {
                         </div>
                     </motion.button>
 
-                    {/* Doctor Visit Summary (Premium Only) */}
-                    {isPremium && (
+                    {/* Doctor Visit Summary (free users get a monthly quota) */}
+                    {(
                         <motion.button
                             initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.22 }}
                             onClick={() => navigate("/visit-summary")}
@@ -564,7 +600,11 @@ export function DashboardPage() {
                                 </div>
                                 <div>
                                     <h3 className="font-black text-white text-[1.05rem] tracking-tight mb-0.5 drop-shadow-md">{t("visitSummary.title", "Doctor Visit Summary")}</h3>
-                                    <p className="text-[12px] font-semibold text-blue-100 leading-tight drop-shadow-md">{t("visitSummary.cardDesc", "AI briefing for the next appointment")}</p>
+                                    <p className="text-[12px] font-semibold text-blue-100 leading-tight drop-shadow-md">
+                                        {isPremium
+                                            ? t("visitSummary.cardDesc", "AI briefing for the next appointment")
+                                            : t("limits.briefingsCardHint", { count: limits.freeVisitBriefingsPerMonth, defaultValue: "{{count}} free AI briefings every month" })}
+                                    </p>
                                 </div>
                             </div>
                         </motion.button>
@@ -596,6 +636,7 @@ export function DashboardPage() {
             </main>
 
             {/* Modals & Inputs */}
+            {limitMessage && <LimitModal message={limitMessage} onClose={() => setLimitMessage(null)} />}
             <input type="file" accept="image/*" capture="environment" className="hidden" ref={cameraInputRef} onChange={(e) => handleFileSelect(e.target.files?.[0])} />
             <input type="file" accept="image/*" className="hidden" ref={galleryInputRef} onChange={(e) => handleFileSelect(e.target.files?.[0])} />
             <input type="file" accept=".pdf,application/pdf" className="hidden" ref={fileInputRef} onChange={(e) => handleFileSelect(e.target.files?.[0])} />

@@ -1,8 +1,9 @@
 ﻿import { useState, useEffect } from "react";
-import { ArrowLeft, ToggleLeft, ToggleRight, ServerCrash, RefreshCw } from "lucide-react";
+import { ArrowLeft, ToggleLeft, ToggleRight, ServerCrash, RefreshCw, SlidersHorizontal, Check } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { doc, getDoc, setDoc, collection, query, orderBy, limit, getDocs, Timestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { DEFAULT_LIMITS, type PlanLimits } from "@/lib/planLimits";
 
 interface FeatureFlags {
     aiChatEnabled: boolean;
@@ -34,9 +35,38 @@ export function AdminSettingsPage() {
     const [auditLogs, setAuditLogs] = useState<AuditEntry[]>([]);
     const [auditLoading, setAuditLoading] = useState(false);
 
+    const [planLimits, setPlanLimits] = useState<PlanLimits>(DEFAULT_LIMITS);
+    const [limitsSaving, setLimitsSaving] = useState(false);
+    const [limitsSaved, setLimitsSaved] = useState(false);
+
     useEffect(() => {
         loadFeatureFlags();
+        loadPlanLimits();
     }, []);
+
+    const loadPlanLimits = async () => {
+        try {
+            const snap = await getDoc(doc(db, "app_config", "plan_limits"));
+            if (snap.exists()) setPlanLimits({ ...DEFAULT_LIMITS, ...snap.data() });
+        } catch (e) {
+            console.error("Failed to load plan limits:", e);
+        }
+    };
+
+    const savePlanLimits = async () => {
+        setLimitsSaving(true);
+        setLimitsSaved(false);
+        try {
+            await setDoc(doc(db, "app_config", "plan_limits"), planLimits, { merge: true });
+            setLimitsSaved(true);
+            setTimeout(() => setLimitsSaved(false), 2500);
+        } catch (e) {
+            console.error("Failed to save plan limits:", e);
+            alert("Failed to save plan limits");
+        } finally {
+            setLimitsSaving(false);
+        }
+    };
 
     const loadFeatureFlags = async () => {
         try {
@@ -133,6 +163,47 @@ export function AdminSettingsPage() {
                         ))}
                     </div>
                 )}
+            </div>
+
+            {/* Plan Limits — freemium tier configuration, live without redeploys */}
+            <div className="bg-card border border-border rounded-2xl p-5 shadow-sm">
+                <div className="flex items-center gap-3 mb-1">
+                    <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center text-blue-700">
+                        <SlidersHorizontal size={16} />
+                    </div>
+                    <h3 className="font-semibold text-foreground">Plan Limits</h3>
+                </div>
+                <p className="text-xs text-muted-foreground pl-11 mb-4">Free-tier caps take effect immediately for all users. Set a monthly value to -1 for unlimited.</p>
+                <div className="pl-11 space-y-3">
+                    {([
+                        ["freeMaxPatients", "Free: family member profiles (total)"],
+                        ["freeMaxDocuments", "Free: documents (total)"],
+                        ["freeDocSummariesPerMonth", "Free: AI report summaries / month"],
+                        ["freeVisitBriefingsPerMonth", "Free: doctor visit briefings / month"],
+                        ["premiumMaxDocuments", "Premium: document ceiling (hidden abuse guard)"],
+                    ] as Array<[keyof PlanLimits, string]>).map(([key, label]) => (
+                        <div key={key} className="flex items-center justify-between gap-3">
+                            <label htmlFor={`limit-${key}`} className="text-sm text-foreground flex-1">{label}</label>
+                            <input
+                                id={`limit-${key}`}
+                                type="number"
+                                value={planLimits[key]}
+                                min={-1}
+                                onChange={e => setPlanLimits(prev => ({ ...prev, [key]: Number(e.target.value) }))}
+                                className="w-24 p-2.5 rounded-xl bg-muted/50 border border-border text-sm font-bold text-center focus:outline-none focus:border-blue-400"
+                            />
+                        </div>
+                    ))}
+                    <button
+                        onClick={savePlanLimits}
+                        disabled={limitsSaving}
+                        className="w-full mt-2 py-3 bg-slate-900 text-white rounded-xl text-sm font-black flex items-center justify-center gap-2 disabled:opacity-60 active:scale-[0.98] transition-all"
+                    >
+                        {limitsSaving ? <RefreshCw size={14} className="animate-spin" />
+                            : limitsSaved ? <><Check size={15} /> Saved</>
+                            : "Save Plan Limits"}
+                    </button>
+                </div>
             </div>
 
             {/* Audit Logs */}
