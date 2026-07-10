@@ -21,7 +21,8 @@ function appCheck() { if (!_appCheck) _appCheck = getAppCheck(); return _appChec
 // ── proxyGemini — secure API key server-side with per-user daily limits ──
 const MAX_TOKENS_PER_DAY = 2000000; // 2 Million tokens is ~$0.15 (12-15 rupees) on Flash, safely under ₹100 limit
 const MAX_CALLS_PER_DAY = 300; // hard stop against runaway/scripted clients even under the token cap
-const MAX_REQUEST_CHARS = 200000; // ~50k tokens of input per call
+const MAX_TEXT_CHARS = 200000; // ~50k tokens of TEXT input per call (base64 media excluded)
+const MAX_TOTAL_CHARS = 30000000; // media incl. — a 20MB file is ~27M chars as base64
 const MAX_OUTPUT_TOKENS = 4096;
 
 // Default free-tier plan limits — overridable live via app_config/plan_limits
@@ -61,7 +62,11 @@ export const proxyGemini = onCall({ invoker: "public", cors: true }, async (requ
   if (!Array.isArray(data.contents) || data.contents.length === 0) {
     throw new HttpsError("invalid-argument", "contents must be a non-empty array.");
   }
-  if (JSON.stringify(data.contents).length > MAX_REQUEST_CHARS) {
+  // Count text separately from inline media: photos/PDFs arrive as base64 in
+  // "data" fields and are legitimately megabytes — only unchecked TEXT is a risk
+  const totalChars = JSON.stringify(data.contents).length;
+  const textChars = JSON.stringify(data.contents, (key, value) => (key === "data" ? undefined : value)).length;
+  if (textChars > MAX_TEXT_CHARS || totalChars > MAX_TOTAL_CHARS) {
     throw new HttpsError("invalid-argument", "Request too large.");
   }
 

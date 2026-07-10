@@ -205,7 +205,7 @@ function ChangePasswordModal({ onClose }: { onClose: () => void }) {
     };
 
     return (
-        <div className="fixed inset-0 z-50 bg-black/40 flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
+        <div className="fixed inset-0 z-[130] bg-black/40 flex items-end sm:items-center justify-center p-0 sm:p-4" style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }} onClick={onClose}>
             <div className="w-full max-w-lg bg-white text-slate-900 border border-slate-200 rounded-t-[2rem] sm:rounded-[2rem] p-6 space-y-4 max-h-[90vh] overflow-y-auto shadow-2xl relative z-10" onClick={e => e.stopPropagation()}>
                 <div className="flex items-center justify-between">
                     <h2 className="font-bold">{hasPassword ? t("account.changePassword") : t("account.createPassword")}</h2>
@@ -298,10 +298,10 @@ function ChangeEmailModal({ onClose, onSuccess }: { onClose: () => void; onSucce
         } finally { setSaving(false); }
     };
 
-    if (refreshing) return <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4"><Loader2 className="animate-spin" /></div>;
+    if (refreshing) return <div className="fixed inset-0 z-[130] bg-black/40 flex items-center justify-center p-4"><Loader2 className="animate-spin" /></div>;
 
     return (
-        <div className="fixed inset-0 z-50 bg-black/40 flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
+        <div className="fixed inset-0 z-[130] bg-black/40 flex items-end sm:items-center justify-center p-0 sm:p-4" style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }} onClick={onClose}>
             <div className="w-full max-w-lg bg-white text-slate-900 border border-slate-200 rounded-t-[2rem] sm:rounded-[2rem] p-6 space-y-4 max-h-[90vh] overflow-y-auto shadow-2xl relative z-10" onClick={e => e.stopPropagation()}>
                 <div className="flex items-center justify-between">
                     <h2 className="font-bold">{t("account.changeEmail")}</h2>
@@ -381,7 +381,7 @@ function ChangePhoneModal({ onClose, onSuccess }: { onClose: () => void; onSucce
     };
 
     return (
-        <div className="fixed inset-0 z-50 bg-black/40 flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
+        <div className="fixed inset-0 z-[130] bg-black/40 flex items-end sm:items-center justify-center p-0 sm:p-4" style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }} onClick={onClose}>
             <div className="w-full max-w-lg bg-white text-slate-900 border border-slate-200 rounded-t-[2rem] sm:rounded-[2rem] p-6 space-y-4 max-h-[90vh] overflow-y-auto shadow-2xl relative z-10" onClick={e => e.stopPropagation()}>
                 <div id={recaptchaId} />
                 <div className="flex items-center justify-between">
@@ -464,7 +464,7 @@ function DeleteAccountModal({ onClose }: { onClose: () => void }) {
     };
 
     return (
-        <div className="fixed inset-0 z-50 bg-black/40 flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
+        <div className="fixed inset-0 z-[130] bg-black/40 flex items-end sm:items-center justify-center p-0 sm:p-4" style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }} onClick={onClose}>
             <div className="w-full max-w-lg bg-white text-slate-900 border border-slate-200 rounded-t-[2rem] sm:rounded-[2rem] p-6 space-y-4 max-h-[90vh] overflow-y-auto shadow-2xl relative z-10" onClick={e => e.stopPropagation()}>
                 <div className="flex items-center justify-between">
                     <h2 className="font-bold text-destructive">Delete Account</h2>

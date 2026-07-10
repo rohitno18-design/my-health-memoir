@@ -3,7 +3,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { SUPPORTED_LANGUAGES } from "@/i18n";
-import { Bell, Search, HelpCircle, Globe, ChevronDown } from "lucide-react";
+import { Bell, Search, HelpCircle, Globe, ChevronDown, MoreVertical, Check } from "lucide-react";
 import AppTour from "@/components/AppTour";
 import { GlobalSearchModal } from "@/components/GlobalSearchModal";
 
@@ -14,6 +14,7 @@ export function Header() {
     const [runTour, setRunTour] = useState(false);
     const [searchOpen, setSearchOpen] = useState(false);
     const [langDropdownOpen, setLangDropdownOpen] = useState(false);
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
     const handleSearchClick = () => {
         setSearchOpen(true);
@@ -51,7 +52,7 @@ export function Header() {
                     <div>
                         <div className="flex items-center gap-2">
                             <img src="/favicon-64.png" alt="Logo" className="size-5 rounded-lg" />
-                            <h1 className="text-sm font-black tracking-tight text-slate-800">{t('header.title')}</h1>
+                            <h1 className="text-sm font-black tracking-tight text-slate-800 whitespace-nowrap">{t('header.title')}</h1>
                         </div>
                         <div className="flex items-center gap-1">
                             <span className="shrink-0 size-1.5 rounded-full bg-brand-indigo animate-pulse"></span>
@@ -62,12 +63,12 @@ export function Header() {
                 <div className="flex gap-2">
                     <button
                         onClick={() => setRunTour(true)}
-                        className="size-9 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full bg-slate-100 text-slate-600 hover:bg-blue-50 hover:text-blue-600 transition-colors active:scale-95"
+                        className="hidden sm:flex size-9 min-w-[44px] min-h-[44px] items-center justify-center rounded-full bg-slate-100 text-slate-600 hover:bg-blue-50 hover:text-blue-600 transition-colors active:scale-95"
                         title="Start Tour"
                     >
                         <HelpCircle size={17} />
                     </button>
-                    <div className="relative">
+                    <div className="relative hidden sm:block">
                         <button
                             onClick={() => setLangDropdownOpen(!langDropdownOpen)}
                             className="h-9 px-3 flex items-center justify-center gap-1.5 rounded-full bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition-colors active:scale-95 font-semibold text-sm border border-indigo-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
@@ -136,6 +137,51 @@ export function Header() {
                         <Bell size={17} />
                         <span className="absolute top-1.5 right-1.5 size-2 bg-brand-purple rounded-full border-2 border-white"></span>
                     </button>
+
+                    {/* Mobile overflow menu — tour + language live here so the bar stays clean */}
+                    <div className="relative sm:hidden">
+                        <button
+                            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                            aria-label="More options"
+                            className="size-9 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full bg-slate-100 text-slate-600 active:scale-95 transition-all"
+                        >
+                            <MoreVertical size={17} />
+                        </button>
+                        {mobileMenuOpen && (
+                            <>
+                                <div className="fixed inset-0 z-40" onClick={() => setMobileMenuOpen(false)} />
+                                <div className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 py-2 z-50 animate-in fade-in zoom-in-95 duration-200 origin-top-right overflow-hidden">
+                                    <button
+                                        onClick={() => { setMobileMenuOpen(false); setRunTour(true); }}
+                                        className="w-full text-left px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2.5"
+                                    >
+                                        <HelpCircle size={16} className="text-slate-400" /> {t('header.startTour', 'App Tour')}
+                                    </button>
+                                    <div className="px-4 pt-2 pb-1 mt-1 border-t border-slate-50 flex items-center gap-2">
+                                        <Globe size={13} className="text-slate-400" />
+                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{t('docs.chooseLanguage', 'Choose Language')}</p>
+                                    </div>
+                                    <div className="max-h-[260px] overflow-y-auto px-1">
+                                        {SUPPORTED_LANGUAGES.map((lang) => {
+                                            const isActive = i18n.language.startsWith(lang.code);
+                                            return (
+                                                <button
+                                                    key={lang.code}
+                                                    onClick={() => { changeLanguage(lang.code); setMobileMenuOpen(false); }}
+                                                    className={`w-full text-left px-3 py-2 rounded-xl text-sm flex items-center justify-between ${
+                                                        isActive ? 'bg-indigo-50 text-indigo-700 font-semibold' : 'text-slate-700 hover:bg-slate-50'
+                                                    }`}
+                                                >
+                                                    <span>{lang.nativeName}</span>
+                                                    {isActive && <Check size={14} className="text-indigo-500" />}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            </>
+                        )}
+                    </div>
                 </div>
             </div>
             <AppTour runOverride={runTour} onFinish={() => setRunTour(false)} />

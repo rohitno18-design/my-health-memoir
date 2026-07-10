@@ -88,6 +88,31 @@ const getBase64 = (file: File): Promise<string> =>
         reader.onerror = error => reject(error);
     });
 
+// Downscale photos before sending to AI: a 12MP phone photo is ~5MB (7MB as
+// base64) — resized to 2000px JPEG it's ~400KB with text still perfectly
+// readable. Falls back to the original file if decoding fails (e.g. HEIC).
+const prepareFileForAI = async (file: File): Promise<{ data: string; mime: string }> => {
+    if (!file.type.startsWith("image/")) {
+        return { data: await getBase64(file), mime: getSafeMimeType(file) };
+    }
+    try {
+        const bitmap = await createImageBitmap(file);
+        const scale = Math.min(1, 2000 / Math.max(bitmap.width, bitmap.height));
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+        canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+        canvas.getContext("2d")!.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+        bitmap.close();
+        const blob: Blob = await new Promise((resolve, reject) =>
+            canvas.toBlob(b => (b ? resolve(b) : reject(new Error("toBlob failed"))), "image/jpeg", 0.85)
+        );
+        return { data: await getBase64(blob as File), mime: "image/jpeg" };
+    } catch (e) {
+        console.warn("Image compression failed, sending original:", e);
+        return { data: await getBase64(file), mime: getSafeMimeType(file) };
+    }
+};
+
 // Gemini requires a valid MIME type — fall back to detecting from file extension
 const getSafeMimeType = (file: File): string => {
     if (file.type && file.type !== "application/octet-stream") return file.type;
@@ -366,14 +391,14 @@ export function DashboardPage() {
                     setAiSummary("AI summary is not available for this file type. Please upload a PDF or image.");
                     setUploadStep("summary");
                 } else {
-                    const base64Data = await getBase64(selectedFile);
-                    
+                    const { data: base64Data, mime } = await prepareFileForAI(selectedFile);
+
                     const result = await callGeminiDirect({
                         contents: [{
                             role: "user",
                             parts: [
                                 { text: SUMMARY_PROMPT(form.language) },
-                                { inline_data: { mime_type: getSafeMimeType(selectedFile), data: base64Data } }
+                                { inline_data: { mime_type: mime, data: base64Data } }
                             ]
                         }],
                         generationConfig: { temperature: 0.1, maxOutputTokens: 4096 },
