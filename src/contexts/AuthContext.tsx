@@ -112,22 +112,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             }
             if (Object.keys(updates).length > 0) await setDoc(docRef, updates, { merge: true });
             setUserProfile({ ...data, ...updates });
-            // Ensure lookup entries exist for existing profiles
-            const email = firebaseUser.email || data.email;
-            const phone = firebaseUser.phoneNumber || (data as any).phoneNumber;
-            if (email) {
-                const lookupRef = doc(db, "user_lookup", "email_" + btoa(email));
-                const lookupSnap = await getDoc(lookupRef);
-                if (!lookupSnap.exists()) {
-                    await setDoc(lookupRef, { uid: firebaseUser.uid, email });
+            // Ensure lookup entries exist for existing profiles.
+            // Lookup writes are NEVER fatal — a stale/conflicting lookup entry
+            // must not brick the login (it did once, after a partial deletion).
+            try {
+                const email = firebaseUser.email || data.email;
+                const phone = firebaseUser.phoneNumber || (data as any).phoneNumber;
+                if (email) {
+                    const lookupRef = doc(db, "user_lookup", "email_" + btoa(email));
+                    const lookupSnap = await getDoc(lookupRef);
+                    if (!lookupSnap.exists()) {
+                        await setDoc(lookupRef, { uid: firebaseUser.uid, email });
+                    }
                 }
-            }
-            if (phone) {
-                const lookupRef = doc(db, "user_lookup", "phone_" + phone);
-                const lookupSnap = await getDoc(lookupRef);
-                if (!lookupSnap.exists()) {
-                    await setDoc(lookupRef, { uid: firebaseUser.uid, phone });
+                if (phone) {
+                    const lookupRef = doc(db, "user_lookup", "phone_" + phone);
+                    const lookupSnap = await getDoc(lookupRef);
+                    if (!lookupSnap.exists()) {
+                        await setDoc(lookupRef, { uid: firebaseUser.uid, phone });
+                    }
                 }
+            } catch (e) {
+                console.warn("Lookup backfill failed (non-blocking):", e);
             }
         } else {
             // Before creating a new profile, check if this email/phone already belongs to another user
@@ -174,12 +180,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 createdAt: serverTimestamp(),
             };
             await setDoc(docRef, newProfile);
-            // Create lookup entries for uniqueness checks
-            if (firebaseUser.email) {
-                await setDoc(doc(db, "user_lookup", "email_" + btoa(firebaseUser.email)), { uid: firebaseUser.uid, email: firebaseUser.email });
-            }
-            if (firebaseUser.phoneNumber) {
-                await setDoc(doc(db, "user_lookup", "phone_" + firebaseUser.phoneNumber), { uid: firebaseUser.uid, phone: firebaseUser.phoneNumber });
+            // Create lookup entries for uniqueness checks — never fatal: a stale
+            // lookup left by a partial deletion must not block account creation
+            try {
+                if (firebaseUser.email) {
+                    await setDoc(doc(db, "user_lookup", "email_" + btoa(firebaseUser.email)), { uid: firebaseUser.uid, email: firebaseUser.email });
+                }
+                if (firebaseUser.phoneNumber) {
+                    await setDoc(doc(db, "user_lookup", "phone_" + firebaseUser.phoneNumber), { uid: firebaseUser.uid, phone: firebaseUser.phoneNumber });
+                }
+            } catch (e) {
+                console.warn("Lookup creation failed (non-blocking):", e);
             }
             setUserProfile(newProfile);
         }
@@ -491,13 +502,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (newPhone) {
             const docRef = doc(db, "users", currentUser.uid);
             await setDoc(docRef, { phoneNumber: newPhone, phoneVerified: true }, { merge: true });
-            await setDoc(doc(db, "user_lookup", "phone_" + newPhone), { uid: currentUser.uid, phone: newPhone });
+            await setDoc(doc(db, "user_lookup", "phone_" + newPhone), { uid: currentUser.uid, phone: newPhone })
+                .catch((e) => console.warn("Phone lookup update failed (non-blocking):", e));
         }
         await fetchOrCreateProfile(currentUser);
     };
 
     const isFullyVerified = !!(userProfile?.emailVerified || userProfile?.phoneVerified);
-    const isAdmin = userProfile?.role === "admin" || user?.email === "rohit.official36@gmail.com" || user?.email === "rohit.no18@gmail.com";
+    const isAdmin = userProfile?.role === "admin" || user?.email === "rohit.no18@gmail.com";
     const isSubAdmin = userProfile?.role === "subadmin";
     const isPremium = isAdmin || userProfile?.tier === "premium";
 

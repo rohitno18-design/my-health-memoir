@@ -27,7 +27,7 @@ export function ProtectedRoute({ children, requireAdmin = false, requireStaff = 
     }
 
     const isAdminByRole = userProfile?.role === "admin";
-    const isAdminByEmail = user.email === "rohit.official36@gmail.com" || user.email === "rohit.no18@gmail.com";
+    const isAdminByEmail = user.email === "rohit.no18@gmail.com";
     const isFullAdmin = isAdminByRole || isAdminByEmail;
     const isSubAdmin = userProfile?.role === "subadmin";
 

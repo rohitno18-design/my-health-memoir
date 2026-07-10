@@ -239,7 +239,7 @@ export const setAdminClaim = onCall(async (request) => {
   if (!callerUid) throw new Error("Authentication required");
 
   const callerUser = await fAdminAuth.getUser(callerUid);
-  const isHardcodedAdmin = callerUser.email === "rohit.official36@gmail.com" || callerUser.email === "rohit.no18@gmail.com";
+  const isHardcodedAdmin = callerUser.email === "rohit.no18@gmail.com";
   if (!callerUser.customClaims?.admin && !isHardcodedAdmin) {
     throw new Error("Only admins can manage admin claims");
   }
@@ -262,7 +262,7 @@ export const enableAppCheck = onCall(async (request) => {
   if (!callerUid) throw new Error("Authentication required");
 
   const callerUser = await fAdminAuth.getUser(callerUid);
-  const isHardcodedAdmin = callerUser.email === "rohit.official36@gmail.com" || callerUser.email === "rohit.no18@gmail.com";
+  const isHardcodedAdmin = callerUser.email === "rohit.no18@gmail.com";
   if (!callerUser.customClaims?.admin && !isHardcodedAdmin) {
     throw new Error("Only admins can configure App Check");
   }
@@ -295,7 +295,7 @@ async function callerIsAdmin(auth: { uid: string } | undefined): Promise<boolean
   if (!auth?.uid) return false;
   const user = await fAdminAuth.getUser(auth.uid);
   return user.customClaims?.admin === true ||
-    user.email === "rohit.official36@gmail.com" ||
+    
     user.email === "rohit.no18@gmail.com";
 }
 
@@ -329,7 +329,7 @@ export const getAnalyticsSnapshot = onCall(async (request) => {
   if (!request.auth?.uid) throw new HttpsError("unauthenticated", "Authentication required");
   const caller = await fAdminAuth.getUser(request.auth.uid);
   const isAdmin = caller.customClaims?.admin === true ||
-    caller.email === "rohit.official36@gmail.com" ||
+    
     caller.email === "rohit.no18@gmail.com";
   const isSubAdmin = caller.customClaims?.subadmin === true;
   if (!isAdmin && !isSubAdmin) {
@@ -418,12 +418,11 @@ export const getAnalyticsSnapshot = onCall(async (request) => {
 // ── deleteMyAccount — full DPDP-compliant erasure of a user's footprint ───
 // Deletes all Firestore records, Storage files, lookup entries and finally
 // the Auth user itself. Callable only by the account owner.
-export const deleteMyAccount = onCall(async (request) => {
-  if (!request.auth?.uid) {
-    throw new HttpsError("unauthenticated", "Authentication required");
-  }
-  const uid = request.auth.uid;
-
+// Shared by deleteMyAccount (self-service) and adminDeleteUser (admin panel):
+// wipes EVERYTHING — Firestore records, subcollections, lookup entries,
+// Storage files, and finally the Auth account. Stale lookups after partial
+// deletions previously bricked re-registration, so lookups are always cleaned.
+async function eraseUserFootprint(uid: string): Promise<void> {
   // 1. Top-level collections keyed by a userId field
   const ownedCollections = [
     "patients", "folders", "documents", "appointments",
@@ -456,9 +455,61 @@ export const deleteMyAccount = onCall(async (request) => {
 
   // 5. The Auth account itself — last, so a mid-way failure leaves the user
   // able to retry rather than locked out with orphaned data
-  await fAdminAuth.deleteUser(uid);
+  await fAdminAuth.deleteUser(uid).catch((e) => {
+    // Auth user may already be gone (e.g. deleted via console) — data cleanup still counts
+    if (e.code !== "auth/user-not-found") throw e;
+  });
+}
 
+export const deleteMyAccount = onCall(async (request) => {
+  if (!request.auth?.uid) {
+    throw new HttpsError("unauthenticated", "Authentication required");
+  }
+  await eraseUserFootprint(request.auth.uid);
   return { success: true };
+});
+
+// ── adminDeleteUser — admin panel deletion that REALLY deletes ────────────
+// Previously the panel only removed the Firestore profile doc, leaving the
+// Auth login, medical data and lookup entries orphaned.
+export const adminDeleteUser = onCall(async (request) => {
+  const { targetUid } = request.data as { targetUid: string };
+  if (!targetUid) throw new HttpsError("invalid-argument", "targetUid is required");
+  if (!(await callerIsAdmin(request.auth))) {
+    throw new HttpsError("permission-denied", "Only admins can delete users");
+  }
+  if (targetUid === request.auth!.uid) {
+    throw new HttpsError("failed-precondition", "Use account settings to delete your own account");
+  }
+  const target = await fAdminAuth.getUser(targetUid).catch(() => null);
+  if (target?.email === "rohit.no18@gmail.com") {
+    throw new HttpsError("failed-precondition", "The primary admin account cannot be deleted");
+  }
+  await eraseUserFootprint(targetUid);
+  return { success: true };
+});
+
+// ── setUserSuspended — suspend/restore synced to Firebase Auth ────────────
+// Disables the Auth account (login blocked platform-wide) and revokes active
+// sessions, not just a Firestore flag the UI checks.
+export const setUserSuspended = onCall(async (request) => {
+  const { targetUid, suspended } = request.data as { targetUid: string; suspended: boolean };
+  if (!targetUid) throw new HttpsError("invalid-argument", "targetUid is required");
+  if (!(await callerIsAdmin(request.auth))) {
+    throw new HttpsError("permission-denied", "Only admins can suspend users");
+  }
+  const target = await fAdminAuth.getUser(targetUid).catch(() => null);
+  if (target?.email === "rohit.no18@gmail.com") {
+    throw new HttpsError("failed-precondition", "The primary admin account cannot be suspended");
+  }
+  await fAdminAuth.updateUser(targetUid, { disabled: !!suspended }).catch((e) => {
+    if (e.code !== "auth/user-not-found") throw e;
+  });
+  if (suspended) {
+    await fAdminAuth.revokeRefreshTokens(targetUid).catch(() => undefined);
+  }
+  await adminDb.collection("users").doc(targetUid).set({ suspended: !!suspended }, { merge: true });
+  return { success: true, suspended: !!suspended };
 });
 
 // ── getSignedUrl — generate time-limited download URL for documents ──────
@@ -474,7 +525,7 @@ export const getSignedUrl = onCall(async (request) => {
   const uid = request.auth.uid;
   const callerEmail = request.auth.token?.email;
   const isAdmin = request.auth.token?.admin === true ||
-    callerEmail === "rohit.official36@gmail.com" ||
+    
     callerEmail === "rohit.no18@gmail.com";
   const normalizedPath = storagePath.replace(/^\/+/, "");
   const ownsPath = normalizedPath.startsWith(`documents/${uid}/`) ||

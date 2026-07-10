@@ -5,7 +5,6 @@ service firebase.storage {
     // Helper — superadmin check (email fallback + custom claims)
     function isSuperAdmin() {
       return request.auth != null && (
-        request.auth.token.email == "rohit.official36@gmail.com" ||
         request.auth.token.email == "rohit.no18@gmail.com" ||
         request.auth.token.admin == true
       );

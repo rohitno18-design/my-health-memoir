@@ -1,5 +1,5 @@
 ﻿import { useState, useEffect } from "react";
-import { collection, getDocs, getDoc, setDoc, query, orderBy, doc, updateDoc, deleteDoc, getCountFromServer, where } from "firebase/firestore";
+import { collection, getDocs, getDoc, setDoc, query, orderBy, doc, updateDoc, getCountFromServer, where } from "firebase/firestore";
 import { createUserWithEmailAndPassword, sendSignInLinkToEmail } from "firebase/auth";
 import { getFunctions, httpsCallable } from "firebase/functions";
 import { auth, adminAuth, db } from "@/lib/firebase";
@@ -153,7 +153,10 @@ export function AdminUsersPage() {
         if (!confirm(`Are you sure you want to ${suspend ? 'suspend' : 'restore'} ${selectedIds.size} users?`)) return;
         setActionLoading(true);
         try {
-            const promises = Array.from(selectedIds).map(id => updateDoc(doc(db, "users", id), { suspended: suspend }));
+            // Server-side: disables the Firebase Auth account + revokes sessions,
+            // not just the Firestore flag
+            const setSuspendedFn = httpsCallable(getFunctions(), "setUserSuspended");
+            const promises = Array.from(selectedIds).map(id => setSuspendedFn({ targetUid: id, suspended: suspend }));
             await Promise.all(promises);
             await fetchUsers();
             setSelectedIds(new Set());
@@ -168,9 +171,12 @@ export function AdminUsersPage() {
         if (!confirm(`DANGER: Are you sure you want to PERMANENTLY destroy ${selectedIds.size} accounts and their medical data?`)) return;
         setActionLoading(true);
         try {
-            // Note: In a true prod app, we'd delete `documents` subcollections here too
-            const promises = Array.from(selectedIds).map(id => deleteDoc(doc(db, "users", id)));
-            await Promise.all(promises);
+            // Full server-side erasure: Auth login + all Firestore data +
+            // Storage files + lookup entries — everything stays in sync
+            const deleteFn = httpsCallable(getFunctions(), "adminDeleteUser");
+            const results = await Promise.allSettled(Array.from(selectedIds).map(id => deleteFn({ targetUid: id })));
+            const failed = results.filter(r => r.status === "rejected").length;
+            if (failed > 0) alert(`${failed} deletion(s) failed (you cannot delete yourself or the primary admin).`);
             await fetchUsers();
             setSelectedIds(new Set());
         } catch (e) {
@@ -562,11 +568,12 @@ export function AdminUsersPage() {
                                             if (!confirm(`Are you sure you want to ${suspend ? 'suspend' : 'restore'} this user?`)) return;
                                             setActionLoading(true);
                                             try {
-                                                await updateDoc(doc(db, "users", selectedUser.id), { suspended: suspend });
+                                                // Disables the Auth account + revokes sessions server-side
+                                                await httpsCallable(getFunctions(), "setUserSuspended")({ targetUid: selectedUser.id, suspended: suspend });
                                                 setUsers(prev => prev.map(u => u.id === selectedUser.id ? { ...u, suspended: suspend } : u));
                                                 setSelectedUser(null);
                                             } catch (e) {
-                                                alert("Action failed.");
+                                                alert("Action failed (the primary admin cannot be suspended).");
                                             } finally {
                                                 setActionLoading(false);
                                             }
