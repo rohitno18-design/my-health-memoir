@@ -62,7 +62,8 @@
         "events": "ઘટનાઓ",
         "account": "એકાઉન્ટ",
         "aiChat": "AI આરોગ્ય",
-        "liveSyncing": "લાઇવ સિંક કરી રહ્યું છે"
+        "liveSyncing": "લાઇવ સિંક કરી રહ્યું છે",
+        "startTour": "ઍપ ટૂર"
     },
     "dashboard": {
         "welcome": "સ્વાગત છે, {{name}}",
@@ -560,7 +561,7 @@
         "settings": "સેટિંગ્સ",
         "errEmailUsed": "આ ઇમેઇલ પહેલેથી જ નોંધાયેલ છે",
         "errTimeout": "સત્રનો સમય સમાપ્ત થયો. કૃપા કરીને ફરીથી લોગિન કરો.",
-        "sendCode": "કોડ મોકલો",
+        "sendCode": "વેરિફિકેશન કોડ મોકલો",
         "helpLegal": "મદદ અને કાનૂની",
         "contactSupport": "સપોર્ટનો સંપર્ક કરો",
         "contactSupportDesc": "કંઈ સમસ્યા? અમને ઇમેઇલ કરો — 48 કલાકમાં જવાબ આપીએ છીએ.",
@@ -665,7 +666,8 @@
         "allPatients": "કુટુંબના બધા સભ્યો"
     },
     "docs": {
-        "allPatients": "કુટુંબના બધા સભ્યો"
+        "allPatients": "કુટુંબના બધા સભ્યો",
+        "chooseLanguage": "ભાષા પસંદ કરો"
     },
     "timeline": {
         "cat_visit": "ડૉક્ટરની મુલાકાત",
@@ -852,5 +854,21 @@
         "summariesBody": "આ મહિનાના બધા {{count}} ફ્રી AI સારાંશ વપરાઈ ગયા. તમારો દસ્તાવેજ સેવ થયો — અમર્યાદિત માટે પ્રીમિયમ લો.",
         "briefingsBody": "આ મહિનાની {{count}} ફ્રી ડૉક્ટર વિઝિટ બ્રીફિંગ વપરાઈ ગઈ. અમર્યાદિત માટે પ્રીમિયમ લો.",
         "briefingsCardHint": "દર મહિને {{count}} ફ્રી AI બ્રીફિંગ"
+    },
+    "search": {
+        "documents": "દસ્તાવેજો",
+        "familyMembers": "પરિવારના સભ્યો",
+        "filterAll": "બધા",
+        "filterDocs": "દસ્તાવેજો",
+        "filterEvents": "ઘટનાઓ",
+        "filterFamily": "પરિવાર",
+        "healthEvents": "આરોગ્ય ઘટનાઓ",
+        "noResults": "આના માટે કોઈ પરિણામ મળ્યું નથી:",
+        "placeholder": "શોધો...",
+        "sortAlpha": "અ-જ્ઞ",
+        "sortNewest": "નવું પહેલા",
+        "sortRelevance": "પ્રાસંગિકતા મુજબ",
+        "typeToSearch": "શોધવા માટે ઓછામાં ઓછા 2 અક્ષરો લખો.",
+        "viewDocumentVault": "દસ્તાવેજ વૉલ્ટ જુઓ"
     }
 }

@@ -62,7 +62,8 @@
         "events": "ঘটনা",
         "account": "অ্যাকাউন্ট",
         "aiChat": "এআই স্বাস্থ্য",
-        "liveSyncing": "লাইভ সিঙ্কিং"
+        "liveSyncing": "লাইভ সিঙ্কিং",
+        "startTour": "অ্যাপ ট্যুর"
     },
     "dashboard": {
         "welcome": "ফিরে আসার জন্য স্বাগতম, {{name}}",
@@ -560,7 +561,7 @@
         "settings": "সেটিংস",
         "errEmailUsed": "এই ইমেলটি ইতিমধ্যে নিবন্ধিত",
         "errTimeout": "সেশন শেষ হয়েছে। অনুগ্রহ করে আবার লগইন করুন।",
-        "sendCode": "কোড পাঠান",
+        "sendCode": "ভেরিফিকেশন কোড পাঠান",
         "helpLegal": "সহায়তা ও আইনি",
         "contactSupport": "সাপোর্টে যোগাযোগ",
         "contactSupportDesc": "কোনো সমস্যা? ইমেল করুন — ৪৮ ঘণ্টায় উত্তর দিই।",
@@ -665,7 +666,8 @@
         "allPatients": "পরিবারের সকল সদস্য"
     },
     "docs": {
-        "allPatients": "পরিবারের সকল সদস্য"
+        "allPatients": "পরিবারের সকল সদস্য",
+        "chooseLanguage": "ভাষা বেছে নিন"
     },
     "timeline": {
         "cat_visit": "ডাক্তারের ভিজিট",
@@ -852,5 +854,21 @@
         "summariesBody": "এই মাসের {{count}}টি ফ্রি AI সারাংশ ব্যবহার হয়ে গেছে। নথিটি সেভ হয়েছে — সীমাহীন সারাংশের জন্য প্রিমিয়ামে যান।",
         "briefingsBody": "এই মাসের {{count}}টি ফ্রি ডাক্তার ভিজিট ব্রিফিং ব্যবহার হয়ে গেছে। সীমাহীনের জন্য প্রিমিয়ামে যান।",
         "briefingsCardHint": "প্রতি মাসে {{count}}টি ফ্রি AI ব্রিফিং"
+    },
+    "search": {
+        "documents": "নথি",
+        "familyMembers": "পরিবারের সদস্য",
+        "filterAll": "সব",
+        "filterDocs": "নথি",
+        "filterEvents": "ঘটনা",
+        "filterFamily": "পরিবার",
+        "healthEvents": "স্বাস্থ্য ঘটনা",
+        "noResults": "কোনো ফলাফল পাওয়া যায়নি:",
+        "placeholder": "খুঁজুন...",
+        "sortAlpha": "ক-হ",
+        "sortNewest": "নতুন আগে",
+        "sortRelevance": "প্রাসঙ্গিকতা অনুযায়ী",
+        "typeToSearch": "খুঁজতে কমপক্ষে ২টি অক্ষর লিখুন।",
+        "viewDocumentVault": "নথি ভল্ট দেখুন"
     }
 }

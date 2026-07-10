@@ -62,7 +62,8 @@
         "events": "واقعات",
         "account": "اکاؤنٹ",
         "aiChat": "اے آئی ہیلتھ",
-        "liveSyncing": "لائیو سنکنگ"
+        "liveSyncing": "لائیو سنکنگ",
+        "startTour": "ایپ ٹور"
     },
     "dashboard": {
         "welcome": "خوش آمدید، {{name}}",
@@ -560,7 +561,7 @@
         "settings": "سیٹنگز",
         "errEmailUsed": "یہ ای میل پہلے ہی رجسٹرڈ ہے",
         "errTimeout": "سیشن کا وقت ختم ہو گیا۔ براہ کرم دوبارہ لاگ ان کریں۔",
-        "sendCode": "کوڈ بھیجیں",
+        "sendCode": "تصدیقی کوڈ بھیجیں",
         "helpLegal": "مدد اور قانونی",
         "contactSupport": "سپورٹ سے رابطہ کریں",
         "contactSupportDesc": "کوئی مسئلہ؟ ہمیں ای میل کریں — 48 گھنٹوں میں جواب دیتے ہیں۔",
@@ -665,7 +666,8 @@
         "allPatients": "تمام فیملی ممبرز"
     },
     "docs": {
-        "allPatients": "تمام فیملی ممبرز"
+        "allPatients": "تمام فیملی ممبرز",
+        "chooseLanguage": "زبان منتخب کریں"
     },
     "timeline": {
         "cat_visit": "ڈاکٹر کا دورہ",
@@ -852,5 +854,21 @@
         "summariesBody": "اس مہینے کے تمام {{count}} فری AI خلاصے استعمال ہو چکے ہیں۔ آپ کی دستاویز محفوظ ہو گئی — لامحدود کے لیے پریمیم لیں۔",
         "briefingsBody": "اس مہینے کی {{count}} فری ڈاکٹر وزٹ بریفنگ استعمال ہو چکی ہیں۔ لامحدود کے لیے پریمیم لیں۔",
         "briefingsCardHint": "ہر مہینے {{count}} فری AI بریفنگ"
+    },
+    "search": {
+        "documents": "دستاویزات",
+        "familyMembers": "خاندان کے افراد",
+        "filterAll": "سب",
+        "filterDocs": "دستاویزات",
+        "filterEvents": "واقعات",
+        "filterFamily": "خاندان",
+        "healthEvents": "صحت کے واقعات",
+        "noResults": "اس کے لیے کوئی نتیجہ نہیں ملا:",
+        "placeholder": "تلاش کریں...",
+        "sortAlpha": "ا-ی",
+        "sortNewest": "نیا پہلے",
+        "sortRelevance": "مطابقت کے لحاظ سے",
+        "typeToSearch": "تلاش کے لیے کم از کم 2 حروف لکھیں۔",
+        "viewDocumentVault": "دستاویز والٹ دیکھیں"
     }
 }

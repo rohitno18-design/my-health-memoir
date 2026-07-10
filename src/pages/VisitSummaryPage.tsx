@@ -91,15 +91,23 @@ export function VisitSummaryPage() {
 
             const profile = profileSnap.exists() ? profileSnap.data() : member;
 
+            // Data hygiene: failed analyses and error-text "summaries" must never
+            // reach the AI as medical findings (legacy docs stored errors there)
+            const looksLikeError = (s: string) =>
+                /request too large|upload failed|not available for this file|please try again|error/i.test(s);
             const docs = docsSnap.docs
                 .map(d => d.data())
+                .filter(d => d.status !== "failed")
                 .sort((a, b) => (b.docDate || "").localeCompare(a.docDate || ""))
                 .slice(0, 20)
-                .map(d => ({
-                    name: d.name, date: d.docDate || "", category: d.category || d.docType || "",
-                    doctor: d.doctorName || "", hospital: d.hospital || d.lab || "",
-                    findings: (d.aiSummary || "").slice(0, 500),
-                }));
+                .map(d => {
+                    const summary = (d.aiSummary || (d.aiSummaries && Object.values(d.aiSummaries)[0]) || "") as string;
+                    return {
+                        name: d.name, date: d.docDate || "", category: d.category || d.docType || "",
+                        doctor: d.doctorName || "", hospital: d.hospital || d.lab || "",
+                        findings: looksLikeError(summary) ? "" : summary.slice(0, 800),
+                    };
+                });
 
             const vitals = vitalsSnap.docs
                 .map(d => d.data())
@@ -118,7 +126,7 @@ export function VisitSummaryPage() {
 
             const langName = outputLang === "ui" && uiLang ? uiLang.name : "English";
 
-            const prompt = `You are preparing a pre-appointment briefing document for a doctor visit in India.
+            const prompt = `You are an experienced clinical assistant preparing a pre-appointment briefing for a doctor visit in India. The doctor will read this in 60 seconds before seeing the patient — it must be genuinely useful, focused, and professional. The patient's family will read it too, so keep the language clear.
 
 PATIENT PROFILE:
 - Name: ${profile.name}
@@ -132,21 +140,27 @@ PATIENT PROFILE:
 RECENT MEDICAL DOCUMENTS (newest first): ${JSON.stringify(docs)}
 RECENT VITALS READINGS (newest first): ${JSON.stringify(vitals)}
 HEALTH TIMELINE EVENTS: ${JSON.stringify(events)}
-${visitReason.trim() ? `REASON FOR THIS VISIT (stated by the caregiver): ${visitReason.trim()}` : ""}
+${visitReason.trim() ? `REASON FOR THIS VISIT (stated by the caregiver): ${visitReason.trim()}` : "REASON FOR THIS VISIT: not stated — treat this as a general check-up briefing."}
 
-Write a clear, one-page doctor visit briefing in ${langName} with EXACTLY these markdown sections:
-## Patient Snapshot
-## Current Medications & Allergies
-## Active Conditions & History
-## Recent Reports & Findings
-## Vitals Trends
-## Suggested Questions for the Doctor
+## RELEVANCE — think like a clinician before writing
+- The REASON FOR THIS VISIT decides what belongs. Include in full detail: everything related to the visit reason, plus the always-relevant basics a doctor needs regardless (allergies, chronic conditions, CURRENT medications with doses — these matter for drug interactions even in unrelated visits).
+- Old, resolved, clearly unrelated issues: one short line at most under history, or omit entirely. A throat infection from last year does not belong in a leg-injury briefing.
+- Documents with empty findings, duplicate documents, or documents that are clearly the same event: mention once or skip. NEVER quote error text, file names, or "too large to display" style content — if a document has no usable findings, leave it out silently.
 
-Rules:
-- Be factual. Use ONLY the data provided above. If a section has no data, write one line saying so.
-- Highlight anything a doctor should notice (abnormal trends, medication changes, overdue follow-ups).
-- Keep it under 450 words. No preamble, no closing remarks, start directly with the first section.
-- Do not invent diagnoses. This is an organizational summary, not medical advice.`;
+## STRUCTURE — use ONLY the sections that have real content, in ${langName}:
+## Patient Snapshot — one or two lines: who, age, key standing facts.
+## Reason for Visit — what the patient is coming in for (skip if not stated).
+## Current Medications & Allergies — every current medicine with dose and timing if known; allergies prominently. This section is almost always relevant.
+## Relevant History & Findings — findings from documents and events RELEVANT to this visit, newest first, each with its date and source. Include exact values and dates — doctors want specifics, not vague phrases.
+## Vitals — only if readings exist: latest values and any trend worth noticing.
+## Suggested Questions for the Doctor — 3-4 sharp, specific questions the family should ask, grounded in the data above.
+
+## RULES
+- OMIT any section with nothing real to say. NEVER write "no data recorded", "none available" or similar filler — a section either has substance or does not appear.
+- Be factual. Use ONLY the data provided. Never invent values, dates or diagnoses.
+- Leave one blank line between sections and paragraphs.
+- Under 450 words. No preamble, no closing remarks — start directly with the first section heading.
+- This is an organizational summary, not medical advice.`;
 
             const response = await callGeminiDirect({
                 contents: [{ role: "user", parts: [{ text: prompt }] }],

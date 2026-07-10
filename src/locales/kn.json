@@ -62,7 +62,8 @@
         "events": "ಘಟನೆಗಳು",
         "account": "ಖಾತೆ",
         "aiChat": "AI ಆರೋಗ್ಯ",
-        "liveSyncing": "ಲೈವ್ ಸಿಂಕ್ ಆಗುತ್ತಿದೆ"
+        "liveSyncing": "ಲೈವ್ ಸಿಂಕ್ ಆಗುತ್ತಿದೆ",
+        "startTour": "ಆ್ಯಪ್ ಟೂರ್"
     },
     "dashboard": {
         "welcome": "ಸ್ವಾಗತ, {{name}}",
@@ -560,7 +561,7 @@
         "settings": "ಸೆಟ್ಟಿಂಗ್‌ಗಳು",
         "errEmailUsed": "ಈ ಇಮೇಲ್ ಈಗಾಗಲೇ ನೋಂದಾಯಿಸಲಾಗಿದೆ",
         "errTimeout": "ಸೆಷನ್ ಅವಧಿ ಮುಗಿದಿದೆ. ದಯವಿಟ್ಟು ಮತ್ತೆ ಲಾಗಿನ್ ಮಾಡಿ.",
-        "sendCode": "ಕೋಡ್ ಕಳುಹಿಸಿ",
+        "sendCode": "ವೆರಿಫಿಕೇಶನ್ ಕೋಡ್ ಕಳುಹಿಸಿ",
         "helpLegal": "ಸಹಾಯ & ಕಾನೂನು",
         "contactSupport": "ಬೆಂಬಲವನ್ನು ಸಂಪರ್ಕಿಸಿ",
         "contactSupportDesc": "ಏನಾದರೂ ತೊಂದರೆಯೇ? ನಮಗೆ ಇಮೇಲ್ ಮಾಡಿ — 48 ಗಂಟೆಗಳಲ್ಲಿ ಉತ್ತರಿಸುತ್ತೇವೆ.",
@@ -665,7 +666,8 @@
         "allPatients": "ಎಲ್ಲಾ ಕುಟುಂಬ ಸದಸ್ಯರು"
     },
     "docs": {
-        "allPatients": "ಎಲ್ಲಾ ಕುಟುಂಬ ಸದಸ್ಯರು"
+        "allPatients": "ಎಲ್ಲಾ ಕುಟುಂಬ ಸದಸ್ಯರು",
+        "chooseLanguage": "ಭಾಷೆ ಆಯ್ಕೆಮಾಡಿ"
     },
     "timeline": {
         "cat_visit": "ವೈದ್ಯರ ಭೇಟಿ",
@@ -852,5 +854,21 @@
         "summariesBody": "ಈ ತಿಂಗಳ ಎಲ್ಲಾ {{count}} ಫ್ರೀ AI ಸಾರಾಂಶಗಳು ಬಳಕೆಯಾಗಿವೆ. ನಿಮ್ಮ ದಾಖಲೆ ಉಳಿಸಲಾಗಿದೆ — ಅಪರಿಮಿತಕ್ಕೆ ಪ್ರೀಮಿಯಂ ಪಡೆಯಿರಿ.",
         "briefingsBody": "ಈ ತಿಂಗಳ {{count}} ಫ್ರೀ ವೈದ್ಯರ ಭೇಟಿ ಬ್ರೀಫಿಂಗ್‌ಗಳು ಬಳಕೆಯಾಗಿವೆ. ಅಪರಿಮಿತಕ್ಕೆ ಪ್ರೀಮಿಯಂ ಪಡೆಯಿರಿ.",
         "briefingsCardHint": "ಪ್ರತಿ ತಿಂಗಳು {{count}} ಫ್ರೀ AI ಬ್ರೀಫಿಂಗ್‌ಗಳು"
+    },
+    "search": {
+        "documents": "ದಾಖಲೆಗಳು",
+        "familyMembers": "ಕುಟುಂಬ ಸದಸ್ಯರು",
+        "filterAll": "ಎಲ್ಲಾ",
+        "filterDocs": "ದಾಖಲೆಗಳು",
+        "filterEvents": "ಘಟನೆಗಳು",
+        "filterFamily": "ಕುಟುಂಬ",
+        "healthEvents": "ಆರೋಗ್ಯ ಘಟನೆಗಳು",
+        "noResults": "ಇದಕ್ಕೆ ಫಲಿತಾಂಶಗಳಿಲ್ಲ:",
+        "placeholder": "ಹುಡುಕಿ...",
+        "sortAlpha": "ಅ-ಜ್ಞ",
+        "sortNewest": "ಹೊಸದು ಮೊದಲು",
+        "sortRelevance": "ಪ್ರಸ್ತುತತೆಯಂತೆ",
+        "typeToSearch": "ಹುಡುಕಲು ಕನಿಷ್ಠ 2 ಅಕ್ಷರ ಟೈಪ್ ಮಾಡಿ.",
+        "viewDocumentVault": "ದಾಖಲೆ ವಾಲ್ಟ್ ನೋಡಿ"
     }
 }

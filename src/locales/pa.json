@@ -62,7 +62,8 @@
         "events": "ਘਟਨਾਵਾਂ",
         "account": "ਖਾਤਾ",
         "aiChat": "AI ਸਿਹਤ",
-        "liveSyncing": "ਲਾਈਵ ਸਿੰਕ ਹੋ ਰਿਹਾ ਹੈ"
+        "liveSyncing": "ਲਾਈਵ ਸਿੰਕ ਹੋ ਰਿਹਾ ਹੈ",
+        "startTour": "ਐਪ ਟੂਰ"
     },
     "dashboard": {
         "welcome": "ਵਾਪਸ ਸੁਆਗਤ ਹੈ, {{name}}",
@@ -560,7 +561,7 @@
         "settings": "ਸੈਟਿੰਗਾਂ",
         "errEmailUsed": "ਇਹ ਈਮੇਲ ਪਹਿਲਾਂ ਹੀ ਰਜਿਸਟਰਡ ਹੈ",
         "errTimeout": "ਸੈਸ਼ਨ ਦਾ ਸਮਾਂ ਖਤਮ ਹੋ ਗਿਆ। ਕਿਰਪਾ ਕਰਕੇ ਦੁਬਾਰਾ ਲੌਗਇਨ ਕਰੋ।",
-        "sendCode": "ਕੋਡ ਭੇਜੋ",
+        "sendCode": "ਵੈਰੀਫਿਕੇਸ਼ਨ ਕੋਡ ਭੇਜੋ",
         "helpLegal": "ਮਦਦ ਅਤੇ ਕਾਨੂੰਨੀ",
         "contactSupport": "ਸਪੋਰਟ ਨਾਲ ਸੰਪਰਕ ਕਰੋ",
         "contactSupportDesc": "ਕੋਈ ਸਮੱਸਿਆ? ਸਾਨੂੰ ਈਮੇਲ ਕਰੋ — 48 ਘੰਟਿਆਂ ਵਿੱਚ ਜਵਾਬ ਦਿੰਦੇ ਹਾਂ।",
@@ -665,7 +666,8 @@
         "allPatients": "ਸਾਰੇ ਪਰਿਵਾਰਕ ਮੈਂਬਰ"
     },
     "docs": {
-        "allPatients": "ਸਾਰੇ ਪਰਿਵਾਰਕ ਮੈਂਬਰ"
+        "allPatients": "ਸਾਰੇ ਪਰਿਵਾਰਕ ਮੈਂਬਰ",
+        "chooseLanguage": "ਭਾਸ਼ਾ ਚੁਣੋ"
     },
     "timeline": {
         "cat_visit": "ਡਾਕਟਰ ਦੀ ਮੁਲਾਕਾਤ",
@@ -852,5 +854,21 @@
         "summariesBody": "ਇਸ ਮਹੀਨੇ ਦੇ ਸਾਰੇ {{count}} ਫ੍ਰੀ AI ਸਾਰ ਵਰਤੇ ਜਾ ਚੁੱਕੇ ਹਨ। ਦਸਤਾਵੇਜ਼ ਸੇਵ ਹੋ ਗਿਆ — ਅਸੀਮਤ ਲਈ ਪ੍ਰੀਮੀਅਮ ਲਓ।",
         "briefingsBody": "ਇਸ ਮਹੀਨੇ ਦੀਆਂ {{count}} ਫ੍ਰੀ ਡਾਕਟਰ ਵਿਜ਼ਿਟ ਬ੍ਰੀਫਿੰਗਾਂ ਵਰਤੀਆਂ ਜਾ ਚੁੱਕੀਆਂ ਹਨ। ਅਸੀਮਤ ਲਈ ਪ੍ਰੀਮੀਅਮ ਲਓ।",
         "briefingsCardHint": "ਹਰ ਮਹੀਨੇ {{count}} ਫ੍ਰੀ AI ਬ੍ਰੀਫਿੰਗਾਂ"
+    },
+    "search": {
+        "documents": "ਦਸਤਾਵੇਜ਼",
+        "familyMembers": "ਪਰਿਵਾਰਕ ਮੈਂਬਰ",
+        "filterAll": "ਸਾਰੇ",
+        "filterDocs": "ਦਸਤਾਵੇਜ਼",
+        "filterEvents": "ਘਟਨਾਵਾਂ",
+        "filterFamily": "ਪਰਿਵਾਰ",
+        "healthEvents": "ਸਿਹਤ ਘਟਨਾਵਾਂ",
+        "noResults": "ਇਸ ਲਈ ਕੋਈ ਨਤੀਜਾ ਨਹੀਂ ਮਿਲਿਆ:",
+        "placeholder": "ਖੋਜੋ...",
+        "sortAlpha": "ੳ-ਗ",
+        "sortNewest": "ਨਵਾਂ ਪਹਿਲਾਂ",
+        "sortRelevance": "ਪ੍ਰਸੰਗਿਕਤਾ ਅਨੁਸਾਰ",
+        "typeToSearch": "ਖੋਜਣ ਲਈ ਘੱਟੋ-ਘੱਟ 2 ਅੱਖਰ ਲਿਖੋ।",
+        "viewDocumentVault": "ਦਸਤਾਵੇਜ਼ ਵਾਲਟ ਵੇਖੋ"
     }
 }

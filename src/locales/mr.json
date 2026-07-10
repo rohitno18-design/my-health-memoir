@@ -62,7 +62,8 @@
         "events": "घटना",
         "account": "खाते",
         "aiChat": "एआय आरोग्य",
-        "liveSyncing": "थेट सिंक्रोनाइझेशन"
+        "liveSyncing": "थेट सिंक्रोनाइझेशन",
+        "startTour": "अ‍ॅप टूर"
     },
     "dashboard": {
         "welcome": "परत स्वागत आहे, {{name}}",
@@ -560,7 +561,7 @@
         "settings": "सेटिंग्ज",
         "errEmailUsed": "हा ईमेल आधीच नोंदणीकृत आहे",
         "errTimeout": "सत्र कालबाह्य झाले. कृपया पुन्हा लॉगिन करा.",
-        "sendCode": "कोड पाठवा",
+        "sendCode": "व्हेरिफिकेशन कोड पाठवा",
         "helpLegal": "मदत आणि कायदेशीर",
         "contactSupport": "सपोर्टशी संपर्क करा",
         "contactSupportDesc": "काही अडचण? आम्हाला ईमेल करा — ४८ तासांत उत्तर देतो.",
@@ -665,7 +666,8 @@
         "allPatients": "कुटुंबातील सर्व सदस्य"
     },
     "docs": {
-        "allPatients": "कुटुंबातील सर्व सदस्य"
+        "allPatients": "कुटुंबातील सर्व सदस्य",
+        "chooseLanguage": "भाषा निवडा"
     },
     "timeline": {
         "cat_visit": "डॉक्टरांची भेट",
@@ -852,5 +854,21 @@
         "summariesBody": "या महिन्याचे सर्व {{count}} फ्री AI सारांश वापरले गेले. तुमचे कागदपत्र सेव्ह झाले — अमर्याद सारांशांसाठी प्रीमियम घ्या.",
         "briefingsBody": "या महिन्याच्या {{count}} फ्री डॉक्टर भेट ब्रीफिंग वापरल्या गेल्या. अमर्यादसाठी प्रीमियम घ्या.",
         "briefingsCardHint": "दर महिन्याला {{count}} फ्री AI ब्रीफिंग"
+    },
+    "search": {
+        "documents": "कागदपत्रे",
+        "familyMembers": "कुटुंब सदस्य",
+        "filterAll": "सर्व",
+        "filterDocs": "कागदपत्रे",
+        "filterEvents": "घटना",
+        "filterFamily": "कुटुंब",
+        "healthEvents": "आरोग्य घटना",
+        "noResults": "यासाठी निकाल नाही:",
+        "placeholder": "शोधा...",
+        "sortAlpha": "अ-ज्ञ",
+        "sortNewest": "नवीन आधी",
+        "sortRelevance": "प्रासंगिकतेनुसार",
+        "typeToSearch": "शोधण्यासाठी किमान 2 अक्षरे लिहा.",
+        "viewDocumentVault": "कागदपत्र व्हॉल्ट पहा"
     }
 }

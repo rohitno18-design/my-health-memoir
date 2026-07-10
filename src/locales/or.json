@@ -62,7 +62,8 @@
         "events": "ଇଭେଣ୍ଟ୍ସ",
         "account": "ଆକାଉଣ୍ଟ୍",
         "aiChat": "AI ସ୍ୱାସ୍ଥ୍ୟ",
-        "liveSyncing": "ଲାଇଭ୍ ସିଙ୍କିଂ"
+        "liveSyncing": "ଲାଇଭ୍ ସିଙ୍କିଂ",
+        "startTour": "ଆପ୍ ଟୁର୍"
     },
     "dashboard": {
         "welcome": "ସ୍ୱାଗତ, {{name}}",
@@ -560,7 +561,7 @@
         "settings": "ସେଟିଂସ",
         "errEmailUsed": "ଏହି ଇମେଲ୍ ପୂର୍ବରୁ ପଞ୍ଜୀକୃତ ହୋଇଛି",
         "errTimeout": "ସେସନ୍ ସମୟ ସମାପ୍ତ ହେଲା। ଦୟାକରି ପୁଣି ଲଗ୍ ଇନ୍ କରନ୍ତୁ।",
-        "sendCode": "କୋଡ୍ ପଠାନ୍ତୁ",
+        "sendCode": "ଭେରିଫିକେସନ୍ କୋଡ୍ ପଠାନ୍ତୁ",
         "helpLegal": "ସହାୟତା ଓ ଆଇନଗତ",
         "contactSupport": "ସପୋର୍ଟ ସହ ଯୋଗାଯୋଗ",
         "contactSupportDesc": "କିଛି ସମସ୍ୟା? ଆମକୁ ଇମେଲ୍ କରନ୍ତୁ — ୪୮ ଘଣ୍ଟାରେ ଉତ୍ତର ଦେଉ।",
@@ -665,7 +666,8 @@
         "allPatients": "ସମସ୍ତ ପରିବାର ସଦସ୍ୟ"
     },
     "docs": {
-        "allPatients": "ସମସ୍ତ ପରିବାର ସଦସ୍ୟ"
+        "allPatients": "ସମସ୍ତ ପରିବାର ସଦସ୍ୟ",
+        "chooseLanguage": "ଭାଷା ବାଛନ୍ତୁ"
     },
     "timeline": {
         "cat_visit": "ଡାକ୍ତରଙ୍କ ପରିଦର୍ଶନ",
@@ -852,5 +854,21 @@
         "summariesBody": "ଏହି ମାସର ସମସ୍ତ {{count}} ଫ୍ରି AI ସାରାଂଶ ବ୍ୟବହୃତ ହୋଇଛି। ଦଲିଲ ସେଭ୍ ହୋଇଛି — ଅସୀମିତ ପାଇଁ ପ୍ରିମିୟମ୍ ନିଅନ୍ତୁ।",
         "briefingsBody": "ଏହି ମାସର {{count}} ଫ୍ରି ଡାକ୍ତର ଭିଜିଟ୍ ବ୍ରିଫିଂ ବ୍ୟବହୃତ ହୋଇଛି। ଅସୀମିତ ପାଇଁ ପ୍ରିମିୟମ୍ ନିଅନ୍ତୁ।",
         "briefingsCardHint": "ପ୍ରତି ମାସ {{count}} ଫ୍ରି AI ବ୍ରିଫିଂ"
+    },
+    "search": {
+        "documents": "ଦଲିଲ",
+        "familyMembers": "ପରିବାର ସଦସ୍ୟ",
+        "filterAll": "ସବୁ",
+        "filterDocs": "ଦଲିଲ",
+        "filterEvents": "ଘଟଣା",
+        "filterFamily": "ପରିବାର",
+        "healthEvents": "ସ୍ୱାସ୍ଥ୍ୟ ଘଟଣା",
+        "noResults": "ଏହା ପାଇଁ କୌଣସି ଫଳାଫଳ ମିଳିଲା ନାହିଁ:",
+        "placeholder": "ଖୋଜନ୍ତୁ...",
+        "sortAlpha": "ଅ-କ୍ଷ",
+        "sortNewest": "ନୂଆ ପ୍ରଥମେ",
+        "sortRelevance": "ପ୍ରାସଙ୍ଗିକତା ଅନୁସାରେ",
+        "typeToSearch": "ଖୋଜିବାକୁ ଅତିକମରେ 2ଟି ଅକ୍ଷର ଲେଖନ୍ତୁ।",
+        "viewDocumentVault": "ଦଲିଲ ଭଲ୍ଟ ଦେଖନ୍ତୁ"
     }
 }

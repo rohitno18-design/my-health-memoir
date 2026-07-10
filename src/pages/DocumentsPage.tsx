@@ -1600,7 +1600,7 @@ export function DocumentsPage() {
                                         p: ({ node, ...props }) => <p className="mb-3 leading-relaxed" {...props} />
                                     }}
                                 >
-                                    {viewSummary.text.replace(/^(✅|❌|🔴|⚠️|🟢|🟡|🏥|📋|💊|💡|🔍)(.*)$/gm, '### $1$2')}
+                                    {viewSummary.text.replace(/^(✅|❌|🔴|⚠️|🟢|🟡|🏥|📋|💊|💡|🔍|🧪|📊|🩺)(.*)$/gm, '### $1$2')}
                                 </ReactMarkdown>
                                 {/* Disclaimer is hardcoded in the app — never left to the AI model */}
                                 <div className="mt-4 mb-2 p-3 bg-amber-50 border border-amber-100 rounded-xl flex items-start gap-2">

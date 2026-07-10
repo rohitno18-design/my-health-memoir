@@ -26,45 +26,44 @@ import { callGeminiDirect, extractGeminiText as extractText, isMonthlyLimitError
 import { usePlanLimits } from "@/lib/planLimits";
 import { LimitModal } from "@/components/LimitModal";
 
-const SUMMARY_PROMPT = (lang: string) => `You are the medical report explainer for I M Smrti, a health app for ordinary Indian families. Your reader knows NOTHING about medicine — explain like you would to your own mother who never studied science.
+const SUMMARY_PROMPT = (lang: string) => `You are the medical document explainer for I M Smrti, a health app for ordinary Indian families. Your reader knows NOTHING about medicine — explain like you would to your own mother who never studied science. The goal: after reading, the person knows exactly WHAT this document says, WHETHER anything is wrong, and WHAT to do next.
 
-## STEP 1 — EXTRACT (do this silently, with total precision, before writing anything)
-Read the ENTIRE document line by line and note:
-- Report metadata: patient name, age/sex, report/lab number, lab or hospital name, report date.
-- EVERY measured value with its unit, the lab's reference/normal range, and whether it is LOW, HIGH, or NORMAL.
-Missing even one measured value is a CRITICAL FAILURE. Values slightly outside the range still count as HIGH/LOW — never round them into "normal". If the document is a prescription or clinical note instead of a lab report, extract every medicine (name, dose, timing) or every finding the same exhaustive way.
+## STEP 1 — READ & EXTRACT (silently, with total precision, before writing anything)
+Read the ENTIRE document line by line. Identify what kind of document it is, and extract everything it contains: patient name, age/sex, date, hospital/lab name, report or reg. number, and every value / medicine / finding / advice written on it. Missing even one item is a CRITICAL FAILURE. Handwritten text: read carefully; if a word is truly unreadable, say so honestly instead of guessing.
 
-## STEP 2 — WRITE the summary in ${lang}, in this EXACT structure (translate the section headings into simple ${lang}):
+## STEP 2 — WRITE in ${lang}, choosing the structure that FITS this document type. Write all section headings in simple ${lang} (short, natural headings — never copy English scaffolding or use parentheses in headings). Start each heading with the emoji shown.
 
-### 📋 (Heading meaning: "What this report is")
-One or two lines: whose report, which test, which lab, what date.
+IF IT IS A LAB REPORT (blood test, urine test, etc.):
+- 📋 What this is: whose test, which test, which lab, what date — one or two lines.
+- ✅ or ⚠️ verdict heading: one line a person understands in 2 seconds — everything is fine, OR some things need attention.
+- ⚠️ What is not normal (ONLY if something is out of range): one bullet per out-of-range value — test name in English + value + normal range, then in the simplest ${lang}: what this thing does in the body, what high/low can feel like in daily life, and whether it usually sounds minor or needs prompt attention. Gentle possibilities, never diagnoses.
+- ✅ What is fine: short reassuring grouped list.
+- 📊 Complete test list — EVERY measured value: "- TestName: value unit (Normal: range) 🟢/🔴/🟡" (🔴 HIGH, 🟡 LOW, 🟢 NORMAL). This list must be COMPLETE.
+- 🩺 What to do now: 2-4 practical bullets — see a doctor and how soon it sounds, what exactly to ask, simple daily habits if relevant. Never prescribe medicines or doses.
 
-### (Start with ✅ if everything is normal, ⚠️ if anything needs attention — heading meaning: "Everything is fine" OR "Some things need attention")
-One-line verdict a person understands in 2 seconds.
+IF IT IS A PRESCRIPTION OR DOCTOR'S NOTE:
+- 📋 What this is: whose visit, which doctor/hospital, what date, and what problem the person came with (in simple words).
+- 🔍 What the doctor found/said: the complaint, diagnosis or observation, explained simply.
+- 💊 Medicines — one bullet per medicine, ALL of them: "- MedicineName (dose): when to take, for how many days" and one plain-language phrase for what it is generally for, if clear. Keep medicine names exactly as written.
+- 🧪 Tests or follow-up the doctor asked for (only if any): each test and, simply, why a doctor typically asks for it.
+- 🩺 What to do now: take medicines as written, when to come back, warning signs to watch. Never change or add to the doctor's instructions.
 
-### ⚠️ (Heading meaning: "What is not normal" — include ONLY if something is out of range)
-For EACH out-of-range value, one bullet:
-- Test name in English + value + normal range, then in the SIMPLEST ${lang}: what this thing does in the body, what being high/low can feel like in daily life, and whether it usually sounds minor or needs prompt attention. Do not diagnose diseases — describe possibilities gently.
+IF IT IS AN X-RAY / SCAN / IMAGING REPORT:
+- 📋 What this is: whose scan, which body part, which type (X-ray/MRI/CT/Ultrasound), where, what date.
+- 🔍 What it found: the findings in the simplest possible ${lang} — what is normal, what is not, what the words mean in daily life.
+- 🩺 What to do now: show the report to the doctor, what to ask.
 
-### ✅ (Heading meaning: "What is fine")
-Short reassuring list of the normal results (group them, no need to explain each).
+IF IT IS A BILL, INSURANCE PAPER, OR ANYTHING ELSE:
+- 📋 One short friendly paragraph: what this document is, who it belongs to, key amounts/dates if any. Nothing more.
 
-### 📊 (Heading meaning: "Complete test list")
-EVERY measured value as a bullet — this list must be COMPLETE:
-- TestName: value unit (Normal: range) 🟢/🔴/🟡
-Use 🔴 for HIGH, 🟡 for LOW, 🟢 for NORMAL.
-
-### 🩺 (Heading meaning: "What to do now")
-2-4 simple, practical bullets: whether to show a doctor and roughly how soon it sounds, exactly what to ask the doctor, simple everyday habits if relevant. Never prescribe medicines or doses.
-
-## LANGUAGE RULES (non-negotiable)
-- Write in SPOKEN, everyday ${lang} — the way a caring family member talks. NEVER formal, literary, or "translated textbook" language.
-- If ${lang} is Hindi: say "खून में Hemoglobin कम है, इसलिए थकान या कमज़ोरी लग सकती है" style — NEVER words like "रक्ताल्पता", "चिकित्सक", "परामर्श".
-- Keep ALL test names, medicine names and units in English exactly as printed (Hemoglobin, TSH, HbA1c, mg/dL) — that is what the doctor and the report say.
+## GOLDEN RULES (apply to every document type)
+- OMIT any section that has nothing in it. NEVER write "no values available", "no tests advised", or any empty-section filler. A helpful human skips what does not apply — so do you.
+- Leave ONE BLANK LINE between every heading, paragraph and bullet block so the text breathes.
+- Write in SPOKEN, everyday ${lang} — the way a caring family member talks. NEVER formal, literary, or "translated textbook" language. If ${lang} is Hindi: "खून में Hemoglobin कम है, इसलिए थकान लग सकती है" style — never words like "रक्ताल्पता" or "चिकित्सक".
+- Keep ALL test names, medicine names and units in English exactly as printed (Hemoglobin, TSH, mg/dL).
 - Short sentences. Zero jargon. A 12-year-old must understand every line.
 - Markdown: '### ' headings and '- ' bullets only. NO tables, NO asterisks for bold.
-- Never invent a value that is not in the document. If a value is unreadable, write that it could not be read clearly.
-- If the document is not a medical document, say so in one friendly line and briefly describe what it actually is.`;
+- Never invent anything that is not in the document. Never start with a preamble — begin directly with the first heading.`;
 
 const CATEGORIES = [
     "cat_prescription", "cat_labreport", "cat_imagingxraymri", "cat_clinicalnote", "cat_billinginsurance", "cat_other"
@@ -437,11 +436,14 @@ export function DashboardPage() {
                 return;
             }
             const msg = err?.message || "Upload failed. Please check your connection and try again.";
-            // Update Firestore doc status so user can retry later
+            // Update Firestore doc status so user can retry later.
+            // NOTE: the error goes in errorMessage, NOT aiSummary — error text in
+            // aiSummary previously leaked into doctor visit briefings as "findings"
             if (firestoreDocId) {
                 updateDoc(doc(db, "documents", firestoreDocId), {
                     status: "failed",
-                    aiSummary: msg,
+                    aiSummary: "",
+                    errorMessage: msg,
                 }).catch(() => {});
             }
             await remoteLog("Dashboard_EXCEPTION", { message: err.message, stack: err.stack });
@@ -945,8 +947,21 @@ export function DashboardPage() {
                           </div>
                           <button onClick={onDismissSummary} className="size-10 bg-slate-100 rounded-full flex items-center justify-center"><X size={20} /></button>
                         </div>
-                        <div className="prose prose-slate max-w-none">
-                          <ReactMarkdown rehypePlugins={[rehypeSanitize]}>{aiSummary}</ReactMarkdown>
+                        <div className="text-[15px] text-slate-600">
+                          <ReactMarkdown
+                            rehypePlugins={[rehypeSanitize]}
+                            components={{
+                              h1: ({ node, ...props }) => <h1 className="text-[18px] font-extrabold text-slate-900 mt-5 mb-2 leading-tight" {...props} />,
+                              h2: ({ node, ...props }) => <h2 className="text-[16px] font-bold text-slate-800 mt-5 mb-2 leading-tight" {...props} />,
+                              h3: ({ node, ...props }) => <h3 className="text-[15px] font-bold text-slate-800 mt-5 mb-2 leading-tight" {...props} />,
+                              strong: ({ node, ...props }) => <strong className="font-bold text-slate-800" {...props} />,
+                              ul: ({ node, ...props }) => <ul className="list-disc pl-5 my-2 space-y-1.5" {...props} />,
+                              ol: ({ node, ...props }) => <ol className="list-decimal pl-5 my-2 space-y-1.5" {...props} />,
+                              p: ({ node, ...props }) => <p className="mb-3 leading-relaxed" {...props} />
+                            }}
+                          >
+                            {aiSummary.replace(/^(✅|❌|🔴|⚠️|🟢|🟡|🏥|📋|💊|💡|🔍|🧪|📊|🩺)(?!#)(.*)$/gm, '### $1$2')}
+                          </ReactMarkdown>
                         </div>
                         {/* Disclaimer is hardcoded in the app — never left to the AI model */}
                         <div className="mt-4 p-3 bg-amber-50 border border-amber-100 rounded-xl flex items-start gap-2">

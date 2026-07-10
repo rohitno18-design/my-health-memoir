@@ -62,7 +62,8 @@
         "events": "ఈవెంట్‌లు",
         "account": "ఖాతా",
         "aiChat": "AI ఆరోగ్యం",
-        "liveSyncing": "లైవ్ సింక్ అవుతోంది"
+        "liveSyncing": "లైవ్ సింక్ అవుతోంది",
+        "startTour": "యాప్ టూర్"
     },
     "dashboard": {
         "welcome": "తిరిగి స్వాగతం, {{name}}",
@@ -560,7 +561,7 @@
         "settings": "సెట్టింగ్‌లు",
         "errEmailUsed": "ఈ ఇమెయిల్ ఇప్పటికే నమోదు చేయబడింది",
         "errTimeout": "సెషన్ సమయం ముగిసింది. దయచేసి మళ్లీ లాగిన్ చేయండి.",
-        "sendCode": "కోడ్‌ను పంపండి",
+        "sendCode": "వెరిఫికేషన్ కోడ్ పంపండి",
         "helpLegal": "సహాయం & చట్టపరమైనవి",
         "contactSupport": "సపోర్ట్‌ను సంప్రదించండి",
         "contactSupportDesc": "ఏదైనా సమస్యా? మాకు ఇమెయిల్ చేయండి — 48 గంటల్లో స్పందిస్తాం.",
@@ -665,7 +666,8 @@
         "allPatients": "కుటుంబ సభ్యులందరూ"
     },
     "docs": {
-        "allPatients": "కుటుంబ సభ్యులందరూ"
+        "allPatients": "కుటుంబ సభ్యులందరూ",
+        "chooseLanguage": "భాష ఎంచుకోండి"
     },
     "timeline": {
         "cat_visit": "డాక్టర్ సందర్శన",
@@ -852,5 +854,21 @@
         "summariesBody": "ఈ నెల {{count}} ఫ్రీ AI సారాంశాలు వాడేశారు. మీ పత్రం సేవ్ అయింది — అపరిమిత సారాంశాల కోసం ప్రీమియం తీసుకోండి.",
         "briefingsBody": "ఈ నెల {{count}} ఫ్రీ డాక్టర్ విజిట్ బ్రీఫింగ్‌లు వాడేశారు. అపరిమితం కోసం ప్రీమియం తీసుకోండి.",
         "briefingsCardHint": "ప్రతి నెల {{count}} ఫ్రీ AI బ్రీఫింగ్‌లు"
+    },
+    "search": {
+        "documents": "పత్రాలు",
+        "familyMembers": "కుటుంబ సభ్యులు",
+        "filterAll": "అన్నీ",
+        "filterDocs": "పత్రాలు",
+        "filterEvents": "ఘటనలు",
+        "filterFamily": "కుటుంబం",
+        "healthEvents": "ఆరోగ్య ఘటనలు",
+        "noResults": "దీనికి ఫలితాలు లేవు:",
+        "placeholder": "వెతకండి...",
+        "sortAlpha": "అ-క్ష",
+        "sortNewest": "కొత్తవి ముందు",
+        "sortRelevance": "ప్రాసంగికత ప్రకారం",
+        "typeToSearch": "వెతకడానికి కనీసం 2 అక్షరాలు టైప్ చేయండి.",
+        "viewDocumentVault": "పత్రాల వాల్ట్ చూడండి"
     }
 }

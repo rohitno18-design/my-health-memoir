@@ -62,7 +62,8 @@
         "events": "Events",
         "account": "Account",
         "aiChat": "AI Health",
-        "liveSyncing": "Live Syncing"
+        "liveSyncing": "Live Syncing",
+        "startTour": "App Tour"
     },
     "dashboard": {
         "welcome": "Welcome back, {{name}}",
@@ -569,7 +570,8 @@
         "termsOfServiceDesc": "The rules of using I M Smrti",
         "dataDeletion": "Data Deletion",
         "dataDeletionDesc": "Your right to erase everything, explained",
-        "grievanceNote": "Grievance Officer:"
+        "grievanceNote": "Grievance Officer:",
+        "sendCode": "Send Verification Code"
     },
     "missed": {
         "secureFamily": "Secure your family's",
@@ -697,7 +699,8 @@
         "allPatients": "All Family Members"
     },
     "docs": {
-        "allPatients": "All Family Members"
+        "allPatients": "All Family Members",
+        "chooseLanguage": "Choose Language"
     },
     "timeline": {
         "cat_visit": "Doctor Visit",
@@ -851,5 +854,21 @@
         "summariesBody": "You've used all {{count}} free AI summaries this month. Your document was saved — upgrade to Premium for unlimited summaries.",
         "briefingsBody": "You've used your {{count}} free doctor visit briefings this month. Upgrade to Premium for unlimited briefings.",
         "briefingsCardHint": "{{count}} free AI briefings every month"
+    },
+    "search": {
+        "documents": "Documents",
+        "familyMembers": "Family Members",
+        "filterAll": "All",
+        "filterDocs": "Documents",
+        "filterEvents": "Events",
+        "filterFamily": "Family",
+        "healthEvents": "Health Events",
+        "noResults": "No results found for",
+        "placeholder": "Search...",
+        "sortAlpha": "A-Z",
+        "sortNewest": "Newest First",
+        "sortRelevance": "Sort by Relevance",
+        "typeToSearch": "Type at least 2 characters to search.",
+        "viewDocumentVault": "View Document Vault"
     }
 }
