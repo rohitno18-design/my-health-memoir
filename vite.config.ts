@@ -1,12 +1,24 @@
 import path from "path"
+import { execSync } from "child_process"
+import { readFileSync } from "fs"
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
+
+// Version stamped into every build so we can verify what's actually live.
+// Semver is the human-readable release number (bump in package.json on each
+// deploy); the git short hash makes every single build uniquely identifiable
+// even if the semver is forgotten.
+const pkgVersion = JSON.parse(readFileSync("./package.json", "utf8")).version || "0.0.0";
+let gitHash = "nogit";
+try { gitHash = execSync("git rev-parse --short HEAD").toString().trim(); } catch { /* not a git checkout */ }
 
 // https://vite.dev/config/
 export default defineConfig({
   define: {
     __BUILD_TIME__: JSON.stringify(new Date().toISOString()),
+    __APP_VERSION__: JSON.stringify(pkgVersion),
+    __BUILD_HASH__: JSON.stringify(gitHash),
   },
   plugins: [
     react(),

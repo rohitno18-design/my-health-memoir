@@ -8,7 +8,7 @@ import {
 import { type ConfirmationResult } from "firebase/auth";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
-import { APP_VERSION } from "@/config/version";
+import { APP_BUILD_FULL } from "@/config/version";
 
 type LoginMethod = "phone" | "email";
 type PhoneStep = "input" | "otp";
@@ -285,8 +285,8 @@ export function LoginPage() {
                         Don't have an account?{" "}
                         <Link to="/register" className="text-primary font-bold hover:underline">Sign Up</Link>
                     </p>
-                    <p className="text-xs text-center mt-6 text-slate-400 font-mono">
-                        {APP_VERSION}
+                    <p className="text-[10px] text-center mt-6 text-slate-400 font-mono">
+                        {APP_BUILD_FULL}
                     </p>
                     </div>
                 </div>

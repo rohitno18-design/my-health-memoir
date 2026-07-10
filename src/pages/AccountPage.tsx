@@ -15,7 +15,7 @@ import {
 } from "firebase/firestore";
 import { useTranslation } from "react-i18next";
 import { db } from "@/lib/firebase";
-import { APP_VERSION } from "@/config/version";
+import { APP_BUILD_FULL } from "@/config/version";
 import { isBiometricEnabled, setBiometricEnabled, checkBiometricAvailability } from "@/lib/biometric";
 import { exportMyData } from "@/lib/dataExport";
 
@@ -888,7 +888,7 @@ export function AccountPage() {
                     </div>
                 </div>
                 <div className="mt-8 mb-4 text-center">
-                    <p className="text-xs text-slate-400 font-mono tracking-widest">{APP_VERSION}</p>
+                    <p className="text-[10px] text-slate-400 font-mono tracking-wider">{APP_BUILD_FULL}</p>
                 </div>
             </main>
 

@@ -27,9 +27,15 @@ export function ProtectedRoute({ children, requireAdmin = false, requireStaff = 
     }
 
     const isAdminByRole = userProfile?.role === "admin";
-    const isAdminByEmail = user.email === "rohit.no18@gmail.com";
-    const isFullAdmin = isAdminByRole || isAdminByEmail;
+    const isPrimaryAdmin = user.email === "rohit.no18@gmail.com"; // break-glass owner account
+    const isFullAdmin = isAdminByRole || isPrimaryAdmin;
     const isSubAdmin = userProfile?.role === "subadmin";
+
+    // Break-glass: the primary owner account can NEVER be locked out by a
+    // suspended flag (a bad flag once bounced the owner off their own app).
+    if (userProfile?.suspended && !isPrimaryAdmin) {
+        return <Navigate to="/login" replace />;
+    }
 
     if (requireAdmin && !isFullAdmin) {
         return <Navigate to="/dashboard" replace />;
@@ -41,10 +47,6 @@ export function ProtectedRoute({ children, requireAdmin = false, requireStaff = 
 
     if (requirePremium && !isPremium) {
         return <Navigate to="/premium" replace />;
-    }
-
-    if (userProfile?.suspended) {
-        return <Navigate to="/login" replace />; // You could also bounce to a specific /suspended page
     }
 
     return <>{children}</>;
