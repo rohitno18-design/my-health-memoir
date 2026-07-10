@@ -870,5 +870,26 @@
         "sortRelevance": "Sort by Relevance",
         "typeToSearch": "Type at least 2 characters to search.",
         "viewDocumentVault": "View Document Vault"
+    },
+    "tour": {
+        "guideName": "Smriti",
+        "next": "Next",
+        "back": "Back",
+        "finish": "Let's start!",
+        "skip": "Skip",
+        "welcomeTitle": "Namaste! I'm Smriti 👋",
+        "welcomeBody": "I'll show you around in one minute. It's easy — come with me!",
+        "uploadTitle": "Add a document",
+        "uploadBody": "Tap here to add any prescription, report or bill. Just take a photo!",
+        "docsTitle": "All your records",
+        "docsBody": "Everything you add is saved here, neatly organised for each family member.",
+        "familyTitle": "Your whole family",
+        "familyBody": "Add your parents, husband, wife or children — keep everyone's health in one place.",
+        "visitTitle": "Before a doctor visit",
+        "visitBody": "I can make a simple one-page summary to carry to the doctor. Very handy!",
+        "emergencyTitle": "In an emergency",
+        "emergencyBody": "Make an emergency card so anyone can help you fast by scanning a code.",
+        "doneTitle": "That's it! 🎉",
+        "doneBody": "You're ready. Need me again? Just tap the ? button up top. Take care!"
     }
 }

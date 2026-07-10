@@ -589,7 +589,7 @@ export function DashboardPage() {
                     <motion.button
                         initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
                         onClick={() => navigate("/documents")}
-                        className="relative overflow-hidden rounded-[1.5rem] p-5 text-left active:scale-[0.98] transition-all group flex flex-col justify-end min-h-[130px] w-full shadow-sm hover:shadow-md"
+                        className="tour-documents relative overflow-hidden rounded-[1.5rem] p-5 text-left active:scale-[0.98] transition-all group flex flex-col justify-end min-h-[130px] w-full shadow-sm hover:shadow-md"
                     >
                         <div className="absolute inset-0 w-full h-full">
                             <img src="/assets/images/bg-records.png" alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out" />
@@ -631,7 +631,7 @@ export function DashboardPage() {
                     <motion.button
                         initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
                         onClick={() => navigate("/patients?add=true")}
-                        className="relative overflow-hidden rounded-[1.5rem] p-5 text-left active:scale-[0.98] transition-all group flex flex-col justify-end min-h-[130px] w-full shadow-sm hover:shadow-md"
+                        className="tour-family relative overflow-hidden rounded-[1.5rem] p-5 text-left active:scale-[0.98] transition-all group flex flex-col justify-end min-h-[130px] w-full shadow-sm hover:shadow-md"
                     >
                         <div className="absolute inset-0 w-full h-full">
                             <img src="/assets/images/bg-family.png" alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out" />
@@ -653,7 +653,7 @@ export function DashboardPage() {
                         <motion.button
                             initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.22 }}
                             onClick={() => navigate("/visit-summary")}
-                            className="relative overflow-hidden rounded-[1.5rem] p-5 text-left active:scale-[0.98] transition-all group flex flex-col justify-end min-h-[130px] w-full shadow-sm hover:shadow-md"
+                            className="tour-visit relative overflow-hidden rounded-[1.5rem] p-5 text-left active:scale-[0.98] transition-all group flex flex-col justify-end min-h-[130px] w-full shadow-sm hover:shadow-md"
                         >
                             <div className="absolute inset-0 w-full h-full">
                                 <img src="/assets/images/bg-patient.png" alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out" />

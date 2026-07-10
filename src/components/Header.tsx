@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { SUPPORTED_LANGUAGES } from "@/i18n";
 import { Bell, Search, HelpCircle, Globe, ChevronDown, MoreVertical, Check } from "lucide-react";
-import AppTour from "@/components/AppTour";
+import GuideTour from "@/components/GuideTour";
 import { GlobalSearchModal } from "@/components/GlobalSearchModal";
 
 export function Header() {
@@ -184,7 +184,7 @@ export function Header() {
                     </div>
                 </div>
             </div>
-            <AppTour runOverride={runTour} onFinish={() => setRunTour(false)} />
+            <GuideTour runOverride={runTour} onFinish={() => setRunTour(false)} />
             <GlobalSearchModal isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
         </header>
     );
