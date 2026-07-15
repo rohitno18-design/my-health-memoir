@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { collection, query, where, getDocs, doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/contexts/AuthContext";
-import { callGeminiDirect, extractGeminiText, isMonthlyLimitError } from "@/lib/gemini";
+import { callGeminiDirect, extractGeminiText, isMonthlyLimitError, isAIBusyError } from "@/lib/gemini";
 import { usePlanLimits } from "@/lib/planLimits";
 import { LimitModal } from "@/components/LimitModal";
 import { logUserAction } from "@/lib/audit";
@@ -178,6 +178,8 @@ ${visitReason.trim() ? `REASON FOR THIS VISIT (stated by the caregiver): ${visit
                     count: limits.freeVisitBriefingsPerMonth,
                     defaultValue: "You've used your {{count}} free doctor visit briefings this month. Upgrade to Premium for unlimited briefings.",
                 }));
+            } else if (isAIBusyError(e)) {
+                setError(t("common.aiBusy", "The AI is very busy right now. Your document is saved — please try the summary again in a minute."));
             } else {
                 setError(t("visitSummary.error", "Could not generate the summary. Please try again."));
             }

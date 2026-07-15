@@ -22,7 +22,7 @@ import { useFeatureFlags } from "@/lib/featureFlags";
 
 // Bento Components
 import { QuickActions } from "@/components/dashboard/QuickActions";
-import { callGeminiDirect, extractGeminiText as extractText, isMonthlyLimitError } from "@/lib/gemini";
+import { callGeminiDirect, extractGeminiText as extractText, isMonthlyLimitError, isAIBusyError } from "@/lib/gemini";
 import { usePlanLimits } from "@/lib/planLimits";
 import { LimitModal } from "@/components/LimitModal";
 
@@ -435,7 +435,9 @@ export function DashboardPage() {
                 }));
                 return;
             }
-            const msg = err?.message || "Upload failed. Please check your connection and try again.";
+            const msg = isAIBusyError(err)
+                ? t("common.aiBusy", "The AI is very busy right now. Your document is saved — please try the summary again in a minute.")
+                : (err?.message || "Upload failed. Please check your connection and try again.");
             // Update Firestore doc status so user can retry later.
             // NOTE: the error goes in errorMessage, NOT aiSummary — error text in
             // aiSummary previously leaked into doctor visit briefings as "findings"

@@ -24,6 +24,11 @@ export function isMonthlyLimitError(err: any): boolean {
     return typeof err?.message === "string" && err.message.includes("MONTHLY_LIMIT");
 }
 
+/** Transient Gemini overload (503/429 upstream) — worth retrying in a minute */
+export function isAIBusyError(err: any): boolean {
+    return typeof err?.message === "string" && (err.message.includes("AI_BUSY") || err.message.includes("503") || err.message.includes("UNAVAILABLE"));
+}
+
 export interface GeminiResponse {
     candidates?: Array<{
         content?: {

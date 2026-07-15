@@ -132,11 +132,11 @@ export const proxyGemini = onCall({ invoker: "public", cors: true }, async (requ
 
   try {
     const apiKey = process.env.GEMINI_API_KEY || "";
-    // Forced fallback to gemini-1.5-flash as the cheapest and fastest model
-    const model = process.env.GEMINI_MODEL || "gemini-1.5-flash";
+    const model = process.env.GEMINI_MODEL || "gemini-2.5-flash-lite";
+    // When the primary (cheap) model is overloaded, retry once more on a
+    // higher-capacity model instead of failing the user's request
+    const fallbackModel = process.env.GEMINI_FALLBACK_MODEL || "gemini-2.5-flash";
     const version = process.env.GEMINI_API_VERSION || "v1beta";
-
-    const url = `https://generativelanguage.googleapis.com/${version}/models/${model}:generateContent?key=${apiKey}`;
 
     const body: Record<string, unknown> = { contents: data.contents };
     if (data.systemInstruction) body.system_instruction = data.systemInstruction;
@@ -149,16 +149,39 @@ export const proxyGemini = onCall({ invoker: "public", cors: true }, async (requ
     genConfig.maxOutputTokens = Math.min(requestedMax, MAX_OUTPUT_TOKENS);
     body.generation_config = genConfig;
 
-    const response = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
+    // Retry plan: primary ×2 (with backoff), then fallback ×2. 503/429/500
+    // from Gemini are almost always transient demand spikes.
+    const sleep = (ms: number) => new Promise(res => setTimeout(res, ms));
+    const models = fallbackModel && fallbackModel !== model ? [model, fallbackModel] : [model];
+    let response: Response | null = null;
+    let lastStatus = 0;
+    let lastBody = "";
 
-    if (!response.ok) {
-      const errorBody = await response.text();
-      console.error(`Gemini API error ${response.status}: ${errorBody}`);
-      throw new HttpsError("internal", `Gemini API Error ${response.status}: ${errorBody}`);
+    outer:
+    for (const m of models) {
+      const url = `https://generativelanguage.googleapis.com/${version}/models/${m}:generateContent?key=${apiKey}`;
+      for (let attempt = 0; attempt < 2; attempt++) {
+        const r = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+        if (r.ok) { response = r; break outer; }
+        lastStatus = r.status;
+        lastBody = await r.text();
+        const retryable = r.status === 503 || r.status === 429 || r.status === 500;
+        console.warn(`Gemini ${m} attempt ${attempt + 1} failed (${r.status})${retryable ? ", retrying" : ""}`);
+        if (!retryable) break outer;
+        await sleep(700 * (attempt + 1));
+      }
+    }
+
+    if (!response) {
+      console.error(`Gemini exhausted all retries. Last error ${lastStatus}: ${lastBody.slice(0, 300)}`);
+      if (lastStatus === 503 || lastStatus === 429) {
+        throw new HttpsError("unavailable", "AI_BUSY: The AI service is very busy right now. Please try again in a minute.");
+      }
+      throw new HttpsError("internal", `Gemini API Error ${lastStatus}: ${lastBody.slice(0, 300)}`);
     }
 
     const result = await response.json();

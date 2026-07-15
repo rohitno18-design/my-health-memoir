@@ -14,7 +14,7 @@ import { downloadFile } from "@/lib/utils";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { DocumentViewerModal } from "@/components/DocumentViewerModal";
 import { useTranslation } from "react-i18next";
-import { callGeminiDirect, extractGeminiText, isMonthlyLimitError } from "@/lib/gemini";
+import { callGeminiDirect, extractGeminiText, isMonthlyLimitError, isAIBusyError } from "@/lib/gemini";
 import { encryptUrl } from "@/lib/encryption";
 
 const TRANSLATION_PROMPT = (lang: string) => `You are the medical report explainer for I M Smrti, a health app for ordinary Indian families. Rewrite the following report summary in ${lang}.
@@ -755,6 +755,10 @@ export function DocumentsPage() {
                     count: limits.freeDocSummariesPerMonth,
                     defaultValue: "You've used all {{count}} free AI summaries this month. Your document was saved — upgrade to Premium for unlimited summaries.",
                 }));
+                return;
+            }
+            if (isAIBusyError(error)) {
+                alert(t("common.aiBusy", "The AI is very busy right now. Your document is saved — please try the summary again in a minute."));
                 return;
             }
             alert("Failed to generate summary. Please try again.");

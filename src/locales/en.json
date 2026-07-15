@@ -52,7 +52,8 @@
         "processing": "Processing...",
         "applying": "Applying...",
         "download": "Download",
-        "aiDisclaimer": "This summary is AI-generated and is not medical advice. It can make mistakes — always confirm with your doctor."
+        "aiDisclaimer": "This summary is AI-generated and is not medical advice. It can make mistakes — always confirm with your doctor.",
+        "aiBusy": "The AI is very busy right now. Your document is saved — please try the summary again in a minute."
     },
     "header": {
         "title": "I M Smrti",
