@@ -82,10 +82,9 @@ export function VisitSummaryPage() {
         setSummary(null);
         try {
             // Gather everything we know about this family member
-            const [docsSnap, vitalsSnap, eventsSnap, profileSnap] = await Promise.all([
+            const [docsSnap, vitalsSnap, profileSnap] = await Promise.all([
                 getDocs(query(collection(db, "documents"), where("userId", "==", user.uid), where("patientId", "==", member.id))),
                 getDocs(query(collection(db, "vitals"), where("userId", "==", user.uid), where("patientId", "==", member.id))),
-                getDocs(query(collection(db, "life_events"), where("userId", "==", user.uid), where("patientId", "==", member.id))),
                 getDoc(doc(db, "patients", member.id)),
             ]);
 
@@ -118,15 +117,9 @@ export function VisitSummaryPage() {
                     date: v.timestamp?.seconds ? new Date(v.timestamp.seconds * 1000).toISOString().split("T")[0] : "",
                 }));
 
-            const events = eventsSnap.docs
-                .map(d => d.data())
-                .sort((a, b) => (b.date || "").localeCompare(a.date || ""))
-                .slice(0, 10)
-                .map(e => ({ title: e.title, date: e.date || "", description: (e.description || "").slice(0, 200) }));
-
             const langName = outputLang === "ui" && uiLang ? uiLang.name : "English";
 
-            const prompt = `You are an experienced clinical assistant preparing a pre-appointment briefing for a doctor visit in India. The doctor will read this in 60 seconds before seeing the patient — it must be genuinely useful, focused, and professional. The patient's family will read it too, so keep the language clear.
+            const prompt = `You are an experienced clinical assistant preparing a one-page pre-appointment briefing for a doctor visit in India. A busy doctor must grasp everything in under 60 seconds by SCANNING — so the output must be tightly structured as short bullet points, NEVER paragraphs. The patient's family also reads it, so keep wording plain.
 
 PATIENT PROFILE:
 - Name: ${profile.name}
@@ -139,27 +132,43 @@ PATIENT PROFILE:
 
 RECENT MEDICAL DOCUMENTS (newest first): ${JSON.stringify(docs)}
 RECENT VITALS READINGS (newest first): ${JSON.stringify(vitals)}
-HEALTH TIMELINE EVENTS: ${JSON.stringify(events)}
 ${visitReason.trim() ? `REASON FOR THIS VISIT (stated by the caregiver): ${visitReason.trim()}` : "REASON FOR THIS VISIT: not stated — treat this as a general check-up briefing."}
 
 ## RELEVANCE — think like a clinician before writing
-- The REASON FOR THIS VISIT decides what belongs. Include in full detail: everything related to the visit reason, plus the always-relevant basics a doctor needs regardless (allergies, chronic conditions, CURRENT medications with doses — these matter for drug interactions even in unrelated visits).
-- Old, resolved, clearly unrelated issues: one short line at most under history, or omit entirely. A throat infection from last year does not belong in a leg-injury briefing.
-- Documents with empty findings, duplicate documents, or documents that are clearly the same event: mention once or skip. NEVER quote error text, file names, or "too large to display" style content — if a document has no usable findings, leave it out silently.
+- The REASON FOR THIS VISIT decides what belongs. Lead with everything related to the visit reason. Always include the safety basics a doctor needs regardless (allergies, chronic conditions, CURRENT medications with doses — they matter for drug interactions even in an unrelated visit).
+- Old, resolved or clearly unrelated issues: at most ONE short bullet under "Other Background", or omit. A throat infection last year does not belong in a skin-treatment briefing.
+- Documents with empty findings, duplicates, or the same event repeated: merge or skip. NEVER quote error text, file names or "too large to display" content.
 
-## STRUCTURE — use ONLY the sections that have real content, in ${langName}:
-## Patient Snapshot — one or two lines: who, age, key standing facts.
-## Reason for Visit — what the patient is coming in for (skip if not stated).
-## Current Medications & Allergies — every current medicine with dose and timing if known; allergies prominently. This section is almost always relevant.
-## Relevant History & Findings — findings from documents and events RELEVANT to this visit, newest first, each with its date and source. Include exact values and dates — doctors want specifics, not vague phrases.
-## Vitals — only if readings exist: latest values and any trend worth noticing.
-## Suggested Questions for the Doctor — 3-4 sharp, specific questions the family should ask, grounded in the data above.
+## OUTPUT FORMAT — write in ${langName}. Use ONLY these sections that have real content, in this order. Every section body MUST be bullet points ("- "), never paragraphs. Keep each bullet under ~18 words.
+
+## Snapshot
+- One bullet: age, sex, blood group, and standing conditions in a single line.
+
+## Reason for Visit
+- One bullet stating why they are seeing the doctor (skip this whole section if not stated).
+
+## Current Medications & Allergies
+- One bullet per medicine: "MedicineName (dose) — timing" (keep names in English).
+- Allergies on their own bullet, starting with "Allergy: ".
+
+## Relevant Findings
+- One bullet per finding, newest first. EXACT format: "DD Mon YYYY — Source: finding with the key value". Example: "12 May 2026 — Dr. Sharma (Skin Clinic): diagnosed fungal infection, prescribed clotrimazole cream."
+- Include real dates and exact values. No vague phrases. Only findings relevant to the visit reason plus critical background.
+
+## Other Background
+- Only if needed: at most 2 short bullets for unrelated but notable past history. Otherwise omit this section.
+
+## Vitals
+- Only if readings exist. One bullet per type: "Type: value unit (DD Mon YYYY)". Note a trend only if clear.
+
+## Questions to Ask the Doctor
+- 3 to 4 sharp, specific questions as bullets, grounded in the data above.
 
 ## RULES
-- OMIT any section with nothing real to say. NEVER write "no data recorded", "none available" or similar filler — a section either has substance or does not appear.
-- Be factual. Use ONLY the data provided. Never invent values, dates or diagnoses.
-- Leave one blank line between sections and paragraphs.
-- Under 450 words. No preamble, no closing remarks — start directly with the first section heading.
+- BULLETS ONLY inside every section. Absolutely no paragraph blocks anywhere.
+- OMIT any section with nothing real. Never write "no data", "none available" or filler.
+- Facts only — never invent values, dates or diagnoses. Convert any date to "DD Mon YYYY".
+- Start directly with "## Snapshot". No preamble, no closing remarks. Under 400 words.
 - This is an organizational summary, not medical advice.`;
 
             const response = await callGeminiDirect({
@@ -191,40 +200,123 @@ ${visitReason.trim() ? `REASON FOR THIS VISIT (stated by the caregiver): ${visit
     const downloadPDF = useCallback(() => {
         if (!summary || !selected) return;
         const pdf = new jsPDF();
-        const pageWidth = pdf.internal.pageSize.getWidth();
-        const pageHeight = pdf.internal.pageSize.getHeight();
+        const W = pdf.internal.pageSize.getWidth();
+        const H = pdf.internal.pageSize.getHeight();
+        const M = 16;                 // page margin
+        const maxW = W - M * 2;
+        const LH = 5.2;               // body line height
+        const FOOTER_Y = H - 14;
+        let y = 0;
 
-        pdf.setFontSize(20);
-        pdf.setTextColor(41, 98, 255);
-        pdf.text("Doctor Visit Briefing", 14, 20);
-        pdf.setFontSize(12);
-        pdf.setTextColor(60);
-        pdf.text(`${selected.name} — generated ${new Date().toLocaleDateString("en-IN")} via I M Smrti`, 14, 28);
-        pdf.setDrawColor(200);
-        pdf.line(14, 32, pageWidth - 14, 32);
+        // ── Header band ──
+        pdf.setFillColor(37, 99, 235);
+        pdf.rect(0, 0, W, 30, "F");
+        pdf.setTextColor(255);
+        pdf.setFont("helvetica", "bold");
+        pdf.setFontSize(17);
+        pdf.text("Doctor Visit Briefing", M, 14);
+        pdf.setFont("helvetica", "normal");
+        pdf.setFontSize(9.5);
+        const age = calcAge(selected.dob);
+        const sub = [selected.name, age ? `${age} yrs` : "", selected.gender || "", selected.bloodGroup ? `Blood ${selected.bloodGroup}` : ""]
+            .filter(Boolean).join("  ·  ");
+        pdf.text(sub, M, 21);
+        pdf.setFontSize(8);
+        pdf.text(`Prepared ${new Date().toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })} · I M Smrti`, M, 26.5);
+        y = 40;
 
-        // Strip markdown to plain text with section spacing
-        const plain = summary
-            .replace(/^##\s*(.+)$/gm, "\n$1\n")
-            .replace(/\*\*(.+?)\*\*/g, "$1")
-            .replace(/^\s*[-*]\s+/gm, "• ")
-            .replace(/\n{3,}/g, "\n\n")
-            .trim();
+        const ensure = (need: number) => { if (y + need > FOOTER_Y - 4) { pdf.addPage(); y = 20; } };
 
-        pdf.setFontSize(10);
-        pdf.setTextColor(0);
-        const lines = pdf.splitTextToSize(plain, pageWidth - 28);
-        let y = 40;
-        for (const line of lines) {
-            if (y > pageHeight - 20) { pdf.addPage(); y = 20; }
-            pdf.text(line, 14, y);
-            y += 5;
+        // Build styled runs from a line: honour **bold**, else bold the leading
+        // label/date (text before the first " — " or ": ") for scannability.
+        const makeRuns = (text: string): Array<{ t: string; b: boolean }> => {
+            if (text.includes("**")) {
+                const runs: Array<{ t: string; b: boolean }> = [];
+                let bold = false;
+                for (const part of text.split("**")) {
+                    if (part) runs.push({ t: part, b: bold });
+                    bold = !bold;
+                }
+                return runs;
+            }
+            const m = text.match(/^(.{2,45}?)(\s—\s|:\s)(.*)$/);
+            if (m) return [{ t: m[1], b: true }, { t: m[2] + m[3], b: false }];
+            return [{ t: text, b: false }];
+        };
+
+        // Lay out styled runs with wrapping + hanging indent; returns new y
+        const drawRuns = (runs: Array<{ t: string; b: boolean }>, startX: number, hangX: number) => {
+            pdf.setFontSize(10);
+            pdf.setTextColor(30, 41, 59);
+            let cx = startX;
+            const words: Array<{ w: string; b: boolean }> = [];
+            for (const r of runs) r.t.split(/(\s+)/).forEach(w => { if (w) words.push({ w, b: r.b }); });
+            for (const { w, b } of words) {
+                pdf.setFont("helvetica", b ? "bold" : "normal");
+                const ww = pdf.getTextWidth(w);
+                if (cx + ww > M + maxW && w.trim()) { y += LH; ensure(LH); cx = hangX; }
+                if (cx === hangX && !w.trim()) continue; // no leading space after wrap
+                pdf.text(w, cx, y);
+                cx += ww;
+            }
+            y += LH;
+        };
+
+        for (const raw of summary.split("\n")) {
+            const line = raw.replace(/\s+$/, "");
+            if (!line.trim()) { y += 1.5; continue; }
+
+            const heading = line.match(/^#{1,4}\s+(.*)$/);
+            if (heading) {
+                y += 4; ensure(10);
+                pdf.setDrawColor(224, 231, 255);
+                pdf.line(M, y - 3.5, W - M, y - 3.5);
+                pdf.setFont("helvetica", "bold");
+                pdf.setFontSize(12);
+                pdf.setTextColor(37, 99, 235);
+                pdf.text(heading[1].replace(/\*\*/g, "").replace(/[:•]/g, "").trim(), M, y);
+                y += 5.5;
+                continue;
+            }
+
+            const bullet = line.match(/^\s*[-*•]\s+(.*)$/);
+            if (bullet) {
+                ensure(LH);
+                pdf.setFont("helvetica", "bold");
+                pdf.setTextColor(37, 99, 235);
+                pdf.setFontSize(10);
+                pdf.text("•", M + 1, y);
+                drawRuns(makeRuns(bullet[1]), M + 5, M + 5);
+                continue;
+            }
+
+            const num = line.match(/^\s*(\d+)\.\s+(.*)$/);
+            if (num) {
+                ensure(LH);
+                pdf.setFont("helvetica", "bold");
+                pdf.setTextColor(37, 99, 235);
+                pdf.setFontSize(10);
+                pdf.text(`${num[1]}.`, M + 1, y);
+                drawRuns(makeRuns(num[2]), M + 7, M + 7);
+                continue;
+            }
+
+            // Plain paragraph (fallback)
+            ensure(LH);
+            drawRuns(makeRuns(line.replace(/^\s+/, "")), M, M);
         }
 
-        if (y > pageHeight - 16) { pdf.addPage(); y = 20; }
-        pdf.setFontSize(8);
-        pdf.setTextColor(120);
-        pdf.text("Organizational summary generated from caregiver-provided records. Not medical advice.", 14, pageHeight - 10);
+        // Footer disclaimer on every page
+        const pageCount = pdf.getNumberOfPages();
+        for (let p = 1; p <= pageCount; p++) {
+            pdf.setPage(p);
+            pdf.setDrawColor(226, 232, 240);
+            pdf.line(M, FOOTER_Y - 4, W - M, FOOTER_Y - 4);
+            pdf.setFont("helvetica", "italic");
+            pdf.setFontSize(7.5);
+            pdf.setTextColor(120, 130, 145);
+            pdf.text("AI-organised summary from your own records. Not medical advice — please confirm with the doctor.", M, FOOTER_Y);
+        }
 
         pdf.save(`${selected.name.replace(/\s+/g, "_")}_visit_briefing.pdf`);
     }, [summary, selected]);
