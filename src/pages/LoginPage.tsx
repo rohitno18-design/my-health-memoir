@@ -48,6 +48,7 @@ export function LoginPage() {
     // ── Phone: Send OTP ──────────────────────────────────────────────────
     const handleSendOtp = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (loading) return; // guards against double-tap firing this twice on iOS
         if (phone.length < 10) { setError("Please enter a valid phone number."); return; }
         setError(""); setLoading(true);
         try {
@@ -290,9 +291,6 @@ export function LoginPage() {
                     </p>
                     </div>
                 </div>
-
-                {/* Footer */}
-                <div id={recaptchaContainerId}></div>
             </div>
         </div>
     );

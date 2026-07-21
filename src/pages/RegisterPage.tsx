@@ -41,6 +41,7 @@ export function RegisterPage() {
     // ── Step 1: Send OTP ──────────────────────────────────────────────────
     const handleSendOtp = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (loading) return; // guards against double-tap firing this twice on iOS
         if (phone.length < 10) { setError("Please enter a valid phone number."); return; }
         setError(""); setLoading(true);
         try {
@@ -302,8 +303,6 @@ export function RegisterPage() {
                         <Link to="/login" className="text-primary font-bold hover:underline">Log In</Link>
                     </p>
                 </div>
-                {/* Firebase ReCaptcha Widget Container (Invisible) */}
-                <div id={recaptchaContainerId}></div>
             </div>
         </div>
     );

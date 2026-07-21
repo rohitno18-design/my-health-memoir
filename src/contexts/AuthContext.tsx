@@ -90,6 +90,52 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const recaptchaVerifierRef = useRef<any>(null);
     const profileUnsubRef = useRef<(() => void) | null>(null);
 
+    // ── Build a fresh, safe RecaptchaVerifier for a given container ──
+    // Hardened against "reCAPTCHA has already been rendered in this element",
+    // a well-known Mobile Safari issue: iOS aggressively restores pages from
+    // its back/forward cache (bfcache) with the old widget's DOM/JS state
+    // still attached, so a freshly created verifier can collide with a ghost
+    // widget from before. We defensively wipe the container first, and if
+    // Google's script still complains, we hard-reset once and retry.
+    const createRecaptchaVerifier = async (recaptchaContainerId: string) => {
+        if (recaptchaVerifierRef.current) {
+            try { recaptchaVerifierRef.current.clear(); } catch (_) { /* ignore */ }
+            recaptchaVerifierRef.current = null;
+        }
+        const container = document.getElementById(recaptchaContainerId);
+        if (container) container.innerHTML = "";
+
+        const { RecaptchaVerifier } = await import("firebase/auth");
+        const verifier = new RecaptchaVerifier(auth, recaptchaContainerId, {
+            size: "invisible",
+            callback: () => {},
+        });
+        recaptchaVerifierRef.current = verifier;
+        return verifier;
+    };
+
+    // Runs an OTP-sending call against a fresh verifier; if Google's script
+    // reports the container as already rendered (stale bfcache widget), wipe
+    // and retry exactly once with a brand new verifier before giving up.
+    const withRecaptchaRetry = async <T,>(
+        recaptchaContainerId: string,
+        run: (verifier: any) => Promise<T>
+    ): Promise<T> => {
+        let verifier = await createRecaptchaVerifier(recaptchaContainerId);
+        try {
+            return await run(verifier);
+        } catch (err: any) {
+            const alreadyRendered = String(err?.message || "").includes("already been rendered");
+            if (!alreadyRendered) throw err;
+            console.warn("reCAPTCHA stale widget detected, resetting and retrying once…");
+            try { verifier.clear(); } catch (_) { /* ignore */ }
+            const container = document.getElementById(recaptchaContainerId);
+            if (container) container.innerHTML = "";
+            verifier = await createRecaptchaVerifier(recaptchaContainerId);
+            return await run(verifier);
+        }
+    };
+
     const fetchOrCreateProfile = async (firebaseUser: User) => {
         const docRef = doc(db, "users", firebaseUser.uid);
         const snap = await getDoc(docRef);
@@ -245,24 +291,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         };
     }, []);
 
-    // ── Send OTP: dynamically import RecaptchaVerifier to avoid module-level crash ──
-    const sendOtp = async (phoneNumber: string, recaptchaContainerId: string): Promise<ConfirmationResult> => {
-        // Destroy old verifier if it exists
-        if (recaptchaVerifierRef.current) {
-            try { recaptchaVerifierRef.current.clear(); } catch (_) {}
-            recaptchaVerifierRef.current = null;
-        }
-
-        // Dynamic import so RecaptchaVerifier never runs at module parse time
-        const { RecaptchaVerifier } = await import("firebase/auth");
-        const verifier = new RecaptchaVerifier(auth, recaptchaContainerId, {
-            size: "invisible",
-            callback: () => {},
-        });
-        recaptchaVerifierRef.current = verifier;
-
-        return await signInWithPhoneNumber(auth, phoneNumber, verifier);
-    };
+    // ── Send OTP (dynamically imports RecaptchaVerifier; retries once on a
+    // stale/bfcache-restored widget — see createRecaptchaVerifier above) ──
+    const sendOtp = async (phoneNumber: string, recaptchaContainerId: string): Promise<ConfirmationResult> =>
+        withRecaptchaRetry(recaptchaContainerId, (verifier) =>
+            signInWithPhoneNumber(auth, phoneNumber, verifier)
+        );
 
     // ── Setup Phone Profile (called after OTP is verified) ──
     const setupPhoneProfile = async (name: string, email?: string, preferredLanguage?: string, existingUser?: User): Promise<void> => {
@@ -474,21 +508,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     // ── Phone Number Change (OTP on new number, links to existing user) ──
-    const sendPhoneChangeOtp = async (phoneNumber: string, recaptchaContainerId: string): Promise<string> => {
-        if (recaptchaVerifierRef.current) {
-            try { recaptchaVerifierRef.current.clear(); } catch (_) {}
-            recaptchaVerifierRef.current = null;
-        }
-        const { RecaptchaVerifier } = await import("firebase/auth");
-        const verifier = new RecaptchaVerifier(auth, recaptchaContainerId, {
-            size: "invisible",
-            callback: () => {},
+    const sendPhoneChangeOtp = async (phoneNumber: string, recaptchaContainerId: string): Promise<string> =>
+        withRecaptchaRetry(recaptchaContainerId, (verifier) => {
+            const provider = new PhoneAuthProvider(auth);
+            return provider.verifyPhoneNumber(phoneNumber, verifier);
         });
-        recaptchaVerifierRef.current = verifier;
-        const provider = new PhoneAuthProvider(auth);
-        const verificationId = await provider.verifyPhoneNumber(phoneNumber, verifier);
-        return verificationId;
-    };
 
     const verifyPhoneChangeOtp = async (verificationId: string, otp: string): Promise<void> => {
         const currentUser = auth.currentUser;

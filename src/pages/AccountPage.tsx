@@ -357,7 +357,7 @@ function ChangePhoneModal({ onClose, onSuccess }: { onClose: () => void; onSucce
     const recaptchaId = "recaptcha-phone-change";
 
     const handleSendOtp = async () => {
-        if (!phone.trim()) return;
+        if (!phone.trim() || loading) return;
         setLoading(true); setError("");
         try {
             const vId = await sendPhoneChangeOtp(phone, recaptchaId);
