@@ -25,6 +25,9 @@ import { QuickActions } from "@/components/dashboard/QuickActions";
 import { callGeminiDirect, extractGeminiText as extractText, isMonthlyLimitError, isAIBusyError } from "@/lib/gemini";
 import { usePlanLimits } from "@/lib/planLimits";
 import { LimitModal } from "@/components/LimitModal";
+import { EXTRACTION_INSTRUCTIONS, EXTRACTION_SCHEMA } from "@/lib/healthData";
+import { VoiceReadButton } from "@/components/VoiceButton";
+import { parseExtraction, saveExtraction } from "@/lib/healthExtract";
 
 const SUMMARY_PROMPT = (lang: string) => `You are the medical document explainer for I M Smrti, a health app for ordinary Indian families. Your reader knows NOTHING about medicine — explain like you would to your own mother who never studied science. The goal: after reading, the person knows exactly WHAT this document says, WHETHER anything is wrong, and WHAT to do next.
 
@@ -392,27 +395,48 @@ export function DashboardPage() {
                 } else {
                     const { data: base64Data, mime } = await prepareFileForAI(selectedFile);
 
+                    // One call returns BOTH the human summary and structured
+                    // health data (metrics/medications/follow-ups) so the record
+                    // becomes chartable and watchable, not just readable.
                     const result = await callGeminiDirect({
                         contents: [{
                             role: "user",
                             parts: [
-                                { text: SUMMARY_PROMPT(form.language) },
+                                { text: SUMMARY_PROMPT(form.language) + EXTRACTION_INSTRUCTIONS },
                                 { inline_data: { mime_type: mime, data: base64Data } }
                             ]
                         }],
-                        generationConfig: { temperature: 0.1, maxOutputTokens: 4096 },
+                        generationConfig: {
+                            temperature: 0.1,
+                            maxOutputTokens: 4096,
+                            responseMimeType: "application/json",
+                            responseSchema: EXTRACTION_SCHEMA,
+                        },
                         feature: "doc_summary",
                     });
-                    const text = extractText(result);
-                        
-                    if (text) {
-                        setAiSummary(text);
-                        await updateDoc(doc(db, "documents", firestoreDocId), {
-                            aiSummary: text,
-                            status: "completed"
-                        });
-                    } else {
-                        throw new Error("AI analysis returned empty results. Please try again.");
+                    const raw = extractText(result);
+                    if (!raw) throw new Error("AI analysis returned empty results. Please try again.");
+
+                    const parsed = parseExtraction(raw);
+                    const text = parsed?.summaryMarkdown?.trim() || raw;
+
+                    setAiSummary(text);
+                    await updateDoc(doc(db, "documents", firestoreDocId), {
+                        aiSummary: text,
+                        docType: parsed?.docType || form.category || "other",
+                        status: "completed",
+                        extracted: !!parsed,
+                    });
+
+                    // Persist structured records (never blocks the upload)
+                    if (parsed) {
+                        saveExtraction(parsed, {
+                            userId: user.uid,
+                            patientId: finalPatientId,
+                            documentId: firestoreDocId,
+                            documentName: selectedFile.name,
+                            fallbackDate: form.docDate,
+                        }).catch(e => console.warn("Structured save failed (non-blocking):", e));
                     }
                     setUploadStep("summary");
                 }
@@ -646,6 +670,24 @@ export function DashboardPage() {
                             <div>
                                 <h3 className="font-black text-white text-[1.05rem] tracking-tight mb-0.5 drop-shadow-md">{t("patients.newProfile") || "Add Family Member"}</h3>
                                 <p className="text-[12px] font-semibold text-slate-200 leading-tight drop-shadow-md">Create a new family profile</p>
+                            </div>
+                        </div>
+                    </motion.button>
+
+                    {/* Health Trends — charts built from extracted report values */}
+                    <motion.button
+                        initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.18 }}
+                        onClick={() => navigate("/trends")}
+                        className="tour-trends relative overflow-hidden rounded-[1.5rem] p-5 text-left active:scale-[0.98] transition-all group flex flex-col justify-end min-h-[130px] w-full shadow-sm hover:shadow-md bg-gradient-to-br from-emerald-600 to-teal-700"
+                    >
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-10 -mt-10"></div>
+                        <div className="relative z-10 flex items-center gap-4">
+                            <div className="size-12 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center shrink-0 group-hover:bg-white/30 transition-colors">
+                                <Activity size={24} className="text-white drop-shadow-md" />
+                            </div>
+                            <div>
+                                <h3 className="font-black text-white text-[1.05rem] tracking-tight mb-0.5 drop-shadow-md">{t("trends.title", "Health Trends")}</h3>
+                                <p className="text-[12px] font-semibold text-emerald-100 leading-tight drop-shadow-md">{t("trends.cardDesc", "See how the numbers are moving")}</p>
                             </div>
                         </div>
                     </motion.button>
@@ -947,7 +989,10 @@ export function DashboardPage() {
                             <Bot className="text-violet-600" />
                             <h2 className="text-xl font-black">{t("dashboard.auditResults")}</h2>
                           </div>
-                          <button onClick={onDismissSummary} className="size-10 bg-slate-100 rounded-full flex items-center justify-center"><X size={20} /></button>
+                          <div className="flex items-center gap-2">
+                            <VoiceReadButton text={aiSummary} />
+                            <button onClick={onDismissSummary} className="size-10 bg-slate-100 rounded-full flex items-center justify-center"><X size={20} /></button>
+                          </div>
                         </div>
                         <div className="text-[15px] text-slate-600">
                           <ReactMarkdown

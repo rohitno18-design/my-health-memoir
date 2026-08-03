@@ -1,4 +1,5 @@
 import { onCall, HttpsError } from "firebase-functions/v2/https";
+import { onSchedule } from "firebase-functions/v2/scheduler";
 import { initializeApp } from "firebase-admin/app";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import { getAuth } from "firebase-admin/auth";
@@ -312,6 +313,166 @@ export const enableAppCheck = onCall(async (request) => {
 
   return { success: true, message: "App Check configured" };
 });
+
+// ── Proactive health watch ───────────────────────────────────────────────
+// The app used to be entirely passive — it only did something when opened.
+// This runs every morning over the structured health data and speaks up:
+// worsening trends, out-of-range results, overdue follow-ups the doctor
+// advised, and medicines about to run out. Findings become in-app
+// notifications so the caregiver hears about problems without checking.
+const INSIGHT_LOOKBACK_DAYS = 400;
+
+function daysBetween(a: string, b: string): number {
+  const d1 = new Date(a).getTime();
+  const d2 = new Date(b).getTime();
+  if (isNaN(d1) || isNaN(d2)) return 0;
+  return Math.round((d2 - d1) / 86400000);
+}
+
+interface Insight {
+  userId: string;
+  patientId: string;
+  patientName: string;
+  kind: "trend" | "abnormal" | "followup" | "refill";
+  severity: "info" | "warn" | "alert";
+  title: string;
+  body: string;
+  key: string; // dedupe key so the same thing isn't repeated daily
+}
+
+export const dailyHealthWatch = onSchedule(
+  { schedule: "30 3 * * *", timeZone: "Asia/Kolkata", timeoutSeconds: 540, memory: "512MiB" },
+  async () => {
+    const todayStr = new Date().toISOString().split("T")[0];
+    const insights: Insight[] = [];
+
+    // Resolve patient names once
+    const patientsSnap = await adminDb.collection("patients").get();
+    const patientName = new Map<string, string>();
+    const patientOwner = new Map<string, string>();
+    patientsSnap.forEach(p => {
+      const d = p.data() as any;
+      patientName.set(p.id, d.name || "Family member");
+      patientOwner.set(p.id, d.userId || "");
+    });
+
+    // ── 1. Lab metrics: abnormal latest values + worsening trends ──
+    const metricsSnap = await adminDb.collection("health_metrics").get();
+    const byKey = new Map<string, any[]>();
+    metricsSnap.forEach(m => {
+      const d = m.data() as any;
+      if (!d.userId || !d.patientId || !d.test) return;
+      if (d.date && daysBetween(d.date, todayStr) > INSIGHT_LOOKBACK_DAYS) return;
+      const k = `${d.userId}|${d.patientId}|${d.test}`;
+      if (!byKey.has(k)) byKey.set(k, []);
+      byKey.get(k)!.push(d);
+    });
+
+    for (const [k, rows] of byKey) {
+      const [userId, patientId, test] = k.split("|");
+      rows.sort((a, b) => String(a.date || "").localeCompare(String(b.date || "")));
+      const latest = rows[rows.length - 1];
+      const name = patientName.get(patientId) || "Family member";
+
+      // Latest reading out of range
+      if (latest.status === "high" || latest.status === "low") {
+        insights.push({
+          userId, patientId, patientName: name,
+          kind: "abnormal", severity: "warn",
+          title: `${name}: ${test} is ${latest.status}`,
+          body: `Latest ${test} is ${latest.value}${latest.unit ? " " + latest.unit : ""}` +
+            (latest.refLow != null && latest.refHigh != null ? ` (normal ${latest.refLow}–${latest.refHigh})` : "") +
+            `, from ${latest.date}. Worth showing the doctor.`,
+          key: `abnormal:${patientId}:${test}:${latest.date}`,
+        });
+      }
+
+      // Consistent worsening across 3+ readings, away from the normal range
+      if (rows.length >= 3) {
+        const last3 = rows.slice(-3);
+        const rising = last3[0].value < last3[1].value && last3[1].value < last3[2].value;
+        const falling = last3[0].value > last3[1].value && last3[1].value > last3[2].value;
+        const refHigh = latest.refHigh;
+        const refLow = latest.refLow;
+        const badRise = rising && refHigh != null && last3[2].value > refHigh * 0.9;
+        const badFall = falling && refLow != null && last3[2].value < refLow * 1.1;
+        if (badRise || badFall) {
+          const pct = last3[0].value !== 0
+            ? Math.abs(((last3[2].value - last3[0].value) / last3[0].value) * 100).toFixed(0)
+            : "0";
+          insights.push({
+            userId, patientId, patientName: name,
+            kind: "trend", severity: "alert",
+            title: `${name}: ${test} keeps ${badRise ? "rising" : "falling"}`,
+            body: `${test} moved ${last3[0].value} → ${last3[1].value} → ${last3[2].value}${latest.unit ? " " + latest.unit : ""} ` +
+              `over the last 3 reports (${pct}% change). This trend is worth asking the doctor about.`,
+            key: `trend:${patientId}:${test}:${latest.date}`,
+          });
+        }
+      }
+    }
+
+    // ── 2. Follow-ups the doctor advised that are now overdue ──
+    const followSnap = await adminDb.collection("follow_ups").where("status", "==", "pending").get();
+    followSnap.forEach(f => {
+      const d = f.data() as any;
+      if (!d.dueDate || !d.userId) return;
+      const overdueBy = daysBetween(d.dueDate, todayStr);
+      if (overdueBy >= 3 && overdueBy <= 120) {
+        const name = patientName.get(d.patientId) || "Family member";
+        insights.push({
+          userId: d.userId, patientId: d.patientId, patientName: name,
+          kind: "followup", severity: "warn",
+          title: `${name}: follow-up is ${overdueBy} days overdue`,
+          body: `The doctor advised: "${String(d.advice).slice(0, 160)}" — due ${d.dueDate}. Still pending.`,
+          key: `followup:${f.id}`,
+        });
+      }
+    });
+
+    // ── 3. Medicines about to run out ──
+    const medsSnap = await adminDb.collection("medications").get();
+    medsSnap.forEach(m => {
+      const d = m.data() as any;
+      if (!d.expectedEndDate || !d.userId) return;
+      const daysLeft = daysBetween(todayStr, d.expectedEndDate);
+      if (daysLeft >= 0 && daysLeft <= 3) {
+        const name = patientName.get(d.patientId) || "Family member";
+        insights.push({
+          userId: d.userId, patientId: d.patientId, patientName: name,
+          kind: "refill", severity: "info",
+          title: `${name}: ${d.name} runs out ${daysLeft === 0 ? "today" : `in ${daysLeft} days`}`,
+          body: `${d.name}${d.dose ? " (" + d.dose + ")" : ""} was prescribed for ${d.durationDays} days from ${d.startDate}. Time to refill or ask about continuing.`,
+          key: `refill:${m.id}`,
+        });
+      }
+    });
+
+    // ── Persist + notify (deduped by key) ──
+    let created = 0;
+    for (const ins of insights) {
+      const existing = await adminDb.collection("health_insights")
+        .where("userId", "==", ins.userId).where("key", "==", ins.key).limit(1).get();
+      if (!existing.empty) continue;
+
+      await adminDb.collection("health_insights").add({
+        ...ins, createdAt: FieldValue.serverTimestamp(), read: false,
+      });
+      await adminDb.collection("users").doc(ins.userId).collection("notifications").add({
+        type: "insight",
+        title: ins.title,
+        description: ins.body,
+        isRead: false,
+        actionLabel: ins.kind === "refill" ? "View reminders" : "See trends",
+        actionPath: ins.kind === "refill" ? "/reminders" : "/trends",
+        createdAt: FieldValue.serverTimestamp(),
+      }).catch((e: any) => console.warn("notification write failed:", e.message));
+      created++;
+    }
+
+    console.log(`dailyHealthWatch: ${insights.length} findings, ${created} new insights created.`);
+  }
+);
 
 // ── Shared helper: is the caller a full admin? ────────────────────────────
 async function callerIsAdmin(auth: { uid: string } | undefined): Promise<boolean> {

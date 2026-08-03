@@ -892,5 +892,38 @@
         "emergencyBody": "Make an emergency card so anyone can help you fast by scanning a code.",
         "doneTitle": "That's it! 🎉",
         "doneBody": "You're ready. Need me again? Just tap the ? button up top. Take care!"
+    },
+    "trends": {
+        "title": "Health Trends",
+        "cardDesc": "See how the numbers are moving",
+        "subtitle": "How the numbers are moving over time",
+        "empty": "No numbers yet",
+        "emptyBody": "Upload a lab report — the AI pulls out every value and charts it here automatically.",
+        "unlockTitle": "{{count}} reports not analysed yet",
+        "unlockBody": "Let the AI read your older reports to pull out the numbers and build your trend charts.",
+        "unlockCta": "Analyse past reports",
+        "analyzing": "Reading your past reports…",
+        "analyzingShort": "Analysing…",
+        "analyzingProgress": "Analysed {{done}} of {{total}} reports…",
+        "analyzeDone": "Found {{count}} values in your reports.",
+        "analyzeError": "Could not analyse right now. Please try again.",
+        "quotaHit": "Monthly AI limit reached — the rest can be analysed next month or with Premium.",
+        "oneReading": "1 reading",
+        "nReadings": "{{count}} readings",
+        "needMore": "One more report will start the trend line.",
+        "normalRange": "Normal range",
+        "source": "From"
+    },
+    "voice": {
+        "speak": "Speak",
+        "listening": "Listening…",
+        "tapToSpeak": "Tap to speak",
+        "listen": "Listen",
+        "stop": "Stop",
+        "logByVoice": "Log by voice",
+        "sayReading": "Say a reading",
+        "vitalExample": "Try: \"sugar 140\" or \"BP 120 by 80\"",
+        "notUnderstood": "Didn't catch a reading. Try: \"sugar 140\"",
+        "saved": "Saved {{type}}: {{value}}"
     }
 }

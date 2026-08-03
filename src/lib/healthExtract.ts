@@ -1,0 +1,113 @@
+// Parse the AI's structured output and persist it as typed health records.
+// Kept separate from healthData.ts (pure types) because this touches Firestore.
+import { collection, addDoc, query, where, getDocs, deleteDoc, serverTimestamp } from "firebase/firestore";
+import { db } from "@/lib/firebase";
+import {
+    type ExtractionResult, type MetricStatus,
+    deriveStatus, addDays, today,
+} from "@/lib/healthData";
+
+/** Tolerantly parse the model's JSON (handles ```json fences and stray prose) */
+export function parseExtraction(raw: string): ExtractionResult | null {
+    if (!raw) return null;
+    let text = raw.trim();
+    const fence = text.match(/```(?:json)?\s*([\s\S]*?)```/);
+    if (fence) text = fence[1].trim();
+    if (!text.startsWith("{")) {
+        const start = text.indexOf("{");
+        const end = text.lastIndexOf("}");
+        if (start === -1 || end === -1) return null;
+        text = text.slice(start, end + 1);
+    }
+    try {
+        const obj = JSON.parse(text);
+        if (typeof obj !== "object" || obj === null) return null;
+        return {
+            summaryMarkdown: String(obj.summaryMarkdown || ""),
+            docType: obj.docType || "other",
+            reportDate: obj.reportDate || null,
+            metrics: Array.isArray(obj.metrics) ? obj.metrics : [],
+            medications: Array.isArray(obj.medications) ? obj.medications : [],
+            followUps: Array.isArray(obj.followUps) ? obj.followUps : [],
+        };
+    } catch {
+        return null;
+    }
+}
+
+interface SaveContext {
+    userId: string;
+    patientId: string;
+    documentId: string;
+    documentName: string;
+    fallbackDate?: string;
+}
+
+/** Remove previously extracted records for a document (used before re-extract) */
+export async function clearExtractionFor(documentId: string): Promise<void> {
+    for (const coll of ["health_metrics", "medications", "follow_ups"]) {
+        const snap = await getDocs(query(collection(db, coll), where("documentId", "==", documentId)));
+        await Promise.all(snap.docs.map(d => deleteDoc(d.ref)));
+    }
+}
+
+/** Write metrics, medications and follow-ups extracted from one document */
+export async function saveExtraction(result: ExtractionResult, ctx: SaveContext): Promise<number> {
+    const date = (result.reportDate && /^\d{4}-\d{2}-\d{2}$/.test(result.reportDate))
+        ? result.reportDate
+        : (ctx.fallbackDate && /^\d{4}-\d{2}-\d{2}$/.test(ctx.fallbackDate) ? ctx.fallbackDate : today());
+
+    const writes: Promise<unknown>[] = [];
+    let count = 0;
+
+    for (const m of result.metrics) {
+        const value = Number(m.value);
+        if (!m.test || !isFinite(value)) continue;
+        const refLow = isFinite(Number(m.refLow)) ? Number(m.refLow) : null;
+        const refHigh = isFinite(Number(m.refHigh)) ? Number(m.refHigh) : null;
+        const status: MetricStatus = (["low", "normal", "high", "unknown"].includes(m.status as string) && m.status !== "unknown")
+            ? m.status as MetricStatus
+            : deriveStatus(value, refLow, refHigh);
+        writes.push(addDoc(collection(db, "health_metrics"), {
+            userId: ctx.userId, patientId: ctx.patientId,
+            documentId: ctx.documentId, documentName: ctx.documentName,
+            test: String(m.test).trim(), testRaw: String(m.testRaw || m.test).trim(),
+            value, unit: String(m.unit || "").trim(),
+            refLow, refHigh, status, date,
+            createdAt: serverTimestamp(),
+        }));
+        count++;
+    }
+
+    for (const med of result.medications) {
+        if (!med.name) continue;
+        const durationDays = isFinite(Number(med.durationDays)) ? Number(med.durationDays) : null;
+        writes.push(addDoc(collection(db, "medications"), {
+            userId: ctx.userId, patientId: ctx.patientId, documentId: ctx.documentId,
+            name: String(med.name).trim(),
+            dose: String(med.dose || "").trim(),
+            frequency: String(med.frequency || "").trim(),
+            durationDays,
+            startDate: date,
+            expectedEndDate: durationDays ? addDays(date, durationDays) : null,
+            createdAt: serverTimestamp(),
+        }));
+        count++;
+    }
+
+    for (const f of result.followUps) {
+        if (!f.advice) continue;
+        const inDays = isFinite(Number(f.inDays)) ? Number(f.inDays) : null;
+        writes.push(addDoc(collection(db, "follow_ups"), {
+            userId: ctx.userId, patientId: ctx.patientId, documentId: ctx.documentId,
+            advice: String(f.advice).trim(),
+            dueDate: inDays != null ? addDays(date, inDays) : null,
+            status: "pending",
+            createdAt: serverTimestamp(),
+        }));
+        count++;
+    }
+
+    await Promise.all(writes);
+    return count;
+}

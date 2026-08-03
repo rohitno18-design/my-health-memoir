@@ -17,6 +17,8 @@ import {
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { useTranslation } from "react-i18next";
+import { VoiceInputButton } from "@/components/VoiceButton";
+import { parseSpokenVital } from "@/lib/voice";
 
 type VitalType = "Sugar" | "Blood Pressure" | "Heart Rate";
 
@@ -72,6 +74,7 @@ export function VitalsPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [patients, setPatients] = useState<any[]>([]);
   const [selectedPatientId, setSelectedPatientId] = useState<string>("");
+  const [voiceFeedback, setVoiceFeedback] = useState("");
 
   useEffect(() => {
     if (!user) return;
@@ -147,6 +150,37 @@ export function VitalsPage() {
     }
   };
 
+  // ── Voice logging: "आज शुगर 140 आया" / "BP 120 by 80" ──
+  const handleVoiceVital = async (said: string) => {
+    if (!user || !selectedPatientId) return;
+    const parsed = parseSpokenVital(said);
+    if (!parsed) {
+      setVoiceFeedback(t("voice.notUnderstood", "Didn't catch a reading. Try: \"sugar 140\""));
+      setTimeout(() => setVoiceFeedback(""), 4000);
+      return;
+    }
+    setIsSaving(true);
+    try {
+      await addDoc(collection(db, "vitals"), {
+        userId: user.uid,
+        patientId: selectedPatientId,
+        type: parsed.type,
+        value: parsed.value,
+        unit: parsed.unit,
+        source: "voice",
+        timestamp: serverTimestamp(),
+      });
+      setActiveTab(parsed.type as any);
+      setVoiceFeedback(t("voice.saved", { type: parsed.type, value: parsed.value, defaultValue: "Saved {{type}}: {{value}}" }));
+      setTimeout(() => setVoiceFeedback(""), 4000);
+    } catch (e: any) {
+      console.error(e);
+      setVoiceFeedback(t("common.error", "Something went wrong"));
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const ActiveIcon = VITAL_CONFIG[activeTab].icon;
 
   return (
@@ -169,6 +203,19 @@ export function VitalsPage() {
             ))}
           </select>
         </div>
+
+        {/* Speak a reading instead of typing it — the whole point for elders */}
+        {selectedPatientId && (
+          <div className="flex items-center gap-4 bg-blue-50/60 border border-blue-100 rounded-2xl p-3">
+            <VoiceInputButton onResult={handleVoiceVital} label={t("voice.sayReading", "Say a reading")} />
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-black text-slate-700">{t("voice.logByVoice", "Log by voice")}</p>
+              <p className="text-[11px] text-slate-500 leading-snug mt-0.5">
+                {voiceFeedback || t("voice.vitalExample", "Try: \"sugar 140\" or \"BP 120 by 80\"")}
+              </p>
+            </div>
+          </div>
+        )}
 
         <div className="flex bg-slate-100 p-1 rounded-2xl">
           {(["Sugar", "Blood Pressure", "Heart Rate"] as VitalType[]).map(tab => (

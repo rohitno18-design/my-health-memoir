@@ -7,6 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { callGeminiDirect, extractGeminiText, isMonthlyLimitError, isAIBusyError } from "@/lib/gemini";
 import { usePlanLimits } from "@/lib/planLimits";
 import { LimitModal } from "@/components/LimitModal";
+import { VoiceReadButton } from "@/components/VoiceButton";
 import { logUserAction } from "@/lib/audit";
 import { SUPPORTED_LANGUAGES } from "@/i18n";
 import ReactMarkdown from "react-markdown";
@@ -441,6 +442,10 @@ ${visitReason.trim() ? `REASON FOR THIS VISIT (stated by the caregiver): ${visit
                         <p className="text-[11px] text-slate-400 leading-relaxed">
                             {t("visitSummary.disclaimer", "This is an organizational summary of your own records — not medical advice. Always rely on your doctor's judgment.")}
                         </p>
+                    </div>
+
+                    <div className="flex justify-center">
+                        <VoiceReadButton text={summary} />
                     </div>
 
                     <div className="flex gap-3">
