@@ -43,6 +43,10 @@ if (typeof window !== 'undefined') {
 import './i18n.ts'
 import App from './App.tsx'
 import { ErrorBoundary } from './components/ErrorBoundary.tsx'
+import { initAutoUpdate } from './lib/swUpdate.ts'
+
+// Make deploys reach installed phones without a manual hard refresh
+initAutoUpdate();
 
 console.log("IM-SMRTI: Root mounting...");
 const rootElement = document.getElementById('root');

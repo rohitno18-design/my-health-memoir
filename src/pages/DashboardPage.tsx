@@ -680,9 +680,36 @@ export function DashboardPage() {
                         onClick={() => navigate("/trends")}
                         className="tour-trends relative overflow-hidden rounded-[1.5rem] p-5 text-left active:scale-[0.98] transition-all group flex flex-col justify-end min-h-[130px] w-full shadow-sm hover:shadow-md"
                     >
-                        <div className="absolute inset-0 w-full h-full">
-                            <img src="/assets/images/bg-account.png" alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out" />
-                            <div className="absolute inset-0 bg-gradient-to-t from-emerald-900/90 via-emerald-800/60 to-teal-900/30"></div>
+                        {/* Background drawn in code: a rising trend line — on-theme,
+                            razor sharp on any screen, and ~1KB instead of a 550KB photo */}
+                        <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-emerald-600 via-emerald-700 to-teal-800">
+                            <svg
+                                viewBox="0 0 400 140" preserveAspectRatio="none" aria-hidden="true"
+                                className="absolute inset-0 w-full h-full group-hover:scale-105 transition-transform duration-700 ease-out"
+                            >
+                                <defs>
+                                    <linearGradient id="trendFill" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" stopColor="#fff" stopOpacity="0.22" />
+                                        <stop offset="100%" stopColor="#fff" stopOpacity="0" />
+                                    </linearGradient>
+                                    <radialGradient id="trendGlow" cx="0.75" cy="0.2" r="0.7">
+                                        <stop offset="0%" stopColor="#5eead4" stopOpacity="0.45" />
+                                        <stop offset="100%" stopColor="#5eead4" stopOpacity="0" />
+                                    </radialGradient>
+                                </defs>
+                                <rect width="400" height="140" fill="url(#trendGlow)" />
+                                {[35, 70, 105].map(y => (
+                                    <line key={y} x1="0" y1={y} x2="400" y2={y} stroke="#fff" strokeOpacity="0.07" strokeWidth="1" />
+                                ))}
+                                <path d="M0 118 L60 104 L120 112 L180 78 L240 86 L300 46 L360 30 L400 22 L400 140 L0 140 Z" fill="url(#trendFill)" />
+                                <path d="M0 118 L60 104 L120 112 L180 78 L240 86 L300 46 L360 30 L400 22"
+                                    fill="none" stroke="#fff" strokeOpacity="0.85" strokeWidth="2.5"
+                                    strokeLinecap="round" strokeLinejoin="round" />
+                                {[[60, 104], [180, 78], [300, 46], [400, 22]].map(([cx, cy]) => (
+                                    <circle key={`${cx}`} cx={cx} cy={cy} r="3.5" fill="#fff" fillOpacity="0.9" />
+                                ))}
+                            </svg>
+                            <div className="absolute inset-0 bg-gradient-to-t from-emerald-900/85 via-emerald-900/25 to-transparent"></div>
                         </div>
                         <div className="relative z-10 flex items-center gap-4">
                             <div className="size-12 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center shrink-0 group-hover:bg-white/30 transition-colors">
