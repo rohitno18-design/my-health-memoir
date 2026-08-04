@@ -912,7 +912,16 @@
         "nReadings": "{{count}} readings",
         "needMore": "One more report will start the trend line.",
         "normalRange": "Normal range",
-        "source": "From"
+        "source": "From",
+        "showingFor": "Showing readings for",
+        "statusHigh": "High",
+        "statusLow": "Low",
+        "statusNormal": "Normal",
+        "statusUnknown": "No range",
+        "normalIs": "Normal",
+        "whatIsThis": "What this is",
+        "whatItMeans": "What this reading means",
+        "notAdvice": "This is not medical advice — please show this reading to your doctor."
     },
     "voice": {
         "speak": "Speak",

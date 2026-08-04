@@ -912,7 +912,16 @@
         "nReadings": "{{count}} रीडिंग",
         "needMore": "एक और रिपोर्ट से रुझान दिखने लगेगा।",
         "normalRange": "सामान्य रेंज",
-        "source": "स्रोत"
+        "source": "स्रोत",
+        "showingFor": "किसकी रीडिंग दिखा रहे हैं",
+        "statusHigh": "ज़्यादा",
+        "statusLow": "कम",
+        "statusNormal": "सामान्य",
+        "statusUnknown": "रेंज नहीं",
+        "normalIs": "सामान्य",
+        "whatIsThis": "यह क्या है",
+        "whatItMeans": "इस रीडिंग का मतलब",
+        "notAdvice": "यह चिकित्सा सलाह नहीं है — कृपया यह रीडिंग अपने डॉक्टर को दिखाएँ।"
     },
     "voice": {
         "speak": "बोलें",

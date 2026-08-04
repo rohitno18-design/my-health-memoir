@@ -912,7 +912,16 @@
         "nReadings": "{{count}} ରିଡିଂ",
         "needMore": "ଆଉ ଏକ ରିପୋର୍ଟରେ ଧାରା ଦେଖାଯିବ।",
         "normalRange": "ସାଧାରଣ ପରିସର",
-        "source": "ଉତ୍ସ"
+        "source": "ଉତ୍ସ",
+        "showingFor": "କାହାର ରିଡିଂ ଦେଖାଉଛୁ",
+        "statusHigh": "ଅଧିକ",
+        "statusLow": "କମ୍",
+        "statusNormal": "ସାଧାରଣ",
+        "statusUnknown": "ପରିସର ନାହିଁ",
+        "normalIs": "ସାଧାରଣ",
+        "whatIsThis": "ଏହା କ'ଣ",
+        "whatItMeans": "ଏହି ରିଡିଂର ଅର୍ଥ",
+        "notAdvice": "ଏହା ଚିକିତ୍ସା ପରାମର୍ଶ ନୁହେଁ — ଦୟାକରି ଏହି ରିଡିଂ ଡାକ୍ତରଙ୍କୁ ଦେଖାନ୍ତୁ।"
     },
     "voice": {
         "speak": "କୁହନ୍ତୁ",

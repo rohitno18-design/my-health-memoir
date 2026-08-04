@@ -912,7 +912,16 @@
         "nReadings": "{{count}}টি রিডিং",
         "needMore": "আরেকটি রিপোর্ট হলে প্রবণতা দেখা যাবে।",
         "normalRange": "স্বাভাবিক সীমা",
-        "source": "উৎস"
+        "source": "উৎস",
+        "showingFor": "কার রিডিং দেখানো হচ্ছে",
+        "statusHigh": "বেশি",
+        "statusLow": "কম",
+        "statusNormal": "স্বাভাবিক",
+        "statusUnknown": "সীমা নেই",
+        "normalIs": "স্বাভাবিক",
+        "whatIsThis": "এটি কী",
+        "whatItMeans": "এই রিডিংয়ের মানে",
+        "notAdvice": "এটি চিকিৎসা পরামর্শ নয় — অনুগ্রহ করে এই রিডিং ডাক্তারকে দেখান।"
     },
     "voice": {
         "speak": "বলুন",

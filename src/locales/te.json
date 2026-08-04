@@ -912,7 +912,16 @@
         "nReadings": "{{count}} రీడింగ్‌లు",
         "needMore": "మరో రిపోర్ట్‌తో ధోరణి కనిపిస్తుంది.",
         "normalRange": "సాధారణ పరిధి",
-        "source": "మూలం"
+        "source": "మూలం",
+        "showingFor": "ఎవరి రీడింగ్‌లు చూపిస్తున్నాం",
+        "statusHigh": "ఎక్కువ",
+        "statusLow": "తక్కువ",
+        "statusNormal": "సాధారణం",
+        "statusUnknown": "పరిధి లేదు",
+        "normalIs": "సాధారణం",
+        "whatIsThis": "ఇది ఏమిటి",
+        "whatItMeans": "ఈ రీడింగ్ అర్థం",
+        "notAdvice": "ఇది వైద్య సలహా కాదు — దయచేసి ఈ రీడింగ్‌ను మీ డాక్టర్‌కు చూపండి."
     },
     "voice": {
         "speak": "మాట్లాడండి",

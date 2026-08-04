@@ -912,7 +912,16 @@
         "nReadings": "{{count}} ಓದುವಿಕೆಗಳು",
         "needMore": "ಇನ್ನೊಂದು ವರದಿಯಿಂದ ಪ್ರವೃತ್ತಿ ಕಾಣುತ್ತದೆ.",
         "normalRange": "ಸಾಮಾನ್ಯ ವ್ಯಾಪ್ತಿ",
-        "source": "ಮೂಲ"
+        "source": "ಮೂಲ",
+        "showingFor": "ಯಾರ ಓದುವಿಕೆಗಳು",
+        "statusHigh": "ಹೆಚ್ಚು",
+        "statusLow": "ಕಡಿಮೆ",
+        "statusNormal": "ಸಾಮಾನ್ಯ",
+        "statusUnknown": "ವ್ಯಾಪ್ತಿ ಇಲ್ಲ",
+        "normalIs": "ಸಾಮಾನ್ಯ",
+        "whatIsThis": "ಇದು ಏನು",
+        "whatItMeans": "ಈ ಓದುವಿಕೆಯ ಅರ್ಥ",
+        "notAdvice": "ಇದು ವೈದ್ಯಕೀಯ ಸಲಹೆ ಅಲ್ಲ — ದಯವಿಟ್ಟು ಈ ಓದುವಿಕೆಯನ್ನು ನಿಮ್ಮ ವೈದ್ಯರಿಗೆ ತೋರಿಸಿ."
     },
     "voice": {
         "speak": "ಮಾತನಾಡಿ",

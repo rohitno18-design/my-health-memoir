@@ -912,7 +912,16 @@
         "nReadings": "{{count}} റീഡിംഗുകൾ",
         "needMore": "ഒരു റിപ്പോർട്ട് കൂടി വന്നാൽ പ്രവണത കാണാം.",
         "normalRange": "സാധാരണ പരിധി",
-        "source": "ഉറവിടം"
+        "source": "ഉറവിടം",
+        "showingFor": "ആരുടെ റീഡിംഗുകൾ",
+        "statusHigh": "കൂടുതൽ",
+        "statusLow": "കുറവ്",
+        "statusNormal": "സാധാരണം",
+        "statusUnknown": "പരിധിയില്ല",
+        "normalIs": "സാധാരണം",
+        "whatIsThis": "ഇത് എന്താണ്",
+        "whatItMeans": "ഈ റീഡിംഗിന്റെ അർത്ഥം",
+        "notAdvice": "ഇത് വൈദ്യോപദേശമല്ല — ഈ റീഡിംഗ് ഡോക്ടറെ കാണിക്കുക."
     },
     "voice": {
         "speak": "സംസാരിക്കൂ",

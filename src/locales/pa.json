@@ -912,7 +912,16 @@
         "nReadings": "{{count}} ਰੀਡਿੰਗਾਂ",
         "needMore": "ਇੱਕ ਹੋਰ ਰਿਪੋਰਟ ਨਾਲ ਰੁਝਾਨ ਦਿਸਣ ਲੱਗੇਗਾ।",
         "normalRange": "ਸਧਾਰਨ ਰੇਂਜ",
-        "source": "ਸਰੋਤ"
+        "source": "ਸਰੋਤ",
+        "showingFor": "ਕਿਸ ਦੀਆਂ ਰੀਡਿੰਗਾਂ",
+        "statusHigh": "ਵੱਧ",
+        "statusLow": "ਘੱਟ",
+        "statusNormal": "ਸਧਾਰਨ",
+        "statusUnknown": "ਰੇਂਜ ਨਹੀਂ",
+        "normalIs": "ਸਧਾਰਨ",
+        "whatIsThis": "ਇਹ ਕੀ ਹੈ",
+        "whatItMeans": "ਇਸ ਰੀਡਿੰਗ ਦਾ ਮਤਲਬ",
+        "notAdvice": "ਇਹ ਡਾਕਟਰੀ ਸਲਾਹ ਨਹੀਂ ਹੈ — ਕਿਰਪਾ ਕਰਕੇ ਇਹ ਰੀਡਿੰਗ ਆਪਣੇ ਡਾਕਟਰ ਨੂੰ ਦਿਖਾਓ।"
     },
     "voice": {
         "speak": "ਬੋਲੋ",

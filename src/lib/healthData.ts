@@ -134,16 +134,32 @@ export const EXTRACTION_INSTRUCTIONS = `
 ## ALSO EXTRACT STRUCTURED DATA (this is critical — it powers charts and alerts)
 Return JSON matching the given schema. Alongside "summaryMarkdown" (the human summary described above), fill:
 
+### FIRST: is this even a medical document?
+Decide "docType" honestly. If the document is NOT medical — a business plan, invoice,
+price list, receipt, contract, marketing material, ID card, or anything similar — then set
+docType to "bill" or "other" and return metrics: [], medications: [], followUps: [].
+A non-medical document must NEVER produce a single metric. This matters more than being thorough.
+
+### NEVER treat these as medical measurements (hard rules)
+- Money of any kind: prices, fees, packages, invoice totals, salaries, budgets (₹, Rs, INR, $, lakh, crore)
+- Identifiers: phone numbers, patient/registration/invoice numbers, PIN codes, ages, page numbers
+- Dates, durations, quantities, session counts, discounts, taxes
+If a number is any of the above, leave it out entirely. An empty metrics array is a correct,
+good answer for many documents. Inventing readings is a serious failure.
+
 - "docType": what kind of document this is.
 - "reportDate": the date printed on the document as YYYY-MM-DD. If absent, omit.
-- "metrics": EVERY measured numeric value on the document. One entry per value.
+- "metrics": every genuine CLINICAL measurement on the document (blood test values, vitals,
+  scan measurements). One entry per value. Only real medical tests belong here.
   - "test": map to EXACTLY one of these canonical names when it matches: ${CANONICAL_TESTS.join(", ")}. If it genuinely matches none, use a clean Title Case name.
   - "testRaw": the name exactly as printed.
   - "value": numeric only (no units, no "<" or ">" — use the number).
   - "unit": as printed (e.g. "mg/dL", "%", "g/dL").
-  - "refLow"/"refHigh": the lab's normal range numbers if printed; omit if not.
+  - "refLow"/"refHigh": the lab's normal range numbers EXACTLY as printed on this report; omit if not printed. Never guess a range.
   - "status": "high"/"low" if outside the printed range, "normal" if inside, "unknown" if no range printed.
   - Blood pressure: split into two metrics — "Systolic BP" and "Diastolic BP".
+  - The unit must be a real clinical unit (mg/dL, g/dL, %, mmHg, ng/mL, U/L, kg…). If the only
+    unit you can see is a currency or a count, that number is not a metric — leave it out.
   - If the document has no measured values (e.g. a prescription), return an empty array.
 - "medications": every medicine prescribed. "durationDays" = number of days if stated (e.g. "x 5 days" -> 5), omit if not.
 - "followUps": any advice to return, repeat a test, or review. "inDays" = how many days from the report date (e.g. "review after 3 weeks" -> 21), omit if unclear.

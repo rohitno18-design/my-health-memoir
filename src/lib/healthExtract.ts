@@ -4,8 +4,9 @@ import { collection, addDoc, query, where, getDocs, deleteDoc, serverTimestamp }
 import { db } from "@/lib/firebase";
 import {
     type ExtractionResult, type MetricStatus,
-    deriveStatus, addDays, today,
+    addDays, today,
 } from "@/lib/healthData";
+import { validateMetric } from "@/lib/medicalReference";
 
 /** Tolerantly parse the model's JSON (handles ```json fences and stray prose) */
 export function parseExtraction(raw: string): ExtractionResult | null {
@@ -60,20 +61,26 @@ export async function saveExtraction(result: ExtractionResult, ctx: SaveContext)
     const writes: Promise<unknown>[] = [];
     let count = 0;
 
+    // A metric is only saved if it survives the medical guard — this is what
+    // stops a business PDF's rupee amounts becoming "Weight" readings.
     for (const m of result.metrics) {
-        const value = Number(m.value);
-        if (!m.test || !isFinite(value)) continue;
-        const refLow = isFinite(Number(m.refLow)) ? Number(m.refLow) : null;
-        const refHigh = isFinite(Number(m.refHigh)) ? Number(m.refHigh) : null;
-        const status: MetricStatus = (["low", "normal", "high", "unknown"].includes(m.status as string) && m.status !== "unknown")
-            ? m.status as MetricStatus
-            : deriveStatus(value, refLow, refHigh);
+        const check = validateMetric({
+            test: m.test, value: m.value, unit: m.unit,
+            refLow: m.refLow, refHigh: m.refHigh,
+            docType: result.docType,
+        });
+        if (!check.ok || !check.normalized) {
+            console.info(`Rejected metric "${m.test}" (${m.value} ${m.unit || ""}): ${check.reason}`);
+            continue;
+        }
+        const n = check.normalized;
         writes.push(addDoc(collection(db, "health_metrics"), {
             userId: ctx.userId, patientId: ctx.patientId,
             documentId: ctx.documentId, documentName: ctx.documentName,
-            test: String(m.test).trim(), testRaw: String(m.testRaw || m.test).trim(),
-            value, unit: String(m.unit || "").trim(),
-            refLow, refHigh, status, date,
+            test: n.test, testRaw: String(m.testRaw || m.test).trim(),
+            value: n.value, unit: n.unit,
+            refLow: n.refLow, refHigh: n.refHigh,
+            status: n.status as MetricStatus, date,
             createdAt: serverTimestamp(),
         }));
         count++;

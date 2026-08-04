@@ -912,7 +912,16 @@
         "nReadings": "{{count}} ریڈنگز",
         "needMore": "ایک اور رپورٹ سے رجحان نظر آنے لگے گا۔",
         "normalRange": "نارمل رینج",
-        "source": "ماخذ"
+        "source": "ماخذ",
+        "showingFor": "کس کی ریڈنگ دکھا رہے ہیں",
+        "statusHigh": "زیادہ",
+        "statusLow": "کم",
+        "statusNormal": "نارمل",
+        "statusUnknown": "رینج نہیں",
+        "normalIs": "نارمل",
+        "whatIsThis": "یہ کیا ہے",
+        "whatItMeans": "اس ریڈنگ کا مطلب",
+        "notAdvice": "یہ طبی مشورہ نہیں ہے — براہ کرم یہ ریڈنگ اپنے ڈاکٹر کو دکھائیں۔"
     },
     "voice": {
         "speak": "بولیں",

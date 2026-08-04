@@ -5,6 +5,7 @@ import { collection, query, where, getDocs, orderBy } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/contexts/AuthContext";
 import { type HealthMetric, STATUS_COLOR } from "@/lib/healthData";
+import { explainMetric } from "@/lib/medicalReference";
 import { backfillDocuments, findUnextractedDocs } from "@/lib/healthBackfill";
 import {
     LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer,
@@ -159,20 +160,28 @@ export function TrendsPage() {
                 </div>
             </div>
 
-            {/* Family member selector */}
-            {members.length > 1 && (
-                <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
-                    {members.map(m => (
-                        <button
-                            key={m.id}
-                            onClick={() => { setPatientId(m.id); setOpenTest(null); }}
-                            className={`px-4 py-2 rounded-xl text-xs font-black whitespace-nowrap flex items-center gap-1.5 transition-colors ${
-                                patientId === m.id ? "bg-slate-900 text-white" : "bg-white border border-slate-200 text-slate-600"
-                            }`}
-                        >
-                            <UserIcon size={12} /> {m.name}
-                        </button>
-                    ))}
+            {/* Whose data this is — always visible, never ambiguous in a health app */}
+            {members.length > 0 && (
+                <div>
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">
+                        {t("trends.showingFor", "Showing readings for")}
+                    </p>
+                    <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
+                        {members.map(m => (
+                            <button
+                                key={m.id}
+                                onClick={() => { setPatientId(m.id); setOpenTest(null); }}
+                                className={`px-4 py-2 rounded-xl text-xs font-black whitespace-nowrap flex items-center gap-1.5 transition-colors ${
+                                    patientId === m.id ? "bg-slate-900 text-white" : "bg-white border border-slate-200 text-slate-600"
+                                }`}
+                            >
+                                <UserIcon size={12} /> {m.name}
+                                {m.relationship && m.relationship !== "Self" && (
+                                    <span className={patientId === m.id ? "text-slate-300" : "text-slate-400"}>· {m.relationship}</span>
+                                )}
+                            </button>
+                        ))}
+                    </div>
                 </div>
             )}
 
@@ -229,7 +238,24 @@ export function TrendsPage() {
                                             <p className="font-black text-sm text-slate-900 truncate">{s.test}</p>
                                             {abnormal && <AlertTriangle size={13} className="text-rose-500 shrink-0" />}
                                         </div>
-                                        <p className="text-[11px] text-slate-400 mt-0.5">
+                                        {/* Status in words + the normal range, so the number means something */}
+                                        <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                                            <span
+                                                className="text-[10px] font-black px-1.5 py-0.5 rounded uppercase tracking-wide"
+                                                style={{ backgroundColor: `${color}1A`, color }}
+                                            >
+                                                {s.latest.status === "high" ? t("trends.statusHigh", "High")
+                                                    : s.latest.status === "low" ? t("trends.statusLow", "Low")
+                                                    : s.latest.status === "normal" ? t("trends.statusNormal", "Normal")
+                                                    : t("trends.statusUnknown", "No range")}
+                                            </span>
+                                            {s.latest.refLow != null || s.latest.refHigh != null ? (
+                                                <span className="text-[10px] text-slate-400 font-semibold">
+                                                    {t("trends.normalIs", "Normal")}: {s.latest.refLow ?? "<"}{s.latest.refLow != null && s.latest.refHigh != null ? "–" : ""}{s.latest.refHigh ?? ""} {s.unit}
+                                                </span>
+                                            ) : null}
+                                        </div>
+                                        <p className="text-[11px] text-slate-400 mt-1">
                                             {s.points.length === 1
                                                 ? t("trends.oneReading", "1 reading")
                                                 : t("trends.nReadings", { count: s.points.length, defaultValue: "{{count}} readings" })}
@@ -252,9 +278,36 @@ export function TrendsPage() {
                                     <ChevronRight size={16} className={`text-slate-300 shrink-0 transition-transform ${openTest === s.test ? "rotate-90" : ""}`} />
                                 </div>
 
-                                {/* Expanded chart */}
+                                {/* Expanded: what it is, what it means, then the chart */}
                                 {openTest === s.test && (
                                     <div className="mt-4 pt-4 border-t border-slate-100">
+                                        {(() => {
+                                            const ex = explainMetric(s.test, s.latest.status);
+                                            if (!ex) return null;
+                                            return (
+                                                <div className="mb-4 space-y-2">
+                                                    <div className="bg-slate-50 rounded-xl p-3">
+                                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">
+                                                            {t("trends.whatIsThis", "What this is")}
+                                                        </p>
+                                                        <p className="text-xs text-slate-600 leading-relaxed">{ex.what}</p>
+                                                    </div>
+                                                    {ex.meaning && (
+                                                        <div className={`rounded-xl p-3 ${abnormal ? "bg-amber-50 border border-amber-100" : "bg-slate-50"}`}>
+                                                            <p className="text-[10px] font-black text-amber-700 uppercase tracking-wider mb-1">
+                                                                {t("trends.whatItMeans", "What this reading means")}
+                                                            </p>
+                                                            <p className="text-xs text-slate-700 leading-relaxed">{ex.meaning}</p>
+                                                        </div>
+                                                    )}
+                                                    {abnormal && (
+                                                        <p className="text-[10px] text-slate-400 leading-relaxed px-1">
+                                                            {t("trends.notAdvice", "This is not medical advice — please show this reading to your doctor.")}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            );
+                                        })()}
                                         {s.points.length < 2 ? (
                                             <p className="text-xs text-slate-400 text-center py-4">
                                                 {t("trends.needMore", "One more report will start the trend line.")}
