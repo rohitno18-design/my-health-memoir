@@ -6,6 +6,7 @@ import { db } from "@/lib/firebase";
 import { useAuth } from "@/contexts/AuthContext";
 import { type HealthMetric, STATUS_COLOR } from "@/lib/healthData";
 import { explainMetric } from "@/lib/medicalReference";
+import { buildHealthPicture, trajectorySummary } from "@/lib/healthStatus";
 import { backfillDocuments, findUnextractedDocs } from "@/lib/healthBackfill";
 import {
     LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer,
@@ -89,6 +90,16 @@ export function TrendsPage() {
         findUnextractedDocs(user.uid).then(d => setPendingDocs(d.length)).catch(() => undefined);
     }, [user, analyzing]);
 
+    // Where this person's health stands, and which way it is heading
+    const picture = useMemo(
+        () => (metrics.length ? buildHealthPicture(patientId, metrics) : null),
+        [metrics, patientId]
+    );
+    const trend = useMemo(
+        () => (picture ? trajectorySummary(picture) : { text: "", tone: "unknown" as const }),
+        [picture]
+    );
+
     const series: Series[] = useMemo(() => {
         const byTest = new Map<string, HealthMetric[]>();
         for (const m of metrics) {
@@ -124,12 +135,25 @@ export function TrendsPage() {
         setAnalyzing(true);
         setAnalyzeMsg(t("trends.analyzing", "Reading your past reports…"));
         try {
-            const res = await backfillDocuments(user.uid, 10, (p) => {
+            // Keep going until everything analysable is done (or quota stops us),
+            // instead of making the user tap ten at a time.
+            let res = await backfillDocuments(user.uid, 40, (p) => {
                 setAnalyzeMsg(t("trends.analyzingProgress", {
                     done: p.done, total: p.total,
                     defaultValue: "Analysed {{done}} of {{total}} reports…",
                 }));
             });
+            let guard = 0;
+            while (!res.quotaHit && (await findUnextractedDocs(user.uid)).length > 0 && guard++ < 5) {
+                const next = await backfillDocuments(user.uid, 40, (p) => {
+                    setAnalyzeMsg(t("trends.analyzingProgress", {
+                        done: p.done, total: p.total,
+                        defaultValue: "Analysed {{done}} of {{total}} reports…",
+                    }));
+                });
+                res = { ...next, recordsCreated: res.recordsCreated + next.recordsCreated };
+                if (next.total === 0) break;
+            }
             await loadMetrics();
             setAnalyzeMsg(res.quotaHit
                 ? t("trends.quotaHit", "Monthly AI limit reached — the rest can be analysed next month or with Premium.")
@@ -209,6 +233,82 @@ export function TrendsPage() {
                         </div>
                     </div>
                 </div>
+            )}
+
+            {/* ── Health picture: where they are, where it's heading, what to do ── */}
+            {!loading && metrics.length > 0 && picture && (
+                <>
+                    <div className={`rounded-3xl p-5 border shadow-sm ${
+                        picture.headline === "good" ? "bg-emerald-50 border-emerald-100"
+                        : picture.headline === "watch" ? "bg-amber-50 border-amber-100"
+                        : "bg-rose-50 border-rose-100"
+                    }`}>
+                        <div className="flex items-center gap-4">
+                            {/* Score ring */}
+                            <div className="relative w-16 h-16 shrink-0">
+                                <svg viewBox="0 0 36 36" className="w-16 h-16 -rotate-90">
+                                    <circle cx="18" cy="18" r="15.5" fill="none" stroke="#fff" strokeWidth="3.5" />
+                                    <circle
+                                        cx="18" cy="18" r="15.5" fill="none" strokeWidth="3.5" strokeLinecap="round"
+                                        stroke={picture.headline === "good" ? "#10b981" : picture.headline === "watch" ? "#f59e0b" : "#ef4444"}
+                                        strokeDasharray={`${(picture.score / 100) * 97.4} 97.4`}
+                                    />
+                                </svg>
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                    <span className="text-lg font-black text-slate-800">{picture.score}</span>
+                                </div>
+                            </div>
+                            <div className="min-w-0">
+                                <p className="text-sm font-black text-slate-900">
+                                    {picture.headline === "good" ? t("status.good", "Everything looks fine right now")
+                                        : picture.headline === "watch" ? t("status.watch", "A few things to keep an eye on")
+                                        : t("status.attention", "Some things need attention")}
+                                </p>
+                                <p className="text-xs text-slate-600 mt-0.5 leading-relaxed">
+                                    {picture.outOfRange.length > 0
+                                        ? t("status.outOfRange", { count: picture.outOfRange.length, defaultValue: "{{count}} reading(s) outside the normal range" })
+                                        : t("status.allNormal", "All recorded readings are in the normal range")}
+                                </p>
+                                {trend.text && (
+                                    <p className={`text-[11px] font-bold mt-1.5 flex items-center gap-1 ${
+                                        trend.tone === "worsening" ? "text-rose-600" : trend.tone === "improving" ? "text-emerald-600" : "text-slate-500"
+                                    }`}>
+                                        {trend.tone === "worsening" ? <TrendingUp size={12} /> : trend.tone === "improving" ? <TrendingDown size={12} /> : <Minus size={12} />}
+                                        {trend.text}
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* What to do — concrete, non-prescriptive */}
+                    {picture.actions.length > 0 && (
+                        <div className="space-y-2">
+                            <h2 className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">
+                                {t("status.whatToDo", "What you can do")}
+                            </h2>
+                            {picture.actions.map((a, i) => (
+                                <div key={i} className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4">
+                                    <div className="flex items-start gap-2.5">
+                                        <span className={`mt-0.5 w-2 h-2 rounded-full shrink-0 ${
+                                            a.priority === "high" ? "bg-rose-500" : a.priority === "medium" ? "bg-amber-500" : "bg-slate-300"
+                                        }`} />
+                                        <div className="min-w-0">
+                                            <p className="text-sm font-black text-slate-900">{a.title}</p>
+                                            <p className="text-xs text-slate-600 leading-relaxed mt-1">{a.why}</p>
+                                            {a.tests.length > 0 && (
+                                                <p className="text-[10px] text-slate-400 mt-1.5 font-semibold">{a.tests.join(" · ")}</p>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                            <p className="text-[10px] text-slate-400 leading-relaxed px-1 pt-1">
+                                {t("status.disclaimer", "These are general suggestions based only on your own reports — not medical advice. Please confirm anything important with your doctor.")}
+                            </p>
+                        </div>
+                    )}
+                </>
             )}
 
             {loading ? (

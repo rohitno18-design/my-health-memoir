@@ -934,5 +934,14 @@
         "vitalExample": "Try: \"sugar 140\" or \"BP 120 by 80\"",
         "notUnderstood": "Didn't catch a reading. Try: \"sugar 140\"",
         "saved": "Saved {{type}}: {{value}}"
+    },
+    "status": {
+        "good": "Everything looks fine right now",
+        "watch": "A few things to keep an eye on",
+        "attention": "Some things need attention",
+        "outOfRange": "{{count}} reading(s) outside the normal range",
+        "allNormal": "All recorded readings are in the normal range",
+        "whatToDo": "What you can do",
+        "disclaimer": "These are general suggestions based only on your own reports — not medical advice. Please confirm anything important with your doctor."
     }
 }

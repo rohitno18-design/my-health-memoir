@@ -29,7 +29,7 @@ export async function findUnextractedDocs(userId: string) {
  */
 export async function backfillDocuments(
     userId: string,
-    limit = 10,
+    limit = 40,
     onProgress?: (p: BackfillProgress) => void
 ): Promise<BackfillProgress & { quotaHit: boolean }> {
     const pending = (await findUnextractedDocs(userId)).slice(0, limit);
