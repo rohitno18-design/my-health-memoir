@@ -1,4 +1,4 @@
-# I M Smrti — Data Layer Brief
+# I M Smrti — How the Data Works, and Where It Breaks
 
 **For:** Shreya
 **From:** Rohit
@@ -6,270 +6,219 @@
 
 ---
 
-## TL;DR
+## Why I'm sending you this
 
-We have a working health-records app for Indian families. It reads uploaded medical
-documents with AI and is supposed to turn them into structured data (lab values,
-medicines, follow-ups). **The reading part works; the structuring part is failing badly** —
-39 of our 48 uploaded lab reports have produced just **2 usable lab values**.
+You know data and databases far better than I do, and I wanted you to see what
+I've built — partly because I'd value your read on it, and partly because the
+interesting problems here are data problems, not app problems.
 
-We need someone to own the **data layer**: the medical vocabulary, the accuracy
-measurement, and the reference ranges. This is data work, not app work — **you never
-have to touch our React codebase.** Your deliverables are data files (CSV/JSON) that
-Rohit wires into the app.
+**Straight up about where things stand:** the app works and is live, but it has
+**5 users and 48 documents**. That's too early to justify bringing someone on
+properly — there simply isn't enough volume for the work to be worth your time
+yet. I'd rather say that plainly than dress up a small job as a big one.
 
-**Your first piece of work is defined at the bottom (Section 5) and is self-contained.**
+So treat this as: *here's what exists, here's what's genuinely hard about it,
+and here's where I'd want your help the moment there's real scale.* If you find
+it interesting and want to poke holes in it, that alone would be useful.
 
 ---
 
 ## 1. What the product is
 
-**I M Smrti** (imsmrti.app) is a health-record app built for the person in an Indian
-family who manages everyone else's health — the son or daughter looking after ageing
-parents, chasing prescriptions and lab reports across multiple doctors.
+**I M Smrti** (imsmrti.app) — a health-record app for the person in an Indian
+family who manages everyone else's health. The son or daughter chasing
+prescriptions and lab reports for ageing parents across three different doctors.
 
-You add a family member, photograph their prescriptions and lab reports, and the app:
-- stores them securely (12 Indian languages, DPDP-compliant)
-- has AI explain each report in simple spoken Hindi/Tamil/etc.
+You add a family member, photograph their reports, and the app:
+- stores everything securely (12 Indian languages, DPDP-compliant)
+- explains each report in plain spoken Hindi/Tamil/etc. — not textbook language
 - generates a one-page briefing to hand the doctor before an appointment
-- shows an emergency QR card (blood group, allergies, medicines) that anyone can scan
-- **charts how values move over time** ← this is the part that needs your help
+- shows an emergency QR card (blood group, allergies, medicines) anyone can scan
+- **turns reports into structured data, charts trends, and tells you where your
+  health is heading** ← the part this document is about
 
-Live at https://imsmrti.app · Stack: React + Firebase (Firestore) + Google Gemini.
-
-### Current scale — be aware
-This is early. **5 users, 5 patient profiles, 48 documents.** We're not sitting on a
-goldmine of data yet. The work matters because it is the foundation everything else
-needs — not because there's already a mountain to mine.
+Stack: React + Firebase (Firestore) + Google Gemini. Built almost entirely with
+AI assistance — which is exactly why a second pair of eyes on the data design
+is worth having.
 
 ---
 
-## 2. Where the data lives
+## 2. How data actually flows
 
-Everything is in **Firestore** (Google's NoSQL document DB). The collections that matter:
+```
+photo/PDF upload
+      ↓
+Gemini (one call) ──► returns BOTH:
+      │                 • a plain-language summary for the human
+      │                 • structured JSON: metrics / medicines / follow-ups
+      ↓
+validation guard  ──► rejects anything that isn't a real medical measurement
+      ↓
+Firestore  ──► health_metrics · medications · follow_ups
+      ↓
+      ├─► trend charts (per test, per patient)
+      ├─► health trajectory engine (score, direction, suggested actions)
+      └─► daily background agent (abnormal results, overdue follow-ups, refills)
+```
 
-### `documents` — one per uploaded file
+### The collections
+
+**`health_metrics`** — one row per lab value
 ```jsonc
 {
-  "userId":   "cFQflkq...",       // account owner
-  "patientId":"nTtOPtVZ...",      // WHICH family member this belongs to
-  "name":     "Ritu test 2026.pdf",
-  "url":      "https://.../file.pdf",
-  "docDate":  "2026-02-05",
-  "category": "cat_labreport",    // user-chosen
-  "docType":  "lab_report",       // AI-chosen: lab_report|prescription|imaging|bill|other
-  "aiSummary":"### Report...",    // AI's plain-language summary (prose)
-  "extracted": true               // has structured extraction run on it?
+  "userId":"...", "patientId":"...",        // account + WHICH family member
+  "documentId":"...", "documentName":"Ritu test 2026.pdf",
+  "test":"Vitamin D",                        // canonical name — groups the trend
+  "testRaw":"VITAMIN D (25-OH)",             // exactly as printed
+  "value":8.4, "unit":"ng/ml",
+  "refLow":30, "refHigh":100,
+  "status":"low",                            // low | normal | high | unknown
+  "date":"2026-02-05"
 }
 ```
 
-### `health_metrics` — one per lab value (**this is the broken one**)
-```jsonc
-{
-  "userId":"...", "patientId":"...", "documentId":"...", "documentName":"Ritu test 2026.pdf",
-  "test":    "Vitamin D",   // canonical name — groups a trend line together
-  "testRaw": "VITAMIN D (25-OH)",  // exactly as printed on the report
-  "value":   8.4,
-  "unit":    "ng/ml",
-  "refLow":  30, "refHigh": 100,   // normal range
-  "status":  "low",                // low | normal | high | unknown
-  "date":    "2026-02-05"
-}
-```
+**`medications`** — `{ name, dose, frequency, durationDays, startDate, expectedEndDate }`
+**`follow_ups`** — `{ advice, dueDate, status }` (drives "your review is 12 days overdue")
+**`patients`** — `{ name, gender, dob, bloodGroup, allergies, conditions, relationship }`
 
-### `medications` — one per prescribed medicine
-```jsonc
-{
-  "userId":"...", "patientId":"...", "documentId":"...",
-  "name":"Vitad3 60K", "dose":"1 capsule", "frequency":"1/W",
-  "durationDays":180, "startDate":"2026-05-04", "expectedEndDate":"2026-10-31"
-}
-```
-
-### `follow_ups` — "review after 3 weeks", "repeat LFT in 1 month"
-```jsonc
-{ "userId":"...","patientId":"...","documentId":"...",
-  "advice":"Repeat HbA1c", "dueDate":"2026-08-04", "status":"pending" }
-```
-
-### `patients` — the family members
-`{ userId, name, gender, dob, bloodGroup, allergies, conditions, relationship }`
-
-**Key rule:** every record carries `userId` (the account) **and** `patientId` (which family
-member). Mixing patients would be a serious bug — a father's cholesterol must never
-appear on his daughter's chart.
+Every record carries both `userId` and `patientId`. Mixing patients would be a
+serious bug — a father's cholesterol must never appear on his daughter's chart.
 
 ---
 
-## 3. How extraction works today
+## 3. The validation guard (and why it exists)
 
-When a document is uploaded, one Gemini call returns **both** a human summary **and**
-structured JSON (metrics/medications/follow-ups) against a fixed schema. A validation
-guard then rejects anything that isn't a plausible medical measurement before it is
-saved.
+A business PDF — a client pricing plan — was once mined for numbers, and
+**₹60,000 / ₹1,20,000 / ₹3,00,000 were saved as "Weight" readings in INR** and
+charted. Separately, a Vitamin D result was stored with a reference range of
+`null–1` when the real range is 30–100 ng/mL.
 
-That guard exists because a **business PDF's rupee amounts** (₹60,000 / ₹1,20,000 /
-₹3,00,000) were once extracted as **"Weight" readings in INR** and charted. The guard
-now blocks currency units, non-clinical documents, impossible values, and repairs
-nonsense reference ranges. It works — but it only *blocks bad data*; it doesn't
-*produce good data*.
+That's the kind of failure that makes someone stop trusting a health app
+entirely, so there's now a guard that every extracted number must pass:
+
+- **Non-clinical documents produce zero metrics.** No exceptions.
+- **Currency, phone numbers, IDs, durations, counts** are rejected outright.
+- **Physiological plausibility** — a 450 kg body weight or a 9-digit "value" is
+  thrown out.
+- **Bogus reference ranges get repaired** from a trusted table rather than trusted
+  blindly from the model.
+
+It's verified against 12 cases including the exact garbage that reached
+production. It passes all 12.
+
+**Important limitation:** a guard only *blocks bad data*. It does nothing to
+*produce good data*. That's problem #1 below.
 
 ---
 
-## 4. The problem — with real numbers
+## 4. The genuinely hard problems (the interesting bit)
 
-| Fact | Number |
-|---|---|
-| Documents uploaded | **48** |
-| Categorised as lab reports | **39** |
-| Documents put through structured extraction | **12** (36 never processed) |
-| **Lab values extracted in total** | **2** |
-| Medicines extracted | 8 |
-| Follow-ups extracted | 11 |
+### Problem 1 — Coverage, not accuracy
+Of 48 documents: **26 were never AI-analysed at all**, 12 are structured, and
+10 have summaries that haven't been converted to structured data. I originally
+assumed extraction was broken; the real gap is that most documents never went
+through the pipeline. Backfill now runs in batches of 40 and continues until
+done — but the 26 unanalysed ones need fresh AI calls against the original
+images, which costs money per document.
 
-**39 lab reports should yield several hundred values. We have 2.**
+**Open question:** what's the right re-processing strategy when a user arrives
+with 200 old reports? Batch overnight? Charge for it? Process only what's
+recent?
 
-### Problem A — no canonical medical vocabulary
-The same test is printed differently by every lab, so trend lines silently split apart
-instead of forming one series:
+### Problem 2 — No canonical medical vocabulary
+The same test is printed differently by every lab, so trend lines silently split
+into separate series instead of forming one:
 
 ```
-"HBA1C"  ·  "HbA1c"  ·  "Glycated Haemoglobin"  ·  "A1c"   → must all become ONE concept
-"VITAMIN D (25-OH)"  ·  "Vit D3"  ·  "25-Hydroxyvitamin D" → ONE concept
+"HBA1C" · "HbA1c" · "Glycated Haemoglobin" · "A1c"        → must be ONE concept
+"VITAMIN D (25-OH)" · "Vit D3" · "25-Hydroxyvitamin D"    → ONE concept
 ```
 
-Medicines are worse — Indian brand names, often OCR-mangled. These are **real strings
-from our database right now**:
+I've hand-built **66 tests** (attached: `lab_vocabulary_current.csv`) covering
+CBC, lipids, LFT, KFT, thyroid, sugar, vitamins, electrolytes, urine routine.
+Each has: canonical name, accepted units, normal range, plausibility bounds, and
+a plain-language explanation.
 
-| Extracted as | Probably is | Notes |
+**Two things I know are weak:**
+1. **Ranges are adult-generic.** They don't vary by age or sex, and they genuinely
+   should (Hemoglobin, Ferritin, Creatinine, HDL all differ by sex; children
+   differ a lot). In a health app a wrong "normal" is dangerous — it can make a
+   serious value look fine.
+2. **They're my best knowledge, not clinically reviewed.** This needs a doctor or
+   pathologist to sign off, not an engineer.
+
+### Problem 3 — Drug names are a mess
+Real strings sitting in the database right now:
+
+| Extracted as | Probably is | Issue |
 |---|---|---|
-| `Vitad3 60K` | Cholecalciferol (Vitamin D3) 60,000 IU | dose buried in the name |
+| `Vitad3 60K` | Cholecalciferol 60,000 IU | dose buried in brand name |
 | `Mouture LC` | Montair/Montek LC (Montelukast + Levocetirizine) | OCR error |
-| `Grahaconeazole` | likely Itraconazole/Griseofulvin | OCR error, unusable as-is |
-| `Amrol Fin`, `Zine 200 mg`, `Contimega O Lo` | ? | brand names, unresolved |
+| `Grahaconeazole` | likely Itraconazole | OCR error, unusable |
+| `Amrol Fin`, `Zine 200 mg`, `Contimega O Lo` | ? | unresolved brands |
 
-Note `dose` and `frequency` come back empty most of the time.
+`dose` and `frequency` come back empty most of the time. Mapping Indian brand
+names → generic molecule + strength is a real data problem I haven't solved.
 
-### Problem B — nobody knows the accuracy
-We have **no measurement** of how good extraction is. Not 40%? Not 90%? Unknown.
-That is exactly how the rupee-amount bug survived. **Anything we can't measure, we
-can't improve.**
-
-### Problem C — reference ranges are adult-generic
-Our normal ranges (~30 common tests) are hand-written for a generic adult. They don't
-vary by **age or sex**, and children/pregnancy/elderly genuinely differ. In a health
-app, a wrong "normal" range is dangerous: it can make a serious value look fine.
+### Problem 4 — Accuracy is unmeasured
+There is **no ground truth set**, so nobody can say whether extraction is 40%
+accurate or 90%. That's precisely how the rupee-amount bug survived. The fix is
+unglamorous: 30–50 real reports, hand-labelled, used as a ruler. Without it,
+every "improvement" is a guess.
 
 ---
 
-## 5. YOUR FIRST TASK (self-contained, ~2 weeks part-time)
+## 5. What's already built on top
 
-Two deliverables. **Both are data files. No app code, no Firebase writes, no deployment.**
-Work in Python / notebooks / SQL / spreadsheets — whatever you like. Rohit wires the
-output into the app.
-
-### Deliverable 1 — Lab test vocabulary (`lab_vocabulary.csv`)
-
-A mapping table from "however a lab printed it" → one canonical concept, with trustworthy
-reference ranges.
-
-| column | meaning | example |
-|---|---|---|
-| `canonical_name` | the one name we display | `HbA1c` |
-| `aliases` | pipe-separated variants seen in Indian labs | `HBA1C\|Glycated Haemoglobin\|A1c\|Glycosylated Hb` |
-| `loinc_code` | LOINC code if you can find it (nice-to-have) | `4548-4` |
-| `unit_canonical` | the unit we standardise to | `%` |
-| `unit_variants` | other units + conversion factor | `mmol/mol:0.0915` |
-| `sex` | `any` / `M` / `F` | `any` |
-| `age_min_years`, `age_max_years` | range this row applies to | `18`, `120` |
-| `normal_low`, `normal_high` | reference range | `4.0`, `5.6` |
-| `plausible_min`, `plausible_max` | outside this = bad OCR, reject | `3`, `20` |
-| `plain_what` | what the test is, in one simple sentence a non-medical person understands | `Your average blood sugar over the last 3 months.` |
-| `plain_low` / `plain_high` | what an abnormal result tends to mean, in everyday words | `Sugar has been high over months — the main number doctors track for diabetes.` |
-| `source` | where the range came from | `ICMR / AIIMS / Lab handbook` |
-
-**Scope:** the ~60–80 tests that actually appear on common Indian panels — CBC, lipid
-profile, LFT, KFT, thyroid, blood sugar/HbA1c, Vitamin D & B12, urine routine, electrolytes.
-Prioritise by what's most common, not completeness.
-
-**Please cite your sources for ranges.** We already have a rough adult-only version
-(~30 tests) you can start from — Rohit will send it.
-
-### Deliverable 2 — Accuracy test set (`gold_standard.csv`)
-
-Take **30–50 real reports** (Rohit will give you a de-identified set) and hand-label
-what a human can see on each one:
-
-`document_id, test_printed_name, value, unit, ref_low_printed, ref_high_printed, report_date`
-
-This becomes the ruler we measure extraction against — precision (did we invent values
-that aren't there?) and recall (did we miss values that are?). Without it we're guessing.
-
-**Bonus if you have time:** a first pass at `drug_vocabulary.csv` — Indian brand name →
-generic molecule + strength (`Vitad3 60K → Cholecalciferol, 60000 IU`). This one is
-genuinely hard and genuinely valuable.
+- **Trend charts** per test per patient, with reference bands and source document
+- **Health trajectory engine** — computes a 0–100 attention score, whether each
+  value is moving toward or away from the healthy range, and suggests concrete
+  actions grouped by what shares a response (sugar / cholesterol / vitamins /
+  anaemia / kidney / liver / thyroid / BP). Purely computed from the person's own
+  records — no AI guessing on the numbers.
+- **Daily background agent** — flags abnormal results, worsening 3-reading trends,
+  overdue doctor follow-ups, and medicines about to run out.
 
 ---
 
-## 6. Where this goes after that (the bigger picture)
+## 6. Where you'd fit, when the time comes
 
-If the first piece goes well, the data layer grows into:
+If this reaches real volume — thousands of documents a month — the data layer
+becomes a genuine job:
 
-1. **Quality monitoring** — a dashboard: % of documents extracting cleanly, which labs/
-   formats fail, which tests get missed most.
-2. **Longitudinal patient view** — per-patient time series feeding a "your health now →
-   where it's heading → what to do" feature (Rohit is building the app side of this now).
-3. **De-identification + aggregation design** — for eventual population-health research
-   (see the hard rules below). This means k-anonymity thresholds, age banding, no free
-   text, minimum group sizes — proper privacy engineering, not just "remove the name".
+1. **Medical vocabulary at scale** — LOINC mapping, drug normalisation, age/sex-aware
+   ranges. The highest-value piece.
+2. **Accuracy measurement + monitoring** — gold-standard sets, precision/recall per
+   test, dashboards showing which labs and formats fail.
+3. **De-identification + aggregation** — this is the ambition I'm most excited about:
+   understanding patterns in Indian health at population scale (what conditions by
+   age group, which medicines, which deficiencies) and eventually sharing that with
+   researchers or public-health bodies. Done properly it means k-anonymity, minimum
+   group sizes, banded ages, no free text — real privacy engineering.
 
-The long-term ambition is to be able to say something true and useful about Indian
-health at population scale — and one day share that with researchers or public health
-bodies. **That is a someday-at-scale goal, not a now goal.** With 5 users there is
-nothing to research. We build the foundation correctly first.
-
----
-
-## 7. Hard rules — non-negotiable
-
-This is health data belonging to real families, governed by India's **DPDP Act 2023**.
-
-1. **Never share, export or copy identifiable patient data** outside the systems Rohit
-   gives you access to. Not to a personal laptop, not to a public notebook, not to an LLM.
-2. **The data we hold today may only be used to serve those users.** Our live privacy
-   policy says data is *"strictly used to provide medical record storage and emergency SOS
-   services, generate AI health insights."* Research is a **different purpose** and legally
-   requires **separate opt-in consent** — which we are adding now, off by default. Until a
-   user actively opts in, their data is **not** available for research or aggregation.
-3. **"Without a name" is not anonymous.** Age + city + a rare condition can identify a
-   person. Real anonymisation = aggregation with minimum group sizes (never report a
-   group under ~50 people), banded ages, no free-text fields.
-4. **Never mix patients.** Every query must scope by `patientId`.
-5. If you're ever unsure whether something is allowed — **ask before doing it.** The
-   legally cautious answer is the right one every time in this domain.
+**On that last one, the legal reality:** our privacy policy says data is *"strictly
+used to provide medical record storage… generate AI health insights."* Research is a
+**different purpose** under DPDP 2023 and needs **separate opt-in consent** — which
+we're adding, off by default. And "without a name" is not anonymous: age + city + a
+rare condition re-identifies people. So this is a someday-at-proper-scale thing,
+built correctly, not a shortcut.
 
 ---
 
-## 8. What you do NOT need to touch
+## 7. What would actually help right now (no obligation)
 
-- The React app, the UI, the deployment pipeline — none of it.
-- Firebase security rules, authentication, Cloud Functions.
-- The AI prompts (Rohit owns those, though your findings will shape them).
+Nothing paid, nothing time-consuming — just if any of it interests you:
 
-You are the **data brain**. Rohit is the builder. The interface between you is
-**files in, files out**.
+1. **Poke holes in the data model.** Anything in section 2 you'd design differently?
+2. **Look at the vocabulary CSV** — especially whether the age/sex problem is as
+   significant as I think, and how you'd structure that.
+3. **Tell me if problem 4 (measuring accuracy) is where you'd start too**, or if
+   you'd attack something else first.
+
+Honest answers are worth more to me than polite ones. If you think the whole
+approach is wrong, that's the most useful thing you could tell me.
 
 ---
 
-## 9. Practical next steps
-
-1. Rohit sends you: the current adult-only reference table (~30 tests), a de-identified
-   sample of reports, and read access if/when needed.
-2. You skim this doc and tell us: does the first task make sense, and how long
-   realistically for you?
-3. Start with `lab_vocabulary.csv` — even 20 well-researched tests with good plain-language
-   explanations is immediately usable and will visibly improve the app.
-
-**Questions to Rohit:** anything unclear, anything you think is scoped wrong, or if you
-think we're solving the wrong problem — say so. That feedback is worth more than the
-files.
+**Attached:** `lab_vocabulary_current.csv` — the 66 tests, ranges and plain-language
+explanations currently powering the app.
