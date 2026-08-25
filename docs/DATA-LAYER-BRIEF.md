@@ -163,42 +163,67 @@ every "improvement" is a guess.
 
 ---
 
-## 6. Where you'd fit, when the time comes
+## 6. Where the data layer goes from here
 
-If this reaches real volume — thousands of documents a month — the data layer
-becomes a genuine job:
+As volume grows, three pieces of real data engineering sit ahead:
 
 1. **Medical vocabulary at scale** — LOINC mapping, drug normalisation, age/sex-aware
-   ranges. The highest-value piece.
+   ranges. The highest-value piece, and the one everything else depends on.
 2. **Accuracy measurement + monitoring** — gold-standard sets, precision/recall per
-   test, dashboards showing which labs and formats fail.
-3. **De-identification + aggregation** — this is the ambition I'm most excited about:
-   understanding patterns in Indian health at population scale (what conditions by
-   age group, which medicines, which deficiencies) and eventually sharing that with
-   researchers or public-health bodies. Done properly it means k-anonymity, minimum
-   group sizes, banded ages, no free text — real privacy engineering.
+   test, dashboards showing which labs and document formats fail most.
+3. **De-identification + aggregation** — the ambition I'm most excited about:
+   understanding patterns in Indian health at population scale (which conditions by
+   age group, which medicines, which deficiencies) and eventually putting that in
+   front of researchers or public-health bodies. Done properly it means k-anonymity,
+   minimum group sizes, banded ages, no free text — real privacy engineering.
 
 **On that last one, the legal reality:** our privacy policy says data is *"strictly
 used to provide medical record storage… generate AI health insights."* Research is a
 **different purpose** under DPDP 2023 and needs **separate opt-in consent** — which
 we're adding, off by default. And "without a name" is not anonymous: age + city + a
-rare condition re-identifies people. So this is a someday-at-proper-scale thing,
-built correctly, not a shortcut.
+rare condition re-identifies people. So this gets built correctly at proper scale,
+not as a shortcut.
 
 ---
 
-## 7. What would actually help right now (no obligation)
+## 7. The piece I'd most want designed properly
 
-Nothing paid, nothing time-consuming — just if any of it interests you:
+Everything above depends on one thing: **the canonical vocabulary system.** Right
+now it's a flat hand-written table (attached). It works, but it's the weakest link
+in the whole pipeline, and it's a data-modelling problem rather than an app problem.
 
-1. **Poke holes in the data model.** Anything in section 2 you'd design differently?
-2. **Look at the vocabulary CSV** — especially whether the age/sex problem is as
-   significant as I think, and how you'd structure that.
-3. **Tell me if problem 4 (measuring accuracy) is where you'd start too**, or if
-   you'd attack something else first.
+### What exists today
+One row per test — canonical name, pipe-separated aliases, one unit, one adult
+reference range, a plain-language explanation. Lookup is exact match, then a prefix
+fallback.
 
-Honest answers are worth more to me than polite ones. If you think the whole
-approach is wrong, that's the most useful thing you could tell me.
+### What it can't currently do
+| Gap | Why it matters |
+|---|---|
+| Aliases are hand-listed | A lab prints `S. CREAT.` or `Creat (Serum)` and we miss the match entirely — the trend line silently splits in two |
+| One range for everyone | Hemoglobin, Ferritin, Creatinine, HDL and Uric Acid genuinely differ by sex; children differ a lot. A wrong "normal" can make a serious result look fine |
+| No unit conversion | `mg/dL` vs `mmol/L` vs `g/L` for the same test are treated as unrelated |
+| Drug names unsolved | `Vitad3 60K`, `Mouture LC`, `Grahaconeazole` — Indian brands, OCR errors, dose buried in the name |
+| No confidence signal | Every match is treated as certain, so a bad match looks identical to a good one |
+
+### The design questions worth thinking through
+1. **Alias resolution** — exact table, normalised string matching, fuzzy/edit-distance,
+   or embeddings? Where's the right accuracy/complexity trade-off for messy OCR text?
+2. **Schema for variation** — how should age and sex ranges be modelled so lookup stays
+   simple? Rows per demographic, or ranges as nested rules?
+3. **Units** — normalise on write or convert on read? Where do conversion factors live?
+4. **Drug normalisation** — Indian brand → molecule + strength. Lookup table, fuzzy
+   matcher, an LLM step, or a combination? What happens when confidence is low?
+5. **Measuring it** — how would you prove any version of this is better than the last?
+
+### If you want something concrete to build
+Restructure the attached CSV into whatever schema you think it *should* be, and
+describe how lookup would work against it. That artefact alone — the schema plus the
+matching strategy — would be more valuable than anything else on this list, and it
+transfers directly into the app.
+
+Honest views are worth more than polite ones. If you think the whole approach is
+wrong, that's the most useful thing you could tell me.
 
 ---
 
