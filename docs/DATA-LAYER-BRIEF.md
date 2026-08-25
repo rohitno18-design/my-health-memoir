@@ -6,23 +6,6 @@
 
 ---
 
-## Why I'm sending you this
-
-You know data and databases far better than I do, and I wanted you to see what
-I've built — partly because I'd value your read on it, and partly because the
-interesting problems here are data problems, not app problems.
-
-**Straight up about where things stand:** the app works and is live, but it has
-**5 users and 48 documents**. That's too early to justify bringing someone on
-properly — there simply isn't enough volume for the work to be worth your time
-yet. I'd rather say that plainly than dress up a small job as a big one.
-
-So treat this as: *here's what exists, here's what's genuinely hard about it,
-and here's where I'd want your help the moment there's real scale.* If you find
-it interesting and want to poke holes in it, that alone would be useful.
-
----
-
 ## 1. What the product is
 
 **I M Smrti** (imsmrti.app) — a health-record app for the person in an Indian
@@ -37,9 +20,8 @@ You add a family member, photograph their reports, and the app:
 - **turns reports into structured data, charts trends, and tells you where your
   health is heading** ← the part this document is about
 
-Stack: React + Firebase (Firestore) + Google Gemini. Built almost entirely with
-AI assistance — which is exactly why a second pair of eyes on the data design
-is worth having.
+Stack: React + Firebase (Firestore) + Google Gemini. The app is live and working;
+the open problems are almost entirely data problems, not app problems.
 
 ---
 
