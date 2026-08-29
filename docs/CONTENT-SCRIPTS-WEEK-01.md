@@ -5,8 +5,22 @@ Production-ready. Shoot all four in one sitting.
 **Standing rules applied to every post below:**
 - Ends on the handoff — about *them*, not about you
 - No diagnosis, no dose recommendation, no "stop your medicine"
-- Closing disclaimer on every single one
 - Language: simple Hinglish, English for anything printed on a report
+
+> ### ⚠️ DISCLAIMER GOES FIRST, NOT LAST
+> ASCI Addendum II (April 2025) requires an unqualified health creator's
+> disclaimer to appear **upfront** — superimposed at the start of a video or as
+> the opening remark, not buried at the end.
+>
+> **On every reel:** on-screen at 0:00, small, top of frame, held 2 seconds:
+> `Not a doctor. Health information, not medical advice.`
+>
+> **On every carousel:** same line on slide 1, small, under the hook.
+>
+> **On every caption:** same line as the **first** line.
+>
+> Keep the closing "show this to your doctor" too — that's the handoff, and it
+> does a different job. The upfront line is the compliance one.
 
 ---
 
@@ -249,7 +263,12 @@ Not medical advice.
 > Sounds like normal life in India, doesn't it?
 > **That's the problem. It's so common we stopped noticing it.**
 >
-> **[0:37]**
+> **[0:36 — cite the number, this is what makes it factual not advisory]**
+> Metropolis looked at **22 lakh** Vitamin D tests in India.
+> **46% were deficient. Another 26% were insufficient.**
+> That's roughly **7 out of 10** people who got tested.
+>
+> **[0:44]**
 > Why here specifically — we stay indoors, we cover up, pollution blocks the sunlight, and there's very little of it in a vegetarian diet.
 >
 > **[0:45]**

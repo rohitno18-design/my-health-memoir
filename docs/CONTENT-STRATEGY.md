@@ -382,8 +382,27 @@ Stories 3–4 days/week: polls, questions, behind-the-scenes, replies.
 ### Language
 **Simple Hinglish.** Everyday spoken words; English for medical terms because that's what's printed on the report — "Hemoglobin kam hai", never "रक्ताल्पता".
 
-### Safety rule — non-negotiable
-Never diagnose. Never prescribe a medicine or dose. Never tell anyone to stop a medicine. Anything touching a condition ends on *"show this to your doctor."* Ethical line and legal protection, and it's already how the app is written.
+### Safety + compliance rule — non-negotiable
+*(Updated after market research — see `CONTENT-RESEARCH-VALIDATION.md` §3)*
+
+**ASCI Influencer Guidelines Addendum II (April 2025) binds this page.** NMC rules only bind doctors; ASCI binds anyone posting health content, and a page with the app in the bio counts as brand content. Unqualified creators may share **generic information, not technical advice**, and any disclaimer must appear **upfront**, not at the end.
+
+Six rules, all mandatory:
+
+1. **Disclaimer in the first frame.** On screen at 0:00 and as the opening line of the caption — never only at the end. Standard wording: *"Not a doctor. Health information, not medical advice."*
+2. **Say what the report SAYS, then what to ASK.** Never what the viewer should *do*. "This value is below the normal range — ask your doctor what's causing it" is factual. "You need supplements" is advice you're not qualified to give.
+3. **No diagnosis, no dose, never tell anyone to stop a medicine.**
+4. **No product endorsement.** No supplement brands, no specific medicine recommendations, no diagnostic-centre promotion. This is where penalties actually land.
+5. **Nutrition stays on habits, timing, portions and swaps.** No metabolism claims, no "cures", no studies you haven't read. Weakest ground, tightest discipline.
+6. **Get a doctor to review content before it posts.** See below.
+
+### The doctor reviewer — highest-value action available
+One qualified reviewer solves three problems simultaneously:
+1. Brings content inside ASCI's qualification expectation
+2. Clinically validates the **66 reference ranges** — already flagged as needed in `DATA-LAYER-BRIEF.md` §4
+3. Adds real credibility to the page *and* the app
+
+A **"Medically reviewed by Dr. X"** line is worth more than any hook in this document.
 
 ---
 
