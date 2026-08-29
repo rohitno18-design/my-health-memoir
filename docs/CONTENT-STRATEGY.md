@@ -1,4 +1,4 @@
-# I M Smrti — Content System
+# I M Smrti — Content System (v2, locked)
 
 **A health platform for Indian families. The app lives in the bio, not in every post.**
 
@@ -10,326 +10,375 @@ Updated: 29 August 2026
 
 > **We are not an app account that posts health tips. We are a health channel that happens to have built an app.**
 
-Practical test before publishing anything: *if the app did not exist, would this post still deserve to be posted?* If no, don't post it. The app appears when it is genuinely the answer, not as a tax on every piece of content.
-
-Closest model: Zomato's feed is not about ordering food. CRED's content was not about credit cards. The product earns attention by being useful first.
+Test before publishing: *if the app did not exist, would this post still deserve to exist?* If no, don't post it.
 
 ---
 
-## 1. THE UNIVERSE
+## 1. THE UNIVERSE — locked
 
-One argument every post secretly proves.
+> **Health in India doesn't fail because of bad information. It fails in translation — reports are written in a language families don't speak, and health advice is copied from a culture that doesn't eat, cook or live like us.**
 
-### Candidate A — the information gap *(my bet)*
-> **Most Indians aren't unhealthy. They're uninformed — because health information in this country is written for doctors, not for families.**
+This one argument covers everything you want to talk about:
 
-Why it wins:
-- It covers **everything** you said you want to talk about: food, habits, supplements, medicines, lab reports, daily life. Each becomes "here's what nobody explained to you."
-- It's **true and provable** — every lab report in India prints reference ranges nobody reads, every prescription is written in code (OD/BD/TDS), every supplement ad talks over people's heads.
-- It gives you **permission to teach without being a doctor.** You're not diagnosing, you're translating. That's a defensible position for a non-clinician.
-- It is **exactly what the app does** — it converts medical language into simple spoken Hindi. Channel and product do the same job in different mediums. Nothing feels bolted on.
+| What you post | How it proves the Universe |
+|---|---|
+| Decoding a lab report | Medical language → family language |
+| Prescription shorthand (OD, BD, 1-0-1) | Doctor's code → plain instruction |
+| Tasty Indian food that's still healthy | Western restriction advice → Indian kitchen reality |
+| Yoga / walking / Ayurveda for parents | Gym-bro advice → what a 60-year-old will actually do |
+| Supplements you don't need | Ad copy → what your body actually asked for |
+| Fix inputs, not outcomes | Motivation culture → a system that survives a real week |
 
-### Candidate B — agency
-> **Your family's health is a system you can manage, not luck you wait for.**
+### Bio-ready
+> **Health, translated for Indian families — the reports and the routine.**
 
-Strong, but skews organisational/productivity. Harder to hang food, sleep and supplement content on it.
-
-### Candidate C — the untrained decision-maker
-> **In most Indian families, the biggest health decisions are made by someone with zero medical training.**
-
-Emotionally the sharpest, and very true to the app's user. But narrower — it locks you to caregivers and makes general wellness content feel off-brand.
-
-### Bio-ready sentence
-> **Health in India is explained in a language families don't speak. We translate it.**
-
-Alternate, warmer:
-> **Making Indian health information simple enough for your parents to understand.**
+Warmer alternate:
+> **Making health make sense for your parents, in the language they speak.**
 
 ---
 
-## 2. WHO WE'RE ACTUALLY TALKING TO
+## 2. WHO WE'RE TALKING TO
 
-### Segment 1 — The Family Health Manager *(lead with this for 90 days)*
-28–45, usually the son or daughter, often the daughter. Manages parents' appointments, medicines and reports — frequently from another city.
+### Lead segment for 90 days — The Family Health Manager
+28–45, the one everyone calls. Often managing parents from another city. **This is you, which is why it will sound real.**
 
-- **Before:** *"Papa's reports are in a plastic bag. The doctor asked what medicines he's on and I had to call my mother mid-appointment. I felt useless."*
-- **After:** *"I know his sugar has been climbing for three reports. I walked in with one page and asked two proper questions."*
-
-**Why lead here:** it is the app's actual user, it is the most emotionally charged, and it converts to installs without you selling — because the pain *is* the product. It's also the widest funnel in disguise: everyone with a parent is eventually in this segment.
+- **Before:** *"I was holding the report. I drove him there. I waited two hours. And I still didn't understand what was wrong with my own father."*
+- **After:** *"I know his sugar has been climbing across three reports. I walked in with one page and asked two proper questions."*
 
 ### Segment 2 — The Newly Worried
-30–45. Just got their first report with something marked in red. Frightened, googling at 1 am, getting contradictory answers.
+30–45, first report with something in red, googling at 1 am.
+- **Before:** *"SGPT 68 and Google says liver failure. I don't even drink."*
+- **After:** *"It's fatty liver, it's common, it's reversible, and I know the three things that move it."*
 
-- **Before:** *"My SGPT is 68 and Google says liver failure. I don't drink. I don't understand what I did wrong."*
-- **After:** *"It's fatty liver, it's common, it's reversible, and I know the three things that actually move it."*
-
-Highest-intent content audience — searches for exactly this. Overlaps heavily with Segment 1.
-
-### Segment 3 — The Supplement Buyer
-25–40, urban, health-curious, buying based on Instagram ads and gym advice. Spends ₹2,000–5,000/month on things they may not need.
-
-- **Before:** *"I take multivitamin, protein, omega-3, biotin, apple cider vinegar. I don't know if any of it works."*
-- **After:** *"I got tested first. I actually needed two of them. I stopped the rest and saved ₹3,000 a month."*
-
-Great for reach and saves — supplement myth-busting travels. Weakest tie to the app; use as a growth lever, not the core.
+### Segment 3 — The Restriction-Fatigued
+25–45, has tried "healthy eating" and quit, because every plan asked them to give up food they love.
+- **Before:** *"Every health page tells me to eat boiled vegetables. I lasted four days."*
+- **After:** *"I didn't give up taste. I gave up junk. Turns out those are different things."*
 
 ---
 
-## 3. THE DIFFERENTIATOR — questions only you can answer
+## 3. THE DIFFERENTIATOR — locked
 
-You said you don't know it yet. I'm not going to invent one, because a fake differentiator produces content that sounds like every other Indian health page. These five questions would surface the real one:
+> **I'm not a doctor. I'm the person families call when something goes wrong — and I got tired of holding reports I couldn't read.**
 
-1. **Why did you actually build I M Smrti?** Was there a specific moment — a report you couldn't understand, a hospital visit, someone in your family? What exactly happened, and when? *(This is the single most important answer. It decides the founder story, the tone, and probably the differentiator itself.)*
+Three things make this defensible, and all three came from your own answers:
 
-2. **What do you know about Indian health that you only learned by building this app?** You've read real lab reports, seen real prescriptions, watched the AI mangle Indian brand names. What surprised you that a doctor wouldn't think to mention?
+### (a) Position — the calm one, not the credentialed one
+You said it yourself: they don't call you to read the report. They call you because you're **steady** — healthy, serious but funny, mentally sorted, doesn't panic, doesn't rush decisions. You take care of your parents, your relatives, and *your friends' parents*.
 
-3. **What health advice do you personally disagree with?** What do Indian health pages say that you think is wrong, lazy, or copied from American content? A channel with no enemy has no edge.
+Doctors have authority but no time. Fitness influencers have abs but no gravity. **You have trust** — the thing families actually run on in a crisis. Nobody can copy that because it's earned, not claimed.
 
-4. **What have you personally changed about your own health, and what did it actually cost you to learn?** Whatever you've genuinely lived through is content nobody can copy.
+### (b) Method — subtract before you add; fix inputs, not outcomes
+Your own three months:
+- You didn't fix your **wake-up** time. You fixed your **sleep** time — and now wake at 4 am without an alarm.
+- You didn't **add** superfoods. You **removed** sugar, alcohol, fast food.
+- You didn't count calories. You fixed **eating windows** — no munching, lunch 1:30–2:15, known pre- and post-gym timings.
 
-5. **When someone in your family gets a report, who do they call?** If it's you — why? What do you do for them that a doctor doesn't? That answer is probably your positioning.
+That's a genuinely different philosophy from Indian health content, which is almost entirely additive ("add this seed, this juice, this powder"). **You go the other way, and you lived it.**
 
-**My hypothesis, for you to confirm or destroy:** your differentiator is that you are *not* a doctor — you're the son who got tired of not understanding, built a tool to fix it, and now explains health the way he wishes someone had explained it to him. Doctors talk down. You talk across. But I'd rather have your real answer than my clean guess.
+### (c) Stance — taste is not the enemy, junk is
+The fight you picked in your own words: Indian health pages push boiled food and restriction, copied from Western content. But Indians **love to cook**, love spice, aroma, flavour — and have no interest in packaged, boiled, joyless eating.
+
+Your position: **you don't have to choose between tasty and healthy — you have to choose between home-cooked and junk.** You removed sugar and fast food, not flavour. That single distinction is the sharpest idea you own.
+
+### The enemy (every channel needs one)
+> **Boiled-food health advice.** Western restriction culture, copy-pasted onto a country that has been cooking well for three thousand years.
 
 ---
 
-## 4. THE FOUR DOORS
+## 4. THE FOUNDER STORY — written
+
+### The long version (caption / carousel / 60–90s reel)
+
+**Intent —**
+I'm 38. My parents are 60. And somewhere along the way I became the person everyone calls — my parents, my relatives, even my friends' parents. When something goes wrong, I'm the one who shows up. I carry the file. I drive to the hospital. I sit through the wait. I talk to the doctor.
+
+**Obstacle —**
+But I'd be sitting there holding a report I couldn't read. Written in medical language, for doctors. And to understand one line of it, I'd wait two hours to get five minutes with a doctor. Two hours. For five minutes. Then I'd walk out and forget most of what he said by the time I reached the car.
+
+I was the responsible one. I was doing everything right. And I still had no idea what was actually happening inside my own father's body.
+
+**Resolution —**
+So I built the thing I needed. Something that reads the report and explains it in the language my parents actually speak.
+
+Then I realised we kept forgetting documents at home — so it became a place to keep everything. Then my whole family's records, not just mine. Then a one-page summary to hand the doctor, so those five minutes aren't wasted on history.
+
+Every single feature exists because it was a problem I personally hit while standing in a hospital corridor.
+
+### The 30-second version (reel)
+> "I'm 38. My parents are 60. I'm the one everyone calls when something goes wrong.
+> I'd carry the file, drive them to the hospital, wait two hours for five minutes with the doctor —
+> and still walk out not understanding what was wrong with my own father.
+> The report was in English. It just wasn't in *my* language.
+> So I built something that translates it. That's the whole story."
+
+### The one-line version (bio, intros, comment replies)
+> "I'm not a doctor. I'm the guy whose parents are 60, who got tired of holding reports he couldn't read."
+
+---
+
+## 5. WHO YOU'RE SPEAKING TO CHANGES HOW YOU SPEAK
+
+Your insight from Q3, turned into a targeting rule. Same health truth, three different languages:
+
+| Audience | Speaks the language of | Do say | Don't say |
+|---|---|---|---|
+| **Men 25–40** | Gym, performance, bodybuilding | protein, strength, energy, recovery, body fat | "gentle movement", "wellness" |
+| **Women 25–45** | Food, family, energy, yoga | tasty + healthy, no restriction, cooking, stamina, skin, PCOS | "shred", "bulk", "macros" |
+| **60+ (parents)** | Yoga, walking, Ayurveda, routine | morning walk, pranayam, digestion, joints, sugar control, "pehle jaisa" | gym, workout splits, supplements stack |
+
+**Rule:** decide the audience *before* the hook. The same fact about Vitamin D is three different posts.
+
+Example — one fact, three audiences:
+- **Men 25–40:** "Low Vitamin D is why your lifts stalled and you're always sore."
+- **Women 25–45:** "Constant body ache and tiredness that sleep doesn't fix? Check this one number."
+- **60+:** "घुटनों में दर्द? It may not be age. It may be one vitamin."
+
+---
+
+## 6. THE CONTENT PILLARS
+
+Six pillars, all proving the same Universe.
+
+1. **Decode the report** — lab values, prescriptions, shorthand, what "normal" means *(your unfair advantage: 66 tests already written in plain language inside the app)*
+2. **Tasty ≠ unhealthy** — recipes, swaps, spices, portion, timing, what's actually in the food and why it matters
+3. **Subtract first** — remove junk before adding anything; the say-no method
+4. **Inputs, not outcomes** — sleep time not wake time; eating windows not calorie counting; systems over motivation
+5. **For your parents** — yoga, walking, Ayurveda bridge, digestion, joints, the 60+ reality
+6. **The caregiver's job** — hospital visits, doctor conversations, documents, emergencies
+
+---
+
+## 7. THE FOUR DOORS
 
 ### KNOW — "I didn't know that"
-Pure information value. No product. This is the bulk of the channel.
-
-1. **Prescription shorthand decoded** — what OD, BD, TDS, HS, SOS and "1-0-1" actually mean. Every Indian has held a prescription they couldn't read.
-2. **"Normal" is a range, not a number** — why two labs print different reference ranges for the same test, and which one to trust.
-3. **What actually needs 12-hour fasting** before a blood test — and the tests where fasting changes nothing.
-4. **Generic vs brand** — the same molecule at ₹12 and ₹180, and what Jan Aushadhi is.
-5. **The three-month number** — how HbA1c reveals what a fasting sugar test hides.
+1. Prescription shorthand decoded — OD, BD, TDS, HS, SOS, "1-0-1"
+2. Why two labs print different "normal ranges" for the same test
+3. What actually needs 12-hour fasting before a blood test
+4. Generic vs brand — same molecule, ₹12 vs ₹180, and what Jan Aushadhi is
+5. HbA1c — how one number reveals what a fasting sugar test hides
 
 ### BELIEVE — shift a belief
-Where opinion and worldview live. This is where the channel gets a personality.
-
-1. **"Immunity booster" is a marketing phrase, not a medical one** — and what actually affects immunity.
-2. **Your dal-chawal isn't the problem. The portion and the 4 pm biscuit are.** Indian food gets blamed for Western diet advice.
-3. **Most Indians need 2–3 supplements, not 8** — get tested before you buy.
-4. **Low haemoglobin in Indian women is so common we've started treating it as normal.** It isn't normal, it's just frequent.
-5. **You don't need a 50-year-old's reason to get a health check at 30** — Indians get diabetes and heart disease at lower BMI and younger ages than Europeans.
+1. **"Boiled food is not health food."** Indian cooking isn't the problem — junk is.
+2. **"Stop adding. Start removing."** You don't need a new supplement; you need to delete three things.
+3. **"Fix the input, not the outcome."** You can't force a 5 am wake-up. You can force a 10 pm sleep.
+4. "Immunity booster" is a marketing phrase, not a medical one.
+5. Haemoglobin 10 in Indian women is common — that is not the same as normal.
 
 ### PROVE — evidence, not claims
-Show, don't assert. No user testimonials yet, so prove with *artefacts and knowledge*.
+1. Read a real (anonymised) lab report on screen, line by line
+2. Decode an actual Indian prescription — every line, including shorthand
+3. Show the 66-test plain-language reference you built for the app
+4. Your own three months: what you removed, what changed, no before/after abs required
+5. "Vitad3 60K" → Cholecalciferol 60,000 IU → why weekly, not daily
 
-1. **Read a real (anonymised) lab report on screen** line by line — what each number means, what you'd ask the doctor.
-2. **Screen-record the app explaining a report in Hindi** — not as an ad, as a demonstration that this translation is possible.
-3. **The 66-test reference table** you built — show the work behind "we explain every value in plain language."
-4. **A real prescription decoded** — take an actual Indian prescription (blurred) and translate every line, including the shorthand.
-5. **Before/after of a mangled medicine name** — "Vitad3 60K" → Cholecalciferol 60,000 IU → what it's for and why it's weekly.
-
-### TRY — the download
-Same weight as a sale, used sparingly (see CTA rotation).
-
-1. **The emergency card** — "If your mother collapsed today, would anyone know her blood group and medicines?" → the QR card.
-2. **The doctor visit briefing** — "You get 10 minutes with the doctor. Here's how to not waste 8 of them." → the one-page briefing.
-3. **The plastic bag problem** — "15 years of your father's health in a polythene bag" → photograph them once, done.
-4. **Trend, not snapshot** — "One report tells you a number. Six reports tell you a direction." → trends feature.
-5. **Parents' language** — "Your father won't read an English report. He'll listen to it in Hindi." → the app reads it aloud.
+### TRY — the download *(used sparingly)*
+1. Emergency card — "If your mother collapsed today, would anyone know her blood group?"
+2. Doctor visit briefing — "10 minutes with the doctor. Don't spend 8 on history."
+3. The plastic bag — "15 years of your father's health in a polythene bag."
+4. Trends — "One report is a number. Six reports are a direction."
+5. "Your father won't read an English report. He'll listen to it in Hindi."
 
 ---
 
-## 5. THE STORY ENGINE
+## 8. THE STORY ENGINE
 
-### Founder story — **BLOCKED, needs your real input**
-Structure: **Intent → Obstacle → Resolution**
+### Feature story — Feature → why it exists → human angle
+> **Feature:** Doctor visit briefing.
+> **Why it exists:** I'd wait two hours for five minutes, then spend three of those five explaining history.
+> **Human angle:** One page in your hand means the doctor spends the whole five minutes on what to *do*, not on catching up.
 
-I can't write this. I don't know why you built the app, and inventing an origin story for a health brand is exactly the kind of thing that gets found out and destroys trust. Answer question 1 in section 3 and this writes itself.
+Ready-made:
+- **AI summary in Hindi** → your father won't read an English report, and shouldn't have to
+- **Family profiles** → one person usually carries the whole family's health in their head
+- **Trends** → a single reading is a snapshot; health is a direction
+- **Follow-up reminders** → "come back after 3 weeks" is forgotten by week five
+- **Emergency QR** → the person who knows the history is usually the one who isn't there
 
-The frame it will fit:
-- **Intent:** what you were trying to do for someone in your family
-- **Obstacle:** the moment it went wrong / you felt helpless / nobody could explain
-- **Resolution:** what you built, and what it changed
+### User story — Before → After → Transformation
+**Placeholder until real users exist.** Do not fabricate testimonials in health — dishonest and a genuine liability.
 
-### Feature story — **Feature → why it exists → human angle**
-Template with a real example:
+Honest substitutes until then:
+- **Your own family** as first case study (with permission) — your father at 60, 90 kg, just started morning walks. That's a real arc unfolding in public.
+- **"Here's a situation I see constantly —"** instead of a fake named person
+- **The report as the character** — one number's journey across six months
 
-> **Feature:** Emergency Pulse QR card.
-> **Why it exists:** In an emergency, the person who knows the medical history is often the person who isn't there.
-> **Human angle:** A stranger scanning a code on a helmet sticker can tell a paramedic about a blood thinner. That's the whole point.
-
-Ready-made feature stories:
-- **AI summary in Hindi** → because your father won't read an English lab report, and shouldn't have to.
-- **Doctor visit briefing** → because 10 minutes is not enough time to remember six months.
-- **Family profiles** → because one person usually carries everyone's health in their head.
-- **Trends** → because a single reading is a snapshot; health is a direction.
-- **Follow-up reminders** → because "come back after 3 weeks" is forgotten by week five.
-
-### User story — **Before → After → Transformation**
-**Placeholder until real ones exist.** Do not fabricate testimonials in a health context — it's both dishonest and a real liability.
-
-Until then, use these honest substitutes:
-- **Your own family** as the first case study (with their permission)
-- **"Composite" framing spoken plainly:** *"Here's a situation I see constantly —"* rather than a fake named person
-- **The report itself as the character** — the story of a number over six months
-
-When real users arrive, capture in this exact shape: what life looked like before → what changed → what they can do now that they couldn't.
-
-### The multiplication list — one story into 5+ formats
-Take one story (e.g. *the Vitamin D 8.4 report*):
-
-1. **Reel** — 30s, hook on the number, explain what it means
-2. **Carousel** — 6 slides: the value, the real range, symptoms, causes in India, what to ask, what not to do
-3. **Static quote card** — "Normal is 30. The report said 8.4. Nobody had explained that to him."
-4. **Story poll** — "Do you know your Vitamin D level?" → yes / no / what is that
-5. **Long caption post** — the fuller explanation for the readers
-6. **Comment reply video** — answer the most-asked question that post generates
-7. **Hindi version** — same content, different audience entirely
+### Multiplication — one story into 7 formats
+Take *"I waited two hours for five minutes"*:
+1. **Reel** — 30s founder story
+2. **Carousel** — "What actually happens in those 5 minutes (and how to use them)"
+3. **Quote card** — "Two hours of waiting. Five minutes of answers. Still no idea what was wrong."
+4. **Story poll** — "Longest you've waited to see a doctor?"
+5. **Long caption** — the full origin
+6. **Comment-reply video** — answer the most common response
+7. **Hindi version** — different audience entirely
 
 ---
 
-## 6. THE STORY BANK — capture buckets
+## 9. THE STORY BANK — capture buckets
 
-Anything you notice goes into one of these, immediately, on your phone. Nothing gets lost.
-
-1. **Reports I've read** — every real lab report or prescription you decode (anonymised). The richest bucket you own.
-2. **Things people ask me** — every health question a friend/relative/DM asks. If one person asks, thousands are searching.
-3. **Doctor moments** — anything a doctor said in a consultation that was clear, unclear, rushed, or surprising.
-4. **Product moments** — what the app did well, what it got wrong, what a user said, what you had to fix and why.
-5. **Health myths in the wild** — WhatsApp forwards, family beliefs, Instagram ads, chemist advice. Screenshot them.
-6. **My own health** — what you've changed, tried, failed at, measured. Your own body is a legitimate content source.
-7. **Numbers and facts** — any Indian health statistic you come across, with the source. Fuel for bold-statement hooks.
+1. **Reports I've read** — every real report/prescription you decode (anonymised)
+2. **Things people ask me** — every health question a relative or friend asks
+3. **Hospital moments** — what happened in the corridor, the wait, the consultation
+4. **My own health** — the 4 am wake-up, the gym, what you removed, what you resisted
+5. **My parents' health** — dad's walks, his weight, the real-time arc *(with permission)*
+6. **Myths in the wild** — WhatsApp forwards, chemist advice, Instagram ads. Screenshot them.
+7. **Product moments** — what the app got right, what it got wrong, what you fixed
 
 ---
 
-## 7. HOOK FORMULAS
+## 10. HOOK FORMULAS
 
 **Bold statement**
-1. *"[Common belief] is wrong. Here's what actually happens."* — "Immunity boosters are wrong. Here's what actually affects immunity."
-2. *"Most Indians [do X]. Almost none know [Y]."* — "Most Indians take Vitamin D. Almost none know why it's once a week."
-3. *"[Number] is not normal. It's just common."* — "Haemoglobin 10 is not normal. It's just common in Indian women."
-4. *"If you [common situation], this is for you."* — "If your parents' reports live in a plastic bag, this is for you."
+1. *"[Common belief] is wrong. Here's what actually happens."*
+2. *"Boiled food is not health food."*
+3. *"[Number] is not normal. It's just common."*
+4. *"Stop adding things to your diet. Start removing."*
 
 **Curiosity gap**
 5. *"Your prescription is written in code. Here's the key."*
-6. *"There's one number on your report that tells 3 months of truth."*
-7. *"Two labs, same blood, different 'normal'. Here's why."*
-8. *"The cheapest thing that controls blood sugar costs ₹0 and takes 10 minutes."*
+6. *"One number on your report tells three months of truth."*
+7. *"I wake up at 4 am without an alarm. I never fixed my mornings."*
+8. *"The cheapest blood-sugar control costs ₹0 and takes 10 minutes."*
 
 **Relatable pain**
-9. *"The doctor asked what medicines he takes. I had to call my mother."*
-10. *"You get 10 minutes with the doctor. You spend 8 explaining history."*
+9. *"I waited two hours for five minutes with the doctor — and still didn't understand."*
+10. *"The doctor asked what medicines he takes. I had to call my mother."*
 
 ---
 
-## 8. STARTER TOPIC BANK — 45 ready lines
+## 11. TOPIC BANK — 60 ready lines
 
-### Decoding prescriptions & medicines
-1. 1-0-1 का मतलब क्या है — your prescription is written in code, here's the key
+### Decode the report
+1. 1-0-1 का मतलब — your prescription is written in code, here's the key
 2. OD, BD, TDS, HS — what your doctor's shorthand actually means
-3. SOS on a prescription doesn't mean emergency. It means "only if needed"
-4. "Khaane ke baad" means 30 minutes after, not with the last bite
-5. Why the same medicine costs ₹12 and ₹180 — generic vs brand
-6. Jan Aushadhi: the same molecule, up to 70% cheaper. Most people don't know it exists
-7. Why stopping an antibiotic when you feel better is the worst thing you can do
+3. SOS on a prescription doesn't mean emergency
+4. "Khaane ke baad" = 30 minutes after, not with the last bite
+5. Same medicine, ₹12 and ₹180 — generic vs brand
+6. Jan Aushadhi — same molecule, up to 70% cheaper
+7. Why stopping antibiotics early is worse than never starting
 8. That 60,000 IU Vitamin D sachet — why weekly, not daily
-9. What to ask when a doctor prescribes something new (4 questions)
-10. Why your doctor writes so fast and so badly — and what to do about it
+9. Vitamin D 8.4 when normal starts at 30 — what "deficient" really means
+10. Haemoglobin below 12 in women: common, not normal
+11. HbA1c — three months of truth in one number
+12. Fasting sugar normal but HbA1c high? Here's what's happening
+13. TSH high = thyroid slow = tired, cold, gaining weight
+14. SGPT raised and you don't drink? Probably fatty liver
+15. Why two labs give different "normal" for the same test
+16. What actually needs 12-hour fasting
+17. Platelet count in dengue — when to actually worry
+18. B12 deficiency: tingling hands, poor memory, vegetarian diet
+19. Creatinine — the kidney number ignored until it's late
+20. Uric acid high? That big-toe pain has a name
+21. HDL going UP is good news — here's why
+22. ESR/CRP raised = "inflammation somewhere". What that means
+23. 4 questions to ask when a doctor prescribes something new
 
-### Decoding lab reports
-11. Vitamin D 8.4 when normal starts at 30 — what "deficient" actually means
-12. Haemoglobin below 12 in women: common, not normal
-13. HbA1c — the one number that tells three months of truth
-14. Fasting sugar normal but HbA1c high? Here's what's happening
-15. TSH high = thyroid slow = tired, cold, gaining weight
-16. SGPT raised and you don't drink? That's probably fatty liver
-17. Why two labs print different "normal ranges" for the same test
-18. What actually needs 12-hour fasting (and what doesn't)
-19. Platelet count in dengue — the number to watch and when to worry
-20. B12 deficiency: tingling hands, poor memory, and a vegetarian diet
-21. Creatinine — the kidney number people ignore until it's late
-22. Uric acid high? That sudden big-toe pain has a name
-23. Cholesterol: why HDL going UP is good news
-24. ESR/CRP raised — what "inflammation somewhere" actually means
-25. MCV low — the early clue to iron deficiency most people miss
+### Tasty ≠ unhealthy
+24. Your dal-chawal is fine. Your portion isn't
+25. Ghee isn't the villain. The quantity is
+26. Boiled food is not health food — the biggest lie on Indian health pages
+27. 5 Indian swaps that change nothing about taste
+28. Why we can cook healthy better than any Western diet plan
+29. The 4 pm chai-biscuit does more damage than your dinner
+30. Spices that actually do something (and the ones that are just marketing)
+31. Same sabzi, half the oil, no taste difference — the technique
+32. Roti vs rice — the question is wrong, here's the real one
+33. What's actually inside packaged "healthy" snacks
+34. Protein in a vegetarian Indian diet — where it really comes from
+35. Why Indians get diabetes at a lower BMI than Europeans
+36. Salt: the 5g limit, and how one spoon of achaar blows past it
 
-### Supplements — honest talk
-26. Which supplements do Indians actually need? Usually 2–3. You're sold 8
-27. Protein powder: who needs it, who's burning ₹3,000/month
-28. Multivitamin daily — helpful, or expensive urine?
-29. Calcium without Vitamin D is money down the drain
-30. Omega-3 for vegetarians: what actually works
-31. "Immunity booster" is a marketing word, not a medical one
-32. Get tested before you supplement — the ₹800 test that saves ₹30,000
+### Subtract first
+37. Stop adding supplements. Remove three things instead
+38. I removed sugar, alcohol and fast food. I added nothing. Here's what happened
+39. Most Indians need 2–3 supplements, not 8
+40. Get tested before you supplement — the ₹800 test that saves ₹30,000
+41. Protein powder: who needs it, who's burning ₹3,000/month
+42. Multivitamin daily — helpful or expensive urine?
+43. Calcium without Vitamin D is money down the drain
+44. "Immunity booster" is a marketing word, not a medical one
+45. The one-week subtraction experiment
 
-### Food, habits, daily life
-33. The 4 pm chai-biscuit does more damage than your dinner
-34. A 10-minute walk after dinner — the cheapest sugar control that exists
-35. Ghee isn't the villain. The quantity is
-36. Why Indians get diabetes at a lower BMI than Europeans
-37. Your dal-chawal is fine. Your portion isn't
-38. Sleeping at 2 am and "getting 8 hours" is not the same thing
-39. Standing up every 45 minutes undoes most of the damage of sitting
-40. Salt: the 5g limit, and how one spoon of pickle blows past it
-41. Protein in a vegetarian Indian diet — where it actually comes from
+### Inputs, not outcomes
+46. I wake at 4 am without an alarm — I never fixed my mornings, I fixed my nights
+47. Fix the input, not the outcome — the whole philosophy in 40 seconds
+48. Eating windows beat calorie counting for most people
+49. No munching between meals — the smallest change with the biggest result
+50. A 10-minute walk after dinner: the cheapest sugar control that exists
+51. Standing up every 45 minutes undoes most of the damage of sitting
+52. Sleeping at 2 am and "getting 8 hours" is not the same thing
+53. Why saying NO fixes more than saying YES to something new
 
-### The caregiver reality
-42. Your parents won't tell you they're unwell. Here's what to watch for
-43. Ten minutes with the doctor — how not to waste eight of them
-44. In an emergency, does anyone know your mother's blood group?
-45. Managing your parents' health from another city — what actually works
-46. Every Indian family has an unpaid Chief Health Officer. It's usually the daughter
+### For your parents (60+)
+54. My father is 60, 90 kg, and just started walking. Here's what we're tracking
+55. घुटनों में दर्द? It may not be age — it may be one vitamin
+56. Yoga vs gym after 60 — what actually helps
+57. Pranayam and blood pressure: what the evidence says
+58. Digestion after 60 — why timing matters more than food
+59. The medicine list your parent should carry in their wallet
+
+### The caregiver's job
+60. Two hours of waiting. Five minutes with the doctor. Here's how to use them
+61. Your parents won't tell you they're unwell — what to watch for
+62. In an emergency, does anyone know your mother's blood group?
+63. Managing parents' health from another city — what actually works
+64. Every Indian family has an unpaid Chief Health Officer. Usually the daughter
+65. What to carry to a hospital visit (and what you'll forget)
 
 ---
 
-## 9. FORMATS, CADENCE, CTA ROTATION
+## 12. FORMATS, CADENCE, CTA ROTATION
 
-### Realistic solo pace — 4 posts/week
-| Day | Format | Door |
+### Pace — 4 posts/week
+| Day | Format | Pillar |
 |---|---|---|
-| Mon | Reel (30–45s) | KNOW |
-| Wed | Carousel (6–8 slides) | KNOW or BELIEVE |
-| Fri | Reel | BELIEVE or PROVE |
-| Sun | Carousel or static | Story / caregiver / reflective |
+| Mon | Reel 30–45s | Decode the report |
+| Wed | Carousel 6–8 slides | Tasty ≠ unhealthy / Subtract |
+| Fri | Reel | Inputs not outcomes / Belief |
+| Sun | Carousel or static | Parents / caregiver / story |
 
-Stories: 3–4 days/week — polls, questions, behind-the-scenes, replies. This is where the audience relationship actually forms, and it costs almost nothing.
+Stories 3–4 days/week: polls, questions, behind-the-scenes, replies.
 
-**Do not exceed this.** Four consistent posts beat seven for three weeks and then silence.
-
-### CTA rotation — tuned for "not a marketing channel"
-| Share | CTA type |
+### CTA rotation — enforces "not a marketing channel"
+| Share | CTA |
 |---|---|
-| **50%** | **No CTA at all.** The post ends when the value ends. |
-| 30% | Engagement — "save this for your next report", "send this to whoever manages your parents' health" |
-| 15% | Soft app mention — "we built this into the app, link in bio if useful" |
+| **50%** | **None.** Post ends when the value ends. |
+| 30% | Engagement — "save this for your next report", "send to whoever manages your parents' health" |
+| 15% | Soft app mention — "we built this into the app, link in bio" |
 | 5% | Direct — "download I M Smrti" |
 
-So roughly **1 in 5 posts mentions the app at all**, and only 1 in 20 asks for the install. The bio does the heavy lifting.
+**≈1 in 5 posts mentions the app. 1 in 20 asks for the install.**
 
 ### Language
-Default: **simple Hinglish** — the same principle the app uses. Everyday spoken words, English for medical terms because that's what's printed on the report ("Hemoglobin kam hai" not "रक्ताल्पता"). Never textbook Hindi.
+**Simple Hinglish.** Everyday spoken words; English for medical terms because that's what's printed on the report — "Hemoglobin kam hai", never "रक्ताल्पता".
 
-### The safety rule — non-negotiable
-Never diagnose. Never prescribe a medicine or dose. Never tell someone to stop a medicine. Every post touching a condition ends on some version of *"show this to your doctor."* This is both the ethical line and your legal protection — and it's already how the app is written.
+### Safety rule — non-negotiable
+Never diagnose. Never prescribe a medicine or dose. Never tell anyone to stop a medicine. Anything touching a condition ends on *"show this to your doctor."* Ethical line and legal protection, and it's already how the app is written.
 
 ---
 
-## 10. THE DAILY LOOP
+## 13. THE DAILY LOOP
 
-### Morning — 5 minutes
-1. Open the **story bank**. Is there anything from yesterday — a report, a question someone asked, a myth you saw?
-2. If yes → that's today's post. Real beats planned, every time.
-3. If no → pull the next line from the **topic bank** (section 8).
+**Morning — 5 min**
+1. Open the story bank. Anything from yesterday — a report, a question, a myth?
+2. If yes → that's today's post. Real beats planned.
+3. If no → next line from the topic bank.
 4. Write only the hook. If the hook doesn't work, change the topic, not the hook.
 
-### Night — 5 minutes
-1. Add anything from the day to the **story bank** — one line is enough, don't write the post.
-2. Reply to every comment and DM from today's post. This is the actual growth engine early on.
-3. Note which post got saved or shared most this week. Saves matter more than likes for health content — a save means "I need this later," which is exactly the behaviour that precedes an install.
+**Night — 5 min**
+1. Add today's raw material to the story bank. One line is enough.
+2. Reply to every comment and DM. This is the growth engine early on.
+3. Note what got **saved** — saves matter more than likes here; a save means "I'll need this later", which is the behaviour that precedes an install.
 
-### Weekly — 20 minutes, Sunday
-- Pick next week's 4 topics from the bank so you're never deciding at 9 am
-- Move anything that performed well into a "make a version 2" list
-- Check: did more than 1 in 5 posts mention the app? If yes, correct it next week
+**Sunday — 20 min**
+- Pick next week's 4 topics so you're never deciding at 9 am
+- Move winners into a "make a version 2" list
+- Audit: did more than 1 in 5 posts mention the app? Correct next week.
 
 ---
 
-## What I could not write without you
+## Still open
 
-1. **The founder story** (section 5) — needs the real reason you built this
-2. **The differentiator** (section 3) — five questions there, answer them honestly and it will fall out
-3. **Real user stories** (section 5) — placeholder until you have actual users to quote. Do not fabricate these.
+- **Real user stories** — placeholder until you have users. Never fabricate.
+- **Face or no face** — see the note in chat. Your strongest material (4 am, the gym, your father) is personal and works far better with you on camera or at least your voice.
