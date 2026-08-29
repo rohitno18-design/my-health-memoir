@@ -117,6 +117,35 @@ Every single feature exists because it was a problem I personally hit while stan
 
 ---
 
+## 4b. ON CAMERA — you are the medium, not the message
+
+Your face is on it. The page is not. It's **I M Smrti**, not Rohit's page — and that difference has to be visible in the content, not just the handle.
+
+### The handoff rule (non-negotiable)
+**Every personal story must transfer to the viewer before it ends.** If a post is about you at the end, it's a personal-brand post. If it's about *them* at the end, it's a health post that used you as evidence.
+
+| ❌ Personal brand | ✅ Platform |
+|---|---|
+| "I wake up at 4 am. Discipline is everything." | "I wake at 4 am without an alarm — because I stopped trying to fix mornings and fixed my nights instead. **If you're fighting your alarm, you're solving the wrong end.**" |
+| "I lost weight in 3 months." | "In 3 months I added nothing to my diet. I only removed three things. **Try removing before you buy another supplement.**" |
+| "My father is 60 and started walking." | "My father is 60, 90 kg, and started morning walks. Here's what we're actually tracking — **and what you should track for your parent.**" |
+
+The last line of every personal story is *"here's what this means for you."*
+
+### Voice rules
+- Say **"we"** when it's the platform, **"I"** only when it's evidence
+- Never *"follow me"* — always *"save this"*, *"send this to whoever manages your parents' health"*
+- Answer comments as I M Smrti, not as a personality
+- No shirtless/physique shots, no gym flexing, no aesthetic transformation content. Your body is proof of a *method*, not the product.
+- Your business, money and personal-growth content does **not** appear here. Different page, different job.
+
+### Why this won't collide with your personal brand
+Your personal channel is about business, systems and your life. This one is about Indian health, and you appear only where your experience is *evidence for a health point*. Same face, different job — the way a founder appears in their company's content without it becoming their personal account.
+
+**One test before posting anything with you in it:** *would this post still make sense if a different person's face was on it?* If yes, it's platform content. If no, it belongs on your personal page.
+
+---
+
 ## 5. WHO YOU'RE SPEAKING TO CHANGES HOW YOU SPEAK
 
 Your insight from Q3, turned into a targeting rule. Same health truth, three different languages:
@@ -378,7 +407,113 @@ Never diagnose. Never prescribe a medicine or dose. Never tell anyone to stop a 
 
 ---
 
+## 14. THE PROFILE
+
+**Handle:** `@imsmrti`
+**Name field** (this is searchable — use keywords, not a tagline): `I M Smrti · Health for Indian Families`
+
+**Bio:**
+```
+Health, translated for Indian families.
+Reports · food · habits · your parents
+Not medical advice — always show your doctor
+↓ the app that reads your reports in Hindi
+```
+
+**Highlights** (each one a content pillar, so the profile teaches even without a post):
+`Reports` · `Medicines` · `Food` · `For Parents` · `Subtract` · `The App`
+
+**Grid discipline:** it must look like a *platform*, not a person. Aim for roughly 1 in 5 covers with your face on it. The rest: report screens, food, hands, text-led covers. If your face is on every tile, it reads as a personal page regardless of the name.
+
+**Visual system** — pick once, never change:
+- Same two fonts, same accent colour (use the app's), same cover layout
+- Every carousel: **Slide 1 hook → 2–6 content → last slide "show this to your doctor"**
+- Consistency matters more than beauty. A recognisable tile beats a pretty one.
+
+---
+
+## 15. THE FIRST 30 DAYS — 16 posts, in order
+
+**Sequencing principle:** a cold account has no right to your story yet. **Value earns attention; the story converts it.** So the founder story is post #4, not post #1 — by then people have seen you're useful, and the story lands on people already paying attention instead of strangers scrolling past.
+
+### Week 1 — establish competence
+| # | Format | Post | CTA |
+|---|---|---|---|
+| 1 | Carousel | **Prescription shorthand decoded** — OD, BD, TDS, HS, SOS, 1-0-1 | Save |
+| 2 | Reel | **"Boiled food is not health food"** — plant the flag | None |
+| 3 | Reel | **Vitamin D 8.4 when normal starts at 30** — what deficient really means | None |
+| 4 | Reel | **The founder story** (30s version) | None |
+
+### Week 2 — prove you can read the report
+| # | Format | Post | CTA |
+|---|---|---|---|
+| 5 | Reel | **HbA1c — three months of truth in one number** | Save |
+| 6 | Carousel | **Same medicine, ₹12 and ₹180** — generic vs brand + Jan Aushadhi | Share |
+| 7 | Reel | **"I wake at 4 am without an alarm"** — fix inputs, not outcomes | None |
+| 8 | Carousel | **Haemoglobin below 12 in women: common, not normal** | Send to someone |
+
+### Week 3 — the method and the food fight
+| # | Format | Post | CTA |
+|---|---|---|---|
+| 9 | Reel | **Stop adding supplements. Remove three things instead** | None |
+| 10 | Carousel | **Your dal-chawal is fine. Your portion isn't** | Save |
+| 11 | Reel | **SGPT raised and you don't drink? Fatty liver** | None |
+| 12 | Carousel | **Two hours waiting, five minutes with the doctor — how to use them** | 🔵 Soft app mention |
+
+### Week 4 — depth, parents, first direct ask
+| # | Format | Post | CTA |
+|---|---|---|---|
+| 13 | Reel | **Ghee isn't the villain. The quantity is** | None |
+| 14 | Carousel | **My father is 60, 90 kg, and just started walking** — what we track | Send to someone |
+| 15 | Reel | **No munching between meals** — smallest change, biggest result | None |
+| 16 | Reel | **Does anyone know your mother's blood group?** — emergency card | 🔴 Direct |
+
+**CTA audit:** 9 of 16 have no CTA, 5 engagement, 1 soft app, 1 direct. On target.
+
+---
+
+## 16. CAPTION ARCHITECTURE
+
+Same shape every time, so writing takes 6 minutes not 40:
+
+```
+[Hook line — same as the on-screen hook, repeated]
+
+[2–4 short lines of the actual value. Not a summary of the
+video — extra detail the video didn't have room for.]
+
+[The transfer: "If you / your parent has X, this is the
+one thing to check."]
+
+[CTA or nothing]
+
+Not medical advice. Always show your reports to your doctor.
+```
+
+**Hashtags:** 5–8, not 30. Mix broad and specific:
+`#indianhealth #healthawareness #labreport #vitamind #indianfood #caregiving #healthyindia`
+
+---
+
+## 17. WHAT TO MEASURE
+
+Ignore followers for the first 90 days. Track four things weekly:
+
+| Metric | Why | Target by day 90 |
+|---|---|---|
+| **Saves per post** | "I'll need this later" — the behaviour that precedes an install | Rising trend; top posts 5%+ of reach |
+| **Sends/shares** | Someone thought of a specific person. Strongest possible signal for a family-health product | 2–3%+ on caregiver posts |
+| **DM questions** | Every report question is a future user *and* free content research | 5+/week |
+| **Profile → link taps** | The only conversion number that matters | Rising, even if small |
+
+**The one number that would tell you it's working:** *strangers DMing you photos of their reports.* When that starts, the positioning has landed — you've become the person they call.
+
+Reviewed monthly, not daily. Health content compounds slowly.
+
+---
+
 ## Still open
 
-- **Real user stories** — placeholder until you have users. Never fabricate.
-- **Face or no face** — see the note in chat. Your strongest material (4 am, the gym, your father) is personal and works far better with you on camera or at least your voice.
+- **Real user stories** — placeholder until you have users. Never fabricate testimonials in health.
+- **Nutrition depth** — see the risk note: stay on habit/timing/swaps, off nutrition science you can't source.
+
