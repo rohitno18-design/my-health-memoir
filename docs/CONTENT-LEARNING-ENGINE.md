@@ -148,7 +148,19 @@ Log it (template below), then when you next sit down to film, you already have a
 
 ## 7. THE LEARNING LOG
 
-Every lesson gets logged in `docs/LEARNING-LOG.md` — short, your own words, dated. It's already started with today's entry so you can see the shape of it. Over time this becomes something bigger than a content pipeline: a written record of two men's health, one just starting, one 22 years in, in the same house.
+Every lesson gets logged in `docs/learning/LEARNING-LOG.md` — short, your own words, dated. It's already started with today's entry so you can see the shape of it. Over time this becomes something bigger than a content pipeline: a written record of two men's health, one just starting, one 22 years in, in the same house.
+
+**The machinery that runs this loop is in `docs/learning/`:**
+
+| File | What it holds |
+|---|---|
+| `CURRICULUM.md` | All 275 lessons, numbered permanently |
+| `PROGRESS.md` | What's been **taught** — position, dates, counters |
+| `CONTENT-TRACKER.md` | What's been **posted** — deliberately separate |
+| `LEARNING-LOG.md` | His own words on each lesson |
+| `BOOK/` | The permanent book, filed by part |
+
+Two commands drive it: **`/learn`** (the tutor session) and **`/content`** (turning the backlog into posts).
 
 **Log format, kept deliberately short:**
 ```
